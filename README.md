@@ -2,7 +2,7 @@
 
 > A highly customizable, beautiful, and responsive personal profile/biolink page built with Next.js, Tailwind CSS, and Framer Motion. Inspired by premium bio services.
 
-![Preview Placeholder](https://files.catbox.moe/tczkrb.png)
+![Preview Placeholder](https://camo.githubusercontent.com/63d1ba2074a4ba6565a5189b77d864683274def6303fd2234bd479bf0f1f7be1/68747470733a2f2f66696c65732e636174626f782e6d6f652f74637a6b72622e706e67)
 
 ## ✨ Features
 
