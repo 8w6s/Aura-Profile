@@ -39,8 +39,8 @@
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/yourusername/aura-profile.git
-    cd aura-profile
+    git clone https://github.com/8w6s/Aura-Profile.git
+    cd Aura-Profile
     ```
 
 2.  **Install dependencies:**
