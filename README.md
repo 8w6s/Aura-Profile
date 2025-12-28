@@ -2,7 +2,7 @@
 
 > A highly customizable, beautiful, and responsive personal profile/biolink page built with Next.js, Tailwind CSS, and Framer Motion. Inspired by premium bio services.
 
-![Preview Placeholder](https://via.placeholder.com/1200x600?text=Aura+Profile+Preview)
+![Preview Placeholder](https://files.catbox.moe/tczkrb.png)
 
 ## ✨ Features
 
