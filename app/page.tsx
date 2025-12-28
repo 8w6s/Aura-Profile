@@ -41,6 +41,8 @@ import { useLanyard } from '@/hooks/useLanyard';
 import RichPresence from '@/components/RichPresence';
 import WakaTimeStats from '@/components/WakaTimeStats';
 import PostDownloadButton from '@/components/PostDownloadButton';
+import PostAttachments from '@/components/PostAttachments';
+import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
   const { profile, updateProfile, refreshProfile } = useProfile();

@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const config = {
-  api: {
-    bodyParser: false, // Disallow body parsing, consume as stream
-  },
-};
-
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();

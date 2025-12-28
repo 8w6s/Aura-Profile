@@ -9,7 +9,7 @@ import FileUploader from '@/components/FileUploader';
 import { useProfile } from '@/app/context/ProfileContext';
 import { useToast } from '@/app/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
-import { ArrowLeft, Plus, Trash2, Save, RotateCcw, Loader2, Music, GripVertical, PlayCircle, ChevronUp, ChevronDown, Layout, Share2, MessageSquare, Image as ImageIcon, Type, Eye, Settings, Info, ExternalLink, Reply, Github, Globe, Puzzle, Search, Filter, Calendar, ThumbsUp, MessageCircle, Clock, File, Download } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, RotateCcw, Loader2, Music, GripVertical, PlayCircle, ChevronUp, ChevronDown, Layout, Share2, MessageSquare, Image as ImageIcon, Type, Eye, EyeOff, Settings, Info, ExternalLink, Reply, Github, Globe, Puzzle, Search, Filter, Calendar, ThumbsUp, MessageCircle, Clock, File, Download } from 'lucide-react';
 import Link from 'next/link';
 import { SocialPlatform } from '@/app/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -157,7 +157,7 @@ export default function AdminPage() {
         });
     };
 
-    const handlePostChange = (index: number, field: string, value: string | number) => {
+    const handlePostChange = (index: number, field: string, value: string | number | boolean) => {
         setFormData(prev => {
             const newPosts = [...(prev.posts || [])];
             newPosts[index] = { ...newPosts[index], [field]: value };
@@ -234,6 +234,7 @@ export default function AdminPage() {
                 integrations: {
                     ...prev.integrations,
                     hoyoverse: {
+                        enabled: prev.integrations?.hoyoverse?.enabled ?? false,
                         ...prev.integrations?.hoyoverse,
                         accounts: newAccounts
                     }
@@ -341,12 +342,13 @@ export default function AdminPage() {
         }));
     };
 
-    const handleIntegrationChange = (platform: 'spotify' | 'osu' | 'hoyoverse' | 'steam', field: string, value: any) => {
+    const handleIntegrationChange = (platform: 'spotify' | 'osu' | 'hoyoverse' | 'steam' | 'wakatime' | 'leetcode' | 'catbox' | 'github', field: string, value: any) => {
         setFormData(prev => ({
             ...prev,
             integrations: {
                 ...prev.integrations,
                 [platform]: {
+                    enabled: prev.integrations?.[platform]?.enabled ?? false,
                     ...prev.integrations?.[platform],
                     [field]: value
                 }
@@ -360,6 +362,7 @@ export default function AdminPage() {
             integrations: {
                 ...prev.integrations,
                 wakatime: {
+                    enabled: prev.integrations?.wakatime?.enabled ?? false,
                     ...prev.integrations?.wakatime,
                     [field]: value
                 }
@@ -373,6 +376,7 @@ export default function AdminPage() {
             integrations: {
                 ...prev.integrations,
                 leetcode: {
+                    enabled: prev.integrations?.leetcode?.enabled ?? false,
                     ...prev.integrations?.leetcode,
                     [field]: value
                 }
@@ -382,16 +386,21 @@ export default function AdminPage() {
 
     const handleSkillsChange = (index: number, field: string, value: any) => {
         const newSkills = [...(formData.skills || [])];
+        let currentSkill = newSkills[index];
+
+        if (!currentSkill) return;
+
         // Auto-migrate string to object if needed
-        if (typeof newSkills[index] === 'string') {
-             newSkills[index] = { 
+        if (typeof currentSkill === 'string') {
+             currentSkill = { 
                  id: Date.now().toString(), 
-                 name: newSkills[index] as unknown as string, 
+                 name: currentSkill as unknown as string, 
                  percentage: 80, 
                  type: 'other' 
              } as any;
         }
-        newSkills[index] = { ...newSkills[index], [field]: value };
+        
+        newSkills[index] = { ...(currentSkill as any), [field]: value };
         setFormData(prev => ({ ...prev, skills: newSkills }));
     };
 
@@ -458,6 +467,8 @@ export default function AdminPage() {
             ...prev,
             typewriterBio: {
                 enabled: prev.typewriterBio?.enabled ?? false,
+                loop: prev.typewriterBio?.loop ?? false,
+                lines: prev.typewriterBio?.lines ?? [],
                 ...prev.typewriterBio,
                 [field]: value
             }
@@ -486,6 +497,7 @@ export default function AdminPage() {
             ...prev,
             cursor: {
                 enabled: prev.cursor?.enabled ?? false,
+                effect: prev.cursor?.effect ?? false,
                 ...prev.cursor,
                 [field]: value
             }
@@ -670,14 +682,63 @@ export default function AdminPage() {
                                 </div>
 
                                 <div className="space-y-2 mt-4">
-                                    <label className="text-sm text-gray-400">Skills (Comma separated)</label>
-                                    <textarea
-                                        value={formData.skills?.join(', ') || ''}
-                                        onChange={(e) => handleSkillsChange(e.target.value)}
-                                        rows={2}
-                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
-                                        placeholder="React, Node.js, Docker..."
-                                    />
+                                    <div className="flex justify-between items-center mb-2">
+                                        <label className="text-sm text-gray-400">Skills & Proficiency</label>
+                                        <button onClick={addSkill} className="text-xs text-indigo-400 hover:text-white flex items-center gap-1">
+                                            <Plus size={14} /> Add Skill
+                                        </button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {formData.skills?.map((skill, index) => {
+                                            // Handle string legacy
+                                            const name = typeof skill === 'string' ? skill : skill.name;
+                                            const percent = typeof skill === 'string' ? 80 : skill.percentage;
+                                            const type = typeof skill === 'string' ? 'other' : skill.type;
+                                            
+                                            return (
+                                                <div key={typeof skill === 'string' ? index : skill.id} className="bg-black/20 p-3 rounded-lg border border-white/5 flex gap-3 items-center">
+                                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-3">
+                                                        <input 
+                                                            value={name} 
+                                                            onChange={(e) => handleSkillsChange(index, 'name', e.target.value)} 
+                                                            className="bg-black/40 border border-white/10 rounded-lg p-2 text-sm" 
+                                                            placeholder="Skill Name"
+                                                        />
+                                                        <div className="flex items-center gap-2">
+                                                            <input 
+                                                                type="range" 
+                                                                min="0" 
+                                                                max="100" 
+                                                                value={percent} 
+                                                                onChange={(e) => handleSkillsChange(index, 'percentage', parseInt(e.target.value))} 
+                                                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                                            />
+                                                            <span className="text-xs text-gray-400 w-8">{percent}%</span>
+                                                        </div>
+                                                        <CustomSelect
+                                                            value={type || 'other'}
+                                                            onChange={(val) => handleSkillsChange(index, 'type', val)}
+                                                            options={[
+                                                                { value: "frontend", label: "Frontend" },
+                                                                { value: "backend", label: "Backend" },
+                                                                { value: "devops", label: "DevOps" },
+                                                                { value: "mobile", label: "Mobile" },
+                                                                { value: "language", label: "Language" },
+                                                                { value: "tool", label: "Tool" },
+                                                                { value: "other", label: "Other" }
+                                                            ]}
+                                                        />
+                                                    </div>
+                                                    <button onClick={() => removeSkill(index)} className="text-red-400 hover:text-red-300 p-1"><Trash2 size={16}/></button>
+                                                </div>
+                                            );
+                                        })}
+                                        {(!formData.skills || formData.skills.length === 0) && (
+                                            <div className="text-center py-4 text-gray-500 text-sm border border-dashed border-white/10 rounded-lg">
+                                                No skills added.
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/10">

@@ -51,6 +51,7 @@ export interface Post {
   likedIps?: string[];
   comments: Comment[];
   attachments?: string[];
+  hidden?: boolean;
 }
 
 export interface ThemeConfig {
@@ -173,9 +174,10 @@ export interface FileData {
 
 export interface ProfileData {
   name: string;
+  adminName?: string;
   role: string;
   location: string;
-  skills?: string[];
+  skills?: Skill[];
   timezone?: string;
   timeFormat?: string;
   email: string;
