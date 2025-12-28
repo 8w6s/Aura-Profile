@@ -1,0 +1,6 @@
+{
+  "css.customData": ["https://raw.githubusercontent.com/tailwindcss/tailwindcss/refs/heads/next/packages/tailwindcss/schema.json"],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}

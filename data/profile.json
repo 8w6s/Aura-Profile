@@ -1,0 +1,209 @@
+{
+  "name": "さとう",
+  "role": "DevOps",
+  "location": "Japan",
+  "email": "satoharuki2321@proton.me",
+  "discordId": "1392815904420532246",
+  "uid": "2321",
+  "avatarUrl": "https://cdn.discordapp.com/avatars/1392815904420532246/b31724c0d87433e9eacc727f0ea1ac2c.png?size=1024",
+  "bannerUrl": "https://cdn.discordapp.com/banners/1392815904420532246/a_61672facc19f24ed4b8f8c2bc9d04e42.gif?size=512",
+  "bio": "Not things",
+  "skills": [
+    "React",
+    "Next.js",
+    "TypeScript",
+    "Node.js",
+    "Tailwind CSS",
+    "Docker",
+    "Kubernetes",
+    "AWS",
+    "Go",
+    "Python"
+  ],
+  "timezone": "Asia/Tokyo",
+  "timeFormat": "HH:mm:ss",
+  "typewriterBio": {
+    "enabled": true,
+    "loop": true,
+    "lines": [
+      {
+        "id": "1766867320304",
+        "text": "この世界はコードと締め切りで溢れている",
+        "typeSpeed": 100,
+        "deleteSpeed": 50
+      },
+      {
+        "id": "1766867330498",
+        "text": "好きなものを、好きなもので、好きなように作る",
+        "typeSpeed": 100,
+        "deleteSpeed": 50
+      }
+    ]
+  },
+  "cursor": {
+    "enabled": true,
+    "effect": true,
+    "customUrl": ""
+  },
+  "stats": {
+    "posts": 104,
+    "likes": 41000,
+    "comments": 12000,
+    "views": 20,
+    "viewedIps": [
+      "::ffff:192.168.1.4",
+      "::1"
+    ]
+  },
+  "engagement": {
+    "comments": "12K",
+    "saved": "2K"
+  },
+  "socials": [
+    {
+      "platform": "github",
+      "url": "https://github.com/8w6s",
+      "enabled": true
+    }
+  ],
+  "directLinks": [],
+  "files": [
+    {
+      "id": "1766912441147",
+      "name": "mikuspin.gif",
+      "url": "https://files.catbox.moe/6aztwt.gif",
+      "downloadCount": 0
+    },
+    {
+      "id": "1766912962773",
+      "name": "mikuspin.gif",
+      "url": "/assets/1766912962754-mikuspin.gif",
+      "downloadCount": 0,
+      "source": "local"
+    }
+  ],
+  "playlist": [
+    {
+      "id": "1",
+      "title": "人マニア",
+      "artist": "原口沙輔",
+      "url": "https://files.catbox.moe/sbhx1j.mp3",
+      "coverUrl": "https://images.genius.com/2a5a7483c3754de0df21b15583072b56.1000x1000x1.png"
+    }
+  ],
+  "musicConfig": {
+    "autoplay": true,
+    "volume": 0.5,
+    "loop": true
+  },
+  "enterScreen": {
+    "title": "click to enter...",
+    "show": true,
+    "backgroundUrl": "",
+    "buttonText": ""
+  },
+  "posts": [
+    {
+      "id": "1766823478084",
+      "title": "test",
+      "content": "ssâsâsâsâsá",
+      "imageUrl": "https://cdn.discordapp.com/banners/1392815904420532246/a_61672facc19f24ed4b8f8c2bc9d04e42.gif?size=512",
+      "date": "2025-12-27",
+      "likes": 6,
+      "views": 2,
+      "comments": [
+        {
+          "id": "1766823517444",
+          "author": "s",
+          "content": "a",
+          "date": "2025-12-27T08:18:37.444Z"
+        }
+      ],
+      "viewedIps": [
+        "::1",
+        "::ffff:192.168.1.4"
+      ],
+      "attachments": [
+        "1766912962773",
+        "1766912441147"
+      ],
+      "likedIps": [
+        "::ffff:192.168.1.4"
+      ]
+    }
+  ],
+  "theme": {
+    "primaryColor": "#09b0ff",
+    "accentColor": "#a2ffe8",
+    "textColor": "#ffffff",
+    "backgroundColor": "#000000",
+    "backgroundImageUrl": "https://static0.srcdn.com/wordpress/wp-content/uploads/2025/10/honkai-star-rail-cyrene-best-builds-light-cones-team-comps-relics-stats-heart.jpg?w=1600&h=900&fit=crop",
+    "enterScreenBlur": 16,
+    "cardBlur": 20,
+    "cardOpacity": 0.4,
+    "cardColor": "#000000",
+    "componentColor": "rgba(255, 255, 255, 0.05)",
+    "backgroundEffect": "noise",
+    "fontFamily": "Outfit"
+  },
+  "features": {
+    "showLikes": true,
+    "showComments": true,
+    "showViews": true,
+    "allowComments": true,
+    "allowLikes": true,
+    "enableEnterScreen": true
+  },
+  "textEffects": {
+    "name": "glow",
+    "role": "typewriter",
+    "bio": "none"
+  },
+  "projects": [],
+  "metadata": {
+    "title": "8w6s",
+    "description": "Personal profile of 8w6s",
+    "iconUrl": "https://cdn.discordapp.com/avatars/1392815904420532246/b31724c0d87433e9eacc727f0ea1ac2c.png?size=1024",
+    "ogImageUrl": "https://cdn.discordapp.com/banners/1392815904420532246/a_61672facc19f24ed4b8f8c2bc9d04e42.gif?size=512",
+    "enableTypewriter": true
+  },
+  "github": {
+    "username": "8w6s",
+    "showContributions": true,
+    "enabled": true,
+    "pinnedRepo": "8w6s/8w6s"
+  },
+  "integrations": {
+    "hoyoverse": {
+      "enabled": true,
+      "accounts": [
+        {
+          "id": "1",
+          "game": "hsr",
+          "uid": "837238315"
+        }
+      ]
+    },
+    "wakatime": {
+      "enabled": false,
+      "username": "8w6s"
+    },
+    "leetcode": {
+      "enabled": false,
+      "username": ""
+    },
+    "steam": {
+      "enabled": false
+    },
+    "catbox": {
+      "enabled": true,
+      "userHash": "b46bd591bd9eca196c69d352d"
+    },
+    "spotify": {
+      "enabled": false
+    },
+    "osu": {
+      "enabled": false
+    }
+  }
+}
