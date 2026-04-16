@@ -2,14 +2,17 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useProfile } from '@/app/context/ProfileContext';
+import { usePerformanceMode } from '@/hooks/usePerformanceMode';
 
 export default function BackgroundEffects() {
   const { profile } = useProfile();
+  const { mode, isMinimal } = usePerformanceMode();
   const effect = profile.theme?.backgroundEffect || 'noise';
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (effect !== 'rain' && effect !== 'snow') return;
+    if (isMinimal) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -18,7 +21,10 @@ export default function BackgroundEffects() {
     if (!ctx) return;
 
     let animationFrameId: number;
+    let lastFrameTime = 0;
     let particles: Array<{ x: number; y: number; speed: number; length?: number; size?: number }> = [];
+    const targetFps = mode === 'balanced' ? 30 : 60;
+    const frameDuration = 1000 / targetFps;
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -27,7 +33,9 @@ export default function BackgroundEffects() {
 
     const createParticles = () => {
       particles = [];
-      const count = effect === 'rain' ? 100 : 50;
+      const count = effect === 'rain'
+        ? mode === 'balanced' ? 55 : 90
+        : mode === 'balanced' ? 30 : 50;
       for (let i = 0; i < count; i++) {
         particles.push({
           x: Math.random() * canvas.width,
@@ -39,8 +47,20 @@ export default function BackgroundEffects() {
       }
     };
 
-    const draw = () => {
+    const draw = (timestamp: number) => {
       if (!ctx || !canvas) return;
+
+      if (document.hidden) {
+        animationFrameId = requestAnimationFrame(draw);
+        return;
+      }
+
+      if (timestamp - lastFrameTime < frameDuration) {
+        animationFrameId = requestAnimationFrame(draw);
+        return;
+      }
+
+      lastFrameTime = timestamp;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
@@ -75,7 +95,7 @@ export default function BackgroundEffects() {
 
     resize();
     createParticles();
-    draw();
+    animationFrameId = requestAnimationFrame(draw);
 
     window.addEventListener('resize', resize);
 
@@ -83,13 +103,13 @@ export default function BackgroundEffects() {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [effect]);
+  }, [effect, isMinimal, mode]);
 
   return (
     <>
       {effect === 'noise' && <div className="noise-bg" />}
-      <div className="fixed inset-0 pointer-events-none z-[100] crt" />
-      {(effect === 'rain' || effect === 'snow') && (
+      {!isMinimal && <div className="fixed inset-0 pointer-events-none z-[100] crt" />}
+      {!isMinimal && (effect === 'rain' || effect === 'snow') && (
         <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />
       )}
     </>

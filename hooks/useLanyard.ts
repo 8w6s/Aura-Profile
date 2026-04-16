@@ -1,5 +1,19 @@
 import { useState, useEffect } from 'react';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
+const reportClientError = (...args: unknown[]) => {
+  if (isDev) {
+    console.error(...args);
+  }
+};
+
+const reportClientInfo = (...args: unknown[]) => {
+  if (isDev) {
+    console.info(...args);
+  }
+};
+
 export interface LanyardData {
   discord_status: 'online' | 'idle' | 'dnd' | 'offline';
   active_on_discord_mobile?: boolean;
@@ -56,18 +70,18 @@ export interface LanyardData {
 
 interface LanyardMessage {
   op: number;
-  d: any;
+  d: unknown;
   t?: string;
 }
 
 export function useLanyard(discordId?: string) {
   const [data, setData] = useState<LanyardData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!discordId) {
-      setLoading(false);
+      setData(null);
+      setError(null);
       return;
     }
 
@@ -78,7 +92,7 @@ export function useLanyard(discordId?: string) {
       socket = new WebSocket('wss://api.lanyard.rest/socket');
 
       socket.onopen = () => {
-        console.log('Lanyard WebSocket connected');
+        reportClientInfo('Lanyard WebSocket connected');
       };
 
       socket.onmessage = (event) => {
@@ -95,32 +109,30 @@ export function useLanyard(discordId?: string) {
               if (heartbeatInterval) clearInterval(heartbeatInterval);
               heartbeatInterval = setInterval(() => {
                 socket?.send(JSON.stringify({ op: 3 }));
-              }, message.d.heartbeat_interval);
+              }, (message.d as { heartbeat_interval: number }).heartbeat_interval);
               break;
 
             case 0:
               if (message.t === 'INIT_STATE' || message.t === 'PRESENCE_UPDATE') {
-                setData(message.d);
-                setLoading(false);
+                setData(message.d as LanyardData);
                 setError(null);
               }
               break;
           }
         } catch (err) {
-          console.error('Error parsing Lanyard message:', err);
+          reportClientError('Error parsing Lanyard message:', err);
         }
       };
 
       socket.onclose = () => {
-        console.log('Lanyard WebSocket closed');
+        reportClientInfo('Lanyard WebSocket closed');
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         setTimeout(connect, 5000);
       };
 
       socket.onerror = (err) => {
-        console.error('Lanyard WebSocket error:', err);
+        reportClientError('Lanyard WebSocket error:', err);
         setError('Connection failed');
-        setLoading(false);
       };
     };
 
@@ -133,7 +145,7 @@ export function useLanyard(discordId?: string) {
           setError(null);
         }
       } catch (err) {
-        console.error('Initial Lanyard fetch failed:', err);
+        reportClientError('Initial Lanyard fetch failed:', err);
       }
     };
 
@@ -145,6 +157,8 @@ export function useLanyard(discordId?: string) {
       if (socket) socket.close();
     };
   }, [discordId]);
+
+  const loading = Boolean(discordId) && data === null && error === null;
 
   return { data, loading, error };
 }

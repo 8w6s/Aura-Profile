@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
+const reportServerError = (...args: unknown[]) => {
+  if (isDev) {
+    console.error(...args);
+  }
+};
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -21,7 +29,7 @@ export async function POST(req: NextRequest) {
     const uploadDir = path.join(process.cwd(), 'public', 'assets');
     try {
         await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
+    } catch {
         // Ignore error if directory exists
     }
 
@@ -33,7 +41,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(publicUrl, { status: 200 });
 
   } catch (error) {
-    console.error('Local upload error:', error);
+    reportServerError('Local upload error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

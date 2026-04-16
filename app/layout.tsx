@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ProfileProvider } from "./context/ProfileContext";
 import { ToastProvider } from "./context/ToastContext";
+import { headers } from "next/headers";
+import { getConfig } from "@/utils/config";
+import { redirect } from "next/navigation";
 import profileData from "@/data/profile.json";
 
 const geistSans = Geist({
@@ -28,11 +31,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const reqHeaders = await headers();
+  const currentPath = reqHeaders.get('x-pathname') || '';
+  const isSetupRoute = currentPath.startsWith('/setup');
+
+  const config = getConfig();
+
+  if (!isSetupRoute) {
+    if (!config || !config.NEXT_PUBLIC_SUPABASE_URL || !config.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      redirect('/setup');
+    }
+  } else {
+    if (config && config.NEXT_PUBLIC_SUPABASE_URL && config.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      redirect('/');
+    }
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ColorPicker from '@/components/ColorPicker';
 import IconPicker from '@/components/IconPicker';
 import CustomRange from '@/components/CustomRange';
@@ -9,10 +9,11 @@ import FileUploader from '@/components/FileUploader';
 import { useProfile } from '@/app/context/ProfileContext';
 import { useToast } from '@/app/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
-import { ArrowLeft, Plus, Trash2, Save, RotateCcw, Loader2, Music, GripVertical, PlayCircle, ChevronUp, ChevronDown, Layout, Share2, MessageSquare, Image as ImageIcon, Type, Eye, EyeOff, Settings, Info, ExternalLink, Reply, Github, Globe, Puzzle, Search, Filter, Calendar, ThumbsUp, MessageCircle, Clock, File, Download } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, RotateCcw, Loader2, Music, GripVertical, PlayCircle, ChevronUp, ChevronDown, Layout, Share2, MessageSquare, Image as ImageIcon, Type, Eye, EyeOff, Settings, Info, ExternalLink, Reply, Github, Globe, Puzzle, Search, Filter, Calendar, ThumbsUp, MessageCircle, Clock, File, Upload, Download } from 'lucide-react';
 import Link from 'next/link';
-import { SocialPlatform } from '@/app/context/ProfileContext';
+import { LayoutSectionId, SectionWidthPreset } from '@/app/context/ProfileContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { sanitizeCustomCss } from '@/components/ContentEnhancements';
 
 import TypewriterBio from '@/components/TypewriterBio';
 
@@ -44,31 +45,281 @@ const HighlightText = ({ text, highlight }: { text: string, highlight: string })
     }
 };
 
+const themeQuickPresets = [
+    {
+        id: 'midnight',
+        label: 'Midnight Blue',
+        values: {
+            primaryColor: '#6366f1',
+            accentColor: '#a855f7',
+            textColor: '#f8fafc',
+            backgroundColor: '#020617',
+            cardColor: '#0f172a',
+            componentColor: 'rgba(255, 255, 255, 0.05)',
+            buttonColor: '#6366f1',
+            socialButtonStyle: 'glass',
+            avatarGlow: true,
+        }
+    },
+    {
+        id: 'hacker',
+        label: 'Hacker Green',
+        values: {
+            primaryColor: '#22c55e',
+            accentColor: '#10b981',
+            textColor: '#e2e8f0',
+            backgroundColor: '#052e16',
+            cardColor: '#064e3b',
+            componentColor: 'rgba(34, 197, 94, 0.1)',
+            buttonColor: '#22c55e',
+            socialButtonStyle: 'outline',
+            avatarGlow: true,
+        }
+    },
+    {
+        id: 'rose',
+        label: 'Rose Gold',
+        values: {
+            primaryColor: '#f43f5e',
+            accentColor: '#fbbf24',
+            textColor: '#fff1f2',
+            backgroundColor: '#4c0519',
+            cardColor: '#881337',
+            componentColor: 'rgba(244, 63, 94, 0.1)',
+            buttonColor: '#f43f5e',
+            socialButtonStyle: 'solid',
+            avatarGlow: false,
+        }
+    }
+];
+
 export default function AdminPage() {
-    const { profile, updateProfile, resetProfile, isLoading } = useProfile();
+    const {
+        profile,
+        saveDraft,
+        publishDraft,
+        rollbackToRevision,
+        resetProfile,
+        workflow,
+        isLoading,
+    } = useProfile();
     const { showToast } = useToast();
     const [formData, setFormData] = useState(profile);
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-    const [activeTab, setActiveTab] = useState<'general' | 'socials' | 'posts' | 'projects' | 'library' | 'theme' | 'music' | 'metadata' | 'integrations' | 'settings'>('general');
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'publishing' | 'saved' | 'error'>('idle');
+    const [activeTab, setActiveTab] = useState<'general' | 'layout' | 'socials' | 'posts' | 'projects' | 'library' | 'theme' | 'music' | 'metadata' | 'integrations' | 'settings'>('general');
     const [previewPostId, setPreviewPostId] = useState<string | null>(null);
     const [showResetModal, setShowResetModal] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [uploadMode, setUploadMode] = useState<'catbox' | 'local'>('catbox');
+    const [selectedRevisionId, setSelectedRevisionId] = useState('');
+    const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [postSearch, setPostSearch] = useState('');
     const [postFilter, setPostFilter] = useState<'all' | 'recent' | 'oldest' | 'top-liked' | 'has-comments'>('all');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [draggingSectionId, setDraggingSectionId] = useState<LayoutSectionId | null>(null);
+    const [scheduledBackupMinutes, setScheduledBackupMinutes] = useState<number>(0);
+    const latestFormDataRef = useRef(formData);
+
+    const cssSnippetLibrary = [
+        {
+            id: 'glass-card',
+            label: 'Glass Card Boost',
+            css: '.profile-card {\n  border: 1px solid rgba(255,255,255,.16);\n  box-shadow: 0 12px 30px rgba(0,0,0,.35);\n}',
+        },
+        {
+            id: 'neon-accent',
+            label: 'Neon Accent',
+            css: ':root {\n  --primary: #35d7ff;\n  --accent: #ff4fd8;\n}\n\n.effect-glow {\n  text-shadow: 0 0 12px var(--primary), 0 0 24px var(--accent);\n}',
+        },
+        {
+            id: 'compact-spacing',
+            label: 'Compact Spacing',
+            css: '.profile-layout .content-stack {\n  gap: 1rem !important;\n}\n\n.profile-layout .content-stack > * {\n  margin-bottom: 0 !important;\n}',
+        },
+    ];
+
+    const formatPxOrOff = (value: number | undefined, fallback: number) => {
+        const resolved = value ?? fallback;
+        return resolved === 0 ? 'Off' : `${resolved}px`;
+    };
+
+    const defaultLayoutOrder: LayoutSectionId[] = ['hero', 'links', 'overview', 'projects', 'posts', 'integrations'];
+
+    const sectionLabels: Record<LayoutSectionId, string> = {
+        hero: 'Profile Hero',
+        links: 'Quick Links',
+        overview: 'Overview Cards',
+        projects: 'Projects',
+        posts: 'Blog / Posts',
+        integrations: 'Integrations',
+    };
+
+    const sectionWidthLabels: Record<SectionWidthPreset, string> = {
+        compact: 'Compact',
+        default: 'Default',
+        wide: 'Wide',
+        full: 'Full',
+    };
+
+    const resolveLayoutOrder = () => {
+        const configuredOrder = formData.layout?.sectionOrder?.filter((section): section is LayoutSectionId => defaultLayoutOrder.includes(section as LayoutSectionId));
+        const merged = [...(configuredOrder || []), ...defaultLayoutOrder.filter((section) => !(configuredOrder || []).includes(section))];
+        return merged.length > 0 ? merged : defaultLayoutOrder;
+    };
+
+    const updateLayout = (updater: (current: NonNullable<typeof formData.layout>) => NonNullable<typeof formData.layout>) => {
+        setFormData((prev) => ({
+            ...prev,
+            layout: updater(prev.layout || { sectionOrder: defaultLayoutOrder, hiddenSections: [], sectionWidths: {}, postLayout: 'grid', projectLayout: 'grid' }),
+        }));
+    };
+
+    const moveLayoutSection = (sectionId: LayoutSectionId, direction: 'up' | 'down') => {
+        updateLayout((current) => {
+            const order = [...(current.sectionOrder?.length ? current.sectionOrder : defaultLayoutOrder)];
+            const index = order.indexOf(sectionId);
+            if (index === -1) {
+                return { ...current, sectionOrder: order };
+            }
+
+            const targetIndex = direction === 'up' ? index - 1 : index + 1;
+            if (targetIndex < 0 || targetIndex >= order.length) {
+                return current;
+            }
+
+            [order[index], order[targetIndex]] = [order[targetIndex], order[index]];
+            return { ...current, sectionOrder: order };
+        });
+    };
+
+    const reorderLayoutSection = (sourceId: LayoutSectionId, targetId: LayoutSectionId) => {
+        if (sourceId === targetId) {
+            return;
+        }
+
+        updateLayout((current) => {
+            const order = [...(current.sectionOrder?.length ? current.sectionOrder : defaultLayoutOrder)];
+            const fromIndex = order.indexOf(sourceId);
+            const toIndex = order.indexOf(targetId);
+
+            if (fromIndex === -1 || toIndex === -1) {
+                return current;
+            }
+
+            order.splice(fromIndex, 1);
+            order.splice(toIndex, 0, sourceId);
+            return { ...current, sectionOrder: order };
+        });
+    };
+
+    const toggleLayoutSection = (sectionId: LayoutSectionId) => {
+        updateLayout((current) => {
+            const hiddenSections = current.hiddenSections || [];
+            return {
+                ...current,
+                hiddenSections: hiddenSections.includes(sectionId)
+                    ? hiddenSections.filter((item) => item !== sectionId)
+                    : [...hiddenSections, sectionId],
+            };
+        });
+    };
+
+    const setSectionWidth = (sectionId: LayoutSectionId, width: SectionWidthPreset) => {
+        updateLayout((current) => ({
+            ...current,
+            sectionWidths: {
+                ...(current.sectionWidths || {}),
+                [sectionId]: width,
+            },
+        }));
+    };
+
+    const setLayoutMode = (field: 'postLayout' | 'projectLayout', value: 'grid' | 'list') => {
+        updateLayout((current) => ({
+            ...current,
+            [field]: value,
+        }));
+    };
+
+    const handleCustomCssChange = (value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            customCss: value,
+        }));
+    };
+
+    const appendCssSnippet = (snippetCss: string) => {
+        setFormData((prev) => {
+            const baseCss = prev.customCss?.trim();
+            const mergedCss = baseCss ? `${baseCss}\n\n${snippetCss}` : snippetCss;
+
+            return {
+                ...prev,
+                customCss: mergedCss,
+            };
+        });
+    };
+
+    const triggerImport = () => {
+        importFileInputRef.current?.click();
+    };
+
+    const createLocalBackupSnapshot = (reason: 'manual' | 'scheduled') => {
+        try {
+            const key = 'aura-profile-snapshots';
+            const existing = JSON.parse(localStorage.getItem(key) || '[]') as Array<{ id: string; createdAt: string; profile: unknown; reason: string }>;
+            const snapshot = {
+                id: `snapshot-${Date.now()}`,
+                createdAt: new Date().toISOString(),
+                profile: latestFormDataRef.current,
+                reason,
+            };
+            const nextSnapshots = [snapshot, ...existing].slice(0, 20);
+            localStorage.setItem(key, JSON.stringify(nextSnapshots));
+            localStorage.setItem('aura-profile-last-snapshot', JSON.stringify(snapshot));
+            return snapshot;
+        } catch {
+            return null;
+        }
+    };
+
+    const downloadLatestLocalSnapshot = () => {
+        const raw = localStorage.getItem('aura-profile-last-snapshot');
+        if (!raw) {
+            showToast('No local snapshot found.', 'info');
+            return;
+        }
+
+        try {
+            const snapshot = JSON.parse(raw) as { createdAt?: string; profile?: unknown };
+            const createdAt = snapshot.createdAt || new Date().toISOString();
+            const blob = new Blob([JSON.stringify(snapshot.profile || formData, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `aura-profile-snapshot-${createdAt.slice(0, 19).replace(/[:T]/g, '-')}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            showToast('Loaded latest snapshot.', 'success');
+        } catch {
+            showToast('Snapshot bị lỗi định dạng.', 'error');
+        }
+    };
 
     const tabs = [
         { id: 'general', label: 'General Info', icon: Layout },
+        { id: 'layout', label: 'Layout Builder', icon: GripVertical },
+        { id: 'theme', label: 'Theme & Style', icon: Type },
         { id: 'socials', label: 'Socials & Links', icon: Share2 },
         { id: 'posts', label: 'Posts & Blog', icon: MessageSquare },
         { id: 'projects', label: 'Projects', icon: ImageIcon },
         { id: 'library', label: 'Library', icon: File },
-        { id: 'music', label: 'Music Player', icon: Music },
-        { id: 'theme', label: 'Theme & Style', icon: Type },
-        { id: 'metadata', label: 'Site Metadata', icon: Globe },
         { id: 'integrations', label: 'Integrations', icon: Puzzle },
+        { id: 'music', label: 'Music Player', icon: Music },
+        { id: 'metadata', label: 'Site Metadata', icon: Globe },
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
 
@@ -77,6 +328,39 @@ export default function AdminPage() {
             setFormData(profile);
         }
     }, [profile, formData]);
+
+    useEffect(() => {
+        latestFormDataRef.current = formData;
+    }, [formData]);
+
+    useEffect(() => {
+        const rawMinutes = localStorage.getItem('aura-profile-backup-interval-minutes');
+        if (!rawMinutes) {
+            return;
+        }
+
+        const parsedMinutes = Number(rawMinutes);
+        if (Number.isFinite(parsedMinutes) && parsedMinutes >= 0) {
+            setScheduledBackupMinutes(parsedMinutes);
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('aura-profile-backup-interval-minutes', String(scheduledBackupMinutes));
+
+        if (scheduledBackupMinutes <= 0) {
+            return;
+        }
+
+        const intervalId = window.setInterval(() => {
+            const snapshot = createLocalBackupSnapshot('scheduled');
+            if (snapshot) {
+                showToast(`Đã tạo snapshot định kỳ (${scheduledBackupMinutes} phút/lần).`, 'info');
+            }
+        }, scheduledBackupMinutes * 60_000);
+
+        return () => window.clearInterval(intervalId);
+    }, [scheduledBackupMinutes, showToast]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
@@ -144,7 +428,10 @@ export default function AdminPage() {
                 date: new Date().toISOString().split('T')[0],
                 likes: 0,
                 views: 0,
-                comments: []
+                comments: [],
+                category: '',
+                tags: [],
+                excerpt: ''
             }]
         }));
     };
@@ -160,21 +447,14 @@ export default function AdminPage() {
     const handlePostChange = (index: number, field: string, value: string | number | boolean) => {
         setFormData(prev => {
             const newPosts = [...(prev.posts || [])];
-            newPosts[index] = { ...newPosts[index], [field]: value };
+            newPosts[index] = {
+                ...newPosts[index],
+                [field]: field === 'tags' && typeof value === 'string'
+                    ? value.split(',').map((tag) => tag.trim()).filter(Boolean)
+                    : value,
+            };
             return { ...prev, posts: newPosts };
         });
-    };
-
-    const addFile = () => {
-        setFormData(prev => ({
-            ...prev,
-            files: [...(prev.files || []), {
-                id: Date.now().toString(),
-                name: 'New File',
-                url: '',
-                downloadCount: 0
-            }]
-        }));
     };
 
     const removeFile = (index: number) => {
@@ -193,55 +473,9 @@ export default function AdminPage() {
         });
     };
 
-    const addHoyoverseAccount = () => {
-        setFormData(prev => ({
-            ...prev,
-            integrations: {
-                ...prev.integrations,
-                hoyoverse: {
-                    ...prev.integrations?.hoyoverse,
-                    enabled: true,
-                    accounts: [...(prev.integrations?.hoyoverse?.accounts || []), { id: Date.now().toString(), game: 'genshin', uid: '' }]
-                }
-            }
-        }));
-    };
+    
 
-    const removeHoyoverseAccount = (index: number) => {
-        setFormData(prev => {
-            const newAccounts = [...(prev.integrations?.hoyoverse?.accounts || [])];
-            newAccounts.splice(index, 1);
-            return {
-                ...prev,
-                integrations: {
-                    ...prev.integrations,
-                    hoyoverse: {
-                        enabled: prev.integrations?.hoyoverse?.enabled ?? false,
-                        ...prev.integrations?.hoyoverse,
-                        accounts: newAccounts
-                    }
-                }
-            };
-        });
-    };
-
-    const handleHoyoverseAccountChange = (index: number, field: string, value: string) => {
-        setFormData(prev => {
-            const newAccounts = [...(prev.integrations?.hoyoverse?.accounts || [])];
-            newAccounts[index] = { ...newAccounts[index], [field]: value };
-            return {
-                ...prev,
-                integrations: {
-                    ...prev.integrations,
-                    hoyoverse: {
-                        enabled: prev.integrations?.hoyoverse?.enabled ?? false,
-                        ...prev.integrations?.hoyoverse,
-                        accounts: newAccounts
-                    }
-                }
-            };
-        });
-    };
+    
 
     const addProject = () => {
         setFormData(prev => ({
@@ -312,7 +546,7 @@ export default function AdminPage() {
         }
     };
 
-    const handleThemeChange = (field: string, value: string | number) => {
+    const handleThemeChange = (field: string, value: string | number | boolean) => {
         setFormData(prev => ({
             ...prev,
             theme: {
@@ -320,6 +554,17 @@ export default function AdminPage() {
                 [field]: value
             }
         }));
+    };
+
+    const applyThemePreset = (values: Record<string, string | boolean | number>) => {
+        setFormData(prev => ({
+            ...prev,
+            theme: {
+                ...prev.theme,
+                ...values
+            }
+        }));
+        showToast('Theme preset applied', 'success');
     };
 
     const handleMetadataChange = (field: string, value: string | boolean) => {
@@ -342,18 +587,28 @@ export default function AdminPage() {
         }));
     };
 
-    const handleIntegrationChange = (platform: 'spotify' | 'osu' | 'hoyoverse' | 'steam' | 'wakatime' | 'leetcode' | 'catbox' | 'github', field: string, value: any) => {
-        setFormData(prev => ({
-            ...prev,
-            integrations: {
-                ...prev.integrations,
-                [platform]: {
-                    enabled: prev.integrations?.[platform]?.enabled ?? false,
-                    ...prev.integrations?.[platform],
-                    [field]: value
-                }
+    const handleIntegrationChange = (platform: 'spotify' | 'osu' | 'wakatime' | 'leetcode' | 'catbox' | 'github', field: string, value: any) => {
+        setFormData(prev => {
+            const next = { ...prev };
+            // @ts-ignore
+    const currentValue = next.integrations?.[platform]?.[field];
+
+            if (typeof currentValue === 'boolean') {
+                // @ts-ignore
+                next.integrations[platform] = {
+                    ...(next.integrations as any)[platform],
+                    [field]: !currentValue,
+                };
+            } else {
+                // @ts-ignore
+                next.integrations[platform] = {
+                    ...(next.integrations as any)[platform],
+                    [field]: value,
+                };
             }
-        }));
+
+            return next;
+        });
     };
 
     const handleWakaTimeChange = (field: string, value: any) => {
@@ -390,17 +645,16 @@ export default function AdminPage() {
 
         if (!currentSkill) return;
 
-        // Auto-migrate string to object if needed
-        if (typeof currentSkill === 'string') {
-             currentSkill = { 
-                 id: Date.now().toString(), 
-                 name: currentSkill as unknown as string, 
-                 percentage: 80, 
-                 type: 'other' 
-             } as any;
-        }
-        
-        newSkills[index] = { ...(currentSkill as any), [field]: value };
+        const normalizedSkill = typeof currentSkill === 'object' && currentSkill !== null
+            ? currentSkill
+            : {
+                id: Date.now().toString(),
+                name: String(currentSkill),
+                percentage: 80,
+                type: 'other' as const,
+            };
+
+        newSkills[index] = { ...normalizedSkill, [field]: value };
         setFormData(prev => ({ ...prev, skills: newSkills }));
     };
 
@@ -507,13 +761,63 @@ export default function AdminPage() {
     const handleSave = async () => {
         setSaveStatus('saving');
         try {
-            await updateProfile(formData);
+            await saveDraft(formData);
             setSaveStatus('saved');
-            showToast('Profile updated successfully!', 'success');
+            showToast('Draft saved successfully!', 'success');
             setTimeout(() => setSaveStatus('idle'), 2000);
         } catch (error) {
             setSaveStatus('error');
-            showToast('Failed to save profile.', 'error');
+            showToast(error instanceof Error ? error.message : 'Failed to save draft. Please login again.', 'error');
+            setTimeout(() => setSaveStatus('idle'), 3000);
+        }
+    };
+
+    const handlePublish = async () => {
+        setSaveStatus('publishing');
+        try {
+            await publishDraft();
+            setSaveStatus('saved');
+            showToast('Draft published successfully!', 'success');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+        } catch (error) {
+            setSaveStatus('error');
+            showToast(error instanceof Error ? error.message : 'Failed to publish draft. Please login again.', 'error');
+            setTimeout(() => setSaveStatus('idle'), 3000);
+        }
+    };
+
+    const handleSaveAndPublish = async () => {
+        setSaveStatus('saving');
+        try {
+            await saveDraft(formData);
+            setSaveStatus('publishing');
+            await publishDraft();
+            setSaveStatus('saved');
+            showToast('Profile updated and published successfully!', 'success');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+        } catch (error) {
+            setSaveStatus('error');
+            showToast(error instanceof Error ? error.message : 'Failed to save/publish. Please login again.', 'error');
+            setTimeout(() => setSaveStatus('idle'), 3000);
+        }
+    };
+
+    const handleRollback = async () => {
+        if (!selectedRevisionId) {
+            showToast('Please select a revision to rollback.', 'info');
+            return;
+        }
+
+        setSaveStatus('saving');
+        try {
+            await rollbackToRevision(selectedRevisionId);
+            setSaveStatus('saved');
+            showToast('Rollback completed and published.', 'success');
+            setSelectedRevisionId('');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+        } catch (error) {
+            setSaveStatus('error');
+            showToast(error instanceof Error ? error.message : 'Rollback failed. Please login again.', 'error');
             setTimeout(() => setSaveStatus('idle'), 3000);
         }
     };
@@ -524,10 +828,131 @@ export default function AdminPage() {
         showToast('Profile reset to defaults.', 'info');
     };
 
-    if (isLoading || !formData) return <div className="min-h-screen bg-black text-white flex items-center justify-center"><Loader2 className="animate-spin text-indigo-500" size={48} /></div>;
+    const downloadFile = (filename: string, content: string, mimeType: string) => {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    };
+
+    const exportProfileBackup = () => {
+        const payload = {
+            version: 2,
+            exportedAt: new Date().toISOString(),
+            profile: formData,
+            workflowMeta: {
+                revisionCount: workflow.revisions.length,
+                lastPublishedAt: workflow.publishedAt || null,
+                lastUpdatedAt: workflow.updatedAt || null,
+            },
+        };
+
+        downloadFile(`aura-profile-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(payload, null, 2), 'application/json;charset=utf-8');
+        showToast('JSON backup created.', 'success');
+    };
+
+    const normalizePlatformImport = (candidate: Record<string, unknown>): Record<string, unknown> => {
+        const resolveString = (...values: unknown[]) => {
+            const found = values.find((value) => typeof value === 'string' && value.trim().length > 0);
+            return typeof found === 'string' ? found.trim() : '';
+        };
+
+        const directLinks = Array.isArray(candidate.links)
+            ? candidate.links
+                .map((item, index) => {
+                    if (typeof item === 'string') {
+                        return { id: `import-link-${index}-${Date.now()}`, title: `Link ${index + 1}`, url: item, icon: 'Link' };
+                    }
+
+                    if (!item || typeof item !== 'object') {
+                        return null;
+                    }
+
+                    const entry = item as Record<string, unknown>;
+                    const url = resolveString(entry.url, entry.href);
+                    if (!url) {
+                        return null;
+                    }
+
+                    return {
+                        id: `import-link-${index}-${Date.now()}`,
+                        title: resolveString(entry.title, entry.name) || `Link ${index + 1}`,
+                        url,
+                        icon: resolveString(entry.icon) || 'Link',
+                    };
+                })
+                .filter(Boolean)
+            : undefined;
+
+        return {
+            ...candidate,
+            name: resolveString(candidate.name, candidate.displayName, candidate.username),
+            role: resolveString(candidate.role, candidate.headline, candidate.title),
+            bio: resolveString(candidate.bio, candidate.about, candidate.description),
+            avatarUrl: resolveString(candidate.avatarUrl, candidate.avatar, candidate.photoUrl),
+            bannerUrl: resolveString(candidate.bannerUrl, candidate.coverUrl, candidate.headerImage),
+            directLinks,
+        };
+    };
+
+    const exportPostsCsv = () => {
+        const csvRows = [
+            ['id', 'title', 'date', 'category', 'tags', 'likes', 'views', 'readingTime'].join(','),
+            ...(formData.posts || []).map((post) => [
+                post.id,
+                `"${(post.title || '').replace(/"/g, '""')}"`,
+                post.date || '',
+                `"${(post.category || '').replace(/"/g, '""')}"`,
+                `"${(post.tags || []).join(' | ').replace(/"/g, '""')}"`,
+                String(post.likes || 0),
+                String(post.views || 0),
+                String(Math.max(1, Math.ceil((post.content || '').trim().split(/\s+/).filter(Boolean).length / 180))),
+            ].join(',')),
+        ].join('\n');
+
+        downloadFile(`aura-profile-posts-${new Date().toISOString().slice(0, 10)}.csv`, csvRows, 'text/csv;charset=utf-8');
+        showToast('Exported posts to CSV.', 'success');
+    };
+
+    const handleImportProfile = async (file: File) => {
+        try {
+            const fileContent = await file.text();
+            const parsed = JSON.parse(fileContent) as Record<string, unknown>;
+            const rawProfile = (parsed.profile && typeof parsed.profile === 'object' && !Array.isArray(parsed.profile)
+                ? parsed.profile
+                : parsed) as Record<string, unknown>;
+            const importedProfile = normalizePlatformImport(rawProfile);
+
+            if (!importedProfile.name && !importedProfile.role && !importedProfile.bio && !importedProfile.avatarUrl && !importedProfile.bannerUrl) {
+                throw new Error('File backup không đúng định dạng profile.');
+            }
+
+            setFormData((prev) => ({
+                ...prev,
+                ...importedProfile,
+                layout: (importedProfile.layout as typeof prev.layout) || prev.layout,
+                customCss: typeof importedProfile.customCss === 'string' ? importedProfile.customCss : prev.customCss,
+            }));
+
+            showToast('Đã nhập backup profile thành công.', 'success');
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'Không thể nhập file backup.', 'error');
+        } finally {
+            if (importFileInputRef.current) {
+                importFileInputRef.current.value = '';
+            }
+        }
+    };
+
+    if (isLoading || !formData) return <div suppressHydrationWarning className="min-h-screen bg-black text-white flex items-center justify-center"><Loader2 className="animate-spin text-indigo-500" size={48} /></div>;
 
     return (
-        <div className="min-h-screen bg-black text-white flex">
+        <div suppressHydrationWarning className="min-h-screen bg-black text-white flex">
             <aside className="w-64 border-r border-white/10 bg-black/50 fixed h-full z-20 hidden md:flex md:flex-col">
                 <div className="p-6 shrink-0">
                     <h1 className="text-2xl font-bold bg-linear-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Aura Profile</h1>
@@ -551,12 +976,12 @@ export default function AdminPage() {
                         <span>Back to Profile</span>
                     </Link>
                     <button
-                        onClick={handleSave}
-                        disabled={saveStatus === 'saving'}
+                        onClick={handleSaveAndPublish}
+                        disabled={saveStatus === 'saving' || saveStatus === 'publishing'}
                         className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
                     >
-                        {saveStatus === 'saving' ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                        {saveStatus === 'saved' ? 'Saved!' : saveStatus === 'saving' ? 'Saving...' : 'Save Changes'}
+                        {(saveStatus === 'saving' || saveStatus === 'publishing') ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                        {saveStatus === 'saved' ? 'Published!' : saveStatus === 'saving' ? 'Saving draft...' : saveStatus === 'publishing' ? 'Publishing...' : 'Save & Publish'}
                     </button>
                     <button
                         onClick={() => setShowResetModal(true)}
@@ -583,7 +1008,7 @@ export default function AdminPage() {
                         <h1 className="text-2xl font-bold">Admin</h1>
                         <div className="flex gap-2">
                             <Link href="/" className="p-2 bg-white/10 rounded-lg"><ArrowLeft size={20} /></Link>
-                            <button onClick={handleSave} className="p-2 bg-indigo-600 rounded-lg"><Save size={20} /></button>
+                            <button onClick={handleSaveAndPublish} className="p-2 bg-indigo-600 rounded-lg"><Save size={20} /></button>
                         </div>
                     </div>
 
@@ -621,39 +1046,38 @@ export default function AdminPage() {
                 </div>
 
                 <div className="max-w-4xl mx-auto space-y-8 pb-20">
-
                     {activeTab === 'general' && (
                         <section className="space-y-6">
                             <h2 className="text-2xl font-bold text-white mb-6">General Information</h2>
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Display Name</label>
-                                        <input name="name" value={formData.name} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 h-10.5 focus:border-indigo-500 focus:outline-none" />
+                                        <input name="name" value={formData.name} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 h-11 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Admin User Name (for Replies)</label>
-                                        <input name="adminName" value={formData.adminName || ''} onChange={handleChange} placeholder="e.g. Admin" className="w-full bg-black/40 border border-white/10 rounded-lg px-4 h-10.5 focus:border-indigo-500 focus:outline-none" />
+                                        <input name="adminName" value={formData.adminName || ''} onChange={handleChange} placeholder="e.g. Admin" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 h-11 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Role / Title</label>
-                                        <input name="role" value={formData.role} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none" />
+                                        <input name="role" value={formData.role} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Location</label>
-                                        <input name="location" value={formData.location} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none" />
+                                        <input name="location" value={formData.location} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Contact Email</label>
-                                        <input name="email" value={formData.email || ''} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none" />
+                                        <input name="email" value={formData.email || ''} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Discord ID (for Lanyard)</label>
-                                        <input name="discordId" value={formData.discordId || ''} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none" placeholder="e.g. 1392815904420532246" />
+                                        <input name="discordId" value={formData.discordId || ''} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" placeholder="e.g. 1392815904420532246" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm text-gray-400">Custom UID</label>
-                                        <input name="uid" value={formData.uid || ''} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none" placeholder="e.g. 1337" />
+                                        <input name="uid" value={formData.uid || ''} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" placeholder="e.g. 1337" />
                                     </div>
                                 </div>
 
@@ -678,7 +1102,7 @@ export default function AdminPage() {
 
                                 <div className="space-y-2 mt-4">
                                     <label className="text-sm text-gray-400">Bio</label>
-                                    <textarea name="bio" value={formData.bio} onChange={handleChange} rows={4} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none" />
+                                    <textarea name="bio" value={formData.bio} onChange={handleChange} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" />
                                 </div>
 
                                 <div className="space-y-2 mt-4">
@@ -690,18 +1114,22 @@ export default function AdminPage() {
                                     </div>
                                     <div className="space-y-3">
                                         {formData.skills?.map((skill, index) => {
-                                            // Handle string legacy
-                                            const name = typeof skill === 'string' ? skill : skill.name;
-                                            const percent = typeof skill === 'string' ? 80 : skill.percentage;
-                                            const type = typeof skill === 'string' ? 'other' : skill.type;
-                                            
+                                            const normalizedSkill = typeof skill === 'object' && skill !== null
+                                                ? skill
+                                                : {
+                                                    id: String(index),
+                                                    name: String(skill),
+                                                    percentage: 80,
+                                                    type: 'other' as const,
+                                                };
+
                                             return (
-                                                <div key={typeof skill === 'string' ? index : skill.id} className="bg-black/20 p-3 rounded-lg border border-white/5 flex gap-3 items-center">
+                                                <div key={normalizedSkill.id} className="bg-black/20 p-3 rounded-lg border border-white/5 flex gap-3 items-center">
                                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-3">
                                                         <input 
-                                                            value={name} 
-                                                            onChange={(e) => handleSkillsChange(index, 'name', e.target.value)} 
-                                                            className="bg-black/40 border border-white/10 rounded-lg p-2 text-sm" 
+                                                            value={normalizedSkill.name}
+                                                            onChange={(e) => handleSkillsChange(index, 'name', e.target.value)}
+                                                            className="bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors text-sm" 
                                                             placeholder="Skill Name"
                                                         />
                                                         <div className="flex items-center gap-2">
@@ -709,14 +1137,14 @@ export default function AdminPage() {
                                                                 type="range" 
                                                                 min="0" 
                                                                 max="100" 
-                                                                value={percent} 
-                                                                onChange={(e) => handleSkillsChange(index, 'percentage', parseInt(e.target.value))} 
+                                                                value={normalizedSkill.percentage}
+                                                                onChange={(e) => handleSkillsChange(index, 'percentage', parseInt(e.target.value))}
                                                                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
                                                             />
-                                                            <span className="text-xs text-gray-400 w-8">{percent}%</span>
+                                                            <span className="text-xs text-gray-400 w-8">{normalizedSkill.percentage}%</span>
                                                         </div>
                                                         <CustomSelect
-                                                            value={type || 'other'}
+                                                            value={normalizedSkill.type || 'other'}
                                                             onChange={(val) => handleSkillsChange(index, 'type', val)}
                                                             options={[
                                                                 { value: "frontend", label: "Frontend" },
@@ -749,7 +1177,7 @@ export default function AdminPage() {
                                             value={formData.timezone || ''}
                                             onChange={handleChange}
                                             placeholder="e.g. Asia/Tokyo, GMT+9"
-                                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -769,7 +1197,7 @@ export default function AdminPage() {
                             </div>
 
                             <h3 className="text-xl font-semibold text-indigo-400">Typewriter Bio Effect</h3>
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <div className="flex justify-between items-center">
                                     <div className="space-y-1">
                                         <h4 className="font-medium text-white">Enable Typewriter Bio</h4>
@@ -799,7 +1227,7 @@ export default function AdminPage() {
                                                     <input
                                                         value={line.text}
                                                         onChange={(e) => handleTypewriterLineChange(index, 'text', e.target.value)}
-                                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm"
+                                                        className="w-full bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors text-sm"
                                                         placeholder="Text line..."
                                                     />
                                                     <div className="grid grid-cols-2 gap-4">
@@ -842,21 +1270,21 @@ export default function AdminPage() {
                             </div>
 
                             <h3 className="text-xl font-semibold text-indigo-400">Profile Images</h3>
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-sm text-gray-400">Avatar URL</label>
-                                    <input name="avatarUrl" value={formData.avatarUrl} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none" />
+                                    <input name="avatarUrl" value={formData.avatarUrl} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" />
                                     <img src={formData.avatarUrl} className="w-20 h-20 rounded-full object-cover border-2 border-white/10" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm text-gray-400">Banner URL</label>
-                                    <input name="bannerUrl" value={formData.bannerUrl} onChange={handleChange} className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none" />
+                                    <input name="bannerUrl" value={formData.bannerUrl} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20" />
                                     <img src={formData.bannerUrl} className="w-full h-20 rounded-lg object-cover border border-white/10" />
                                 </div>
                             </div>
 
                             <h3 className="text-xl font-semibold text-indigo-400 mt-6">Statistics (Read Only)</h3>
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm text-gray-400">Posts Count</label>
                                     <div className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-gray-400">
@@ -886,6 +1314,150 @@ export default function AdminPage() {
                         </section>
                     )}
 
+                    {activeTab === 'layout' && (
+                        <section className="space-y-6">
+                            <h2 className="text-2xl font-bold text-white mb-6">Layout Builder & Custom CSS</h2>
+
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-xl font-semibold text-indigo-400">Section Order</h3>
+                                        <p className="text-sm text-gray-400">Sắp xếp lại các khối hiển thị theo thứ tự ưu tiên, đồng thời giữ khả năng ẩn từng section khi cần.</p>
+                                    </div>
+                                    <button onClick={() => setFormData((prev) => ({ ...prev, layout: { sectionOrder: defaultLayoutOrder, hiddenSections: [], sectionWidths: {}, postLayout: 'grid', projectLayout: 'grid' } }))} className="text-xs px-3 py-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/25 transition-colors">
+                                        Reset Layout
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {resolveLayoutOrder().map((sectionId, index, orderedSections) => {
+                                        const hiddenSections = formData.layout?.hiddenSections || [];
+                                        const width = formData.layout?.sectionWidths?.[sectionId] || 'default';
+                                        const isHidden = hiddenSections.includes(sectionId);
+
+                                        return (
+                                            <div
+                                                key={sectionId}
+                                                draggable
+                                                onDragStart={() => setDraggingSectionId(sectionId)}
+                                                onDragOver={(event) => event.preventDefault()}
+                                                onDrop={() => {
+                                                    if (draggingSectionId) {
+                                                        reorderLayoutSection(draggingSectionId, sectionId);
+                                                        setDraggingSectionId(null);
+                                                    }
+                                                }}
+                                                onDragEnd={() => setDraggingSectionId(null)}
+                                                className={`flex flex-col gap-3 rounded-xl border bg-black/30 p-4 md:flex-row md:items-center md:justify-between ${draggingSectionId === sectionId ? 'border-indigo-500/50' : 'border-white/10'}`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <GripVertical size={16} className="text-gray-500" />
+                                                    <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-xs text-gray-400">{index + 1}</span>
+                                                    <div>
+                                                        <p className="font-medium text-white">{sectionLabels[sectionId]}</p>
+                                                        <p className="text-xs text-gray-500">{sectionId}</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <button onClick={() => moveLayoutSection(sectionId, 'up')} disabled={index === 0} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-gray-300 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-40">↑</button>
+                                                    <button onClick={() => moveLayoutSection(sectionId, 'down')} disabled={index === orderedSections.length - 1} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-gray-300 transition-colors hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-40">↓</button>
+                                                    <button onClick={() => toggleLayoutSection(sectionId)} className={`rounded-lg px-3 py-2 text-xs transition-colors ${isHidden ? 'border border-amber-500/30 bg-amber-500/10 text-amber-300' : 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300'}`}>
+                                                        {isHidden ? 'Hidden' : 'Visible'}
+                                                    </button>
+                                                    <div className="min-w-40">
+                                                        <CustomSelect
+                                                            value={width}
+                                                            onChange={(value) => setSectionWidth(sectionId, value as SectionWidthPreset)}
+                                                            options={Object.entries(sectionWidthLabels).map(([value, label]) => ({ value, label }))}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-xs text-gray-500">Tip: Kéo-thả từng section để reorder nhanh, nút mũi tên vẫn hoạt động cho tinh chỉnh chính xác.</p>
+                            </div>
+
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-4">
+                                <h3 className="text-xl font-semibold text-gray-300 border-b border-white/10 pb-2">Content Layout Mode</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-400">Posts Layout</label>
+                                        <CustomSelect
+                                            value={formData.layout?.postLayout || 'grid'}
+                                            onChange={(value) => setLayoutMode('postLayout', value as 'grid' | 'list')}
+                                            options={[
+                                                { value: 'grid', label: 'Grid Cards' },
+                                                { value: 'list', label: 'List View' },
+                                            ]}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-400">Projects Layout</label>
+                                        <CustomSelect
+                                            value={formData.layout?.projectLayout || 'grid'}
+                                            onChange={(value) => setLayoutMode('projectLayout', value as 'grid' | 'list')}
+                                            options={[
+                                                { value: 'grid', label: 'Grid Cards' },
+                                                { value: 'list', label: 'List View' },
+                                            ]}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-xl font-semibold text-indigo-400">Custom CSS Injection</h3>
+                                        <p className="text-sm text-gray-400">Dành cho user nâng cao. CSS sẽ được inject trực tiếp vào profile, nên chỉ nên dùng các selector có chủ đích.</p>
+                                    </div>
+                                    <span className="text-xs rounded-full border border-white/10 px-3 py-1 text-gray-400">Scoped on public pages</span>
+                                </div>
+
+                                <textarea
+                                    value={formData.customCss || ''}
+                                    onChange={(e) => handleCustomCssChange(e.target.value)}
+                                    rows={12}
+                                    className="w-full rounded-xl border border-white/10 bg-black/40 p-4 font-mono text-sm text-gray-100 outline-none transition-colors focus:border-indigo-500"
+                                    placeholder={`.profile-card {\n  border: 1px solid rgba(255,255,255,.12);\n}`}
+                                />
+
+                                <p className="text-xs text-gray-500">
+                                    Hệ thống sẽ giữ lại backup của profile hiện tại, nên thay đổi CSS có thể rollback qua workflow nếu cần.
+                                </p>
+
+                                <div className="space-y-3 border-t border-white/10 pt-4">
+                                    <p className="text-sm text-gray-300">Snippet Library</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {cssSnippetLibrary.map((snippet) => (
+                                            <button
+                                                key={snippet.id}
+                                                onClick={() => appendCssSnippet(snippet.css)}
+                                                className="rounded-lg border border-white/10 px-3 py-2 text-xs text-gray-300 transition-colors hover:border-indigo-500/40 hover:text-white"
+                                            >
+                                                + {snippet.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3 border-t border-white/10 pt-4">
+                                    <p className="text-sm text-gray-300">Live Preview</p>
+                                    <div className="overflow-hidden rounded-xl border border-white/10 bg-black/30 p-4">
+                                        <style>{sanitizeCustomCss(formData.customCss)}</style>
+                                        <div className="profile-card rounded-xl border border-white/10 bg-white/5 p-4">
+                                            <h4 className="effect-glow text-base font-semibold text-white">Preview Card</h4>
+                                            <p className="mt-2 text-sm text-gray-300">Khung xem trước này giúp test nhanh selector trước khi publish.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    )}
+
                     {activeTab === 'socials' && (
                         <section className="space-y-6">
                             <h2 className="text-2xl font-bold text-white mb-6">Social Connections</h2>
@@ -907,7 +1479,7 @@ export default function AdminPage() {
                                                     placeholder="URL"
                                                     value={social.url}
                                                     onChange={(e) => handleSocialChange(index, 'url', e.target.value)}
-                                                    className="bg-black/40 border border-white/10 rounded-lg p-2.5 h-[42px]"
+                                                    className="bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors.5 h-[42px]"
                                                 />
                                             </div>
                                         </div>
@@ -926,11 +1498,11 @@ export default function AdminPage() {
                                         <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_1fr_200px] gap-4">
                                             <div className="flex flex-col gap-2">
                                                 <label className="text-xs text-gray-500">Title</label>
-                                                <input value={link.title} onChange={(e) => handleDirectLinkChange(index, 'title', e.target.value)} className="bg-black/40 border border-white/10 rounded-lg p-2.5 h-[42px]" placeholder="Title"/>
+                                                <input value={link.title} onChange={(e) => handleDirectLinkChange(index, 'title', e.target.value)} className="bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors.5 h-[42px]" placeholder="Title"/>
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <label className="text-xs text-gray-500">URL</label>
-                                                <input value={link.url} onChange={(e) => handleDirectLinkChange(index, 'url', e.target.value)} className="bg-black/40 border border-white/10 rounded-lg p-2.5 h-[42px]" placeholder="URL"/>
+                                                <input value={link.url} onChange={(e) => handleDirectLinkChange(index, 'url', e.target.value)} className="bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors.5 h-[42px]" placeholder="URL"/>
                                             </div>
                                             <div className="flex flex-col gap-2">
                                                 <label className="text-xs text-gray-500">Icon</label>
@@ -1022,7 +1594,7 @@ export default function AdminPage() {
                                     return filtered.map((post) => {
                                         const originalIndex = formData.posts.findIndex(p => p.id === post.id);
                                         return (
-                                            <div key={post.id} className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4 transition-all hover:border-indigo-500/30">
+                                            <div key={post.id} className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-4 transition-all hover:border-indigo-500/30">
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex gap-4 text-sm text-gray-400">
                                                         <span className="flex items-center gap-1"><Calendar size={14}/> {post.date}</span>
@@ -1071,6 +1643,28 @@ export default function AdminPage() {
                                                         className="w-full bg-black/40 border border-white/10 rounded-lg p-3 font-mono text-sm focus:border-indigo-500 outline-none"
                                                     />
                                                 </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <input
+                                                        value={post.category || ''}
+                                                        onChange={(e) => handlePostChange(originalIndex, 'category', e.target.value)}
+                                                        placeholder="Category"
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none"
+                                                    />
+                                                    <input
+                                                        value={(post.tags || []).join(', ')}
+                                                        onChange={(e) => handlePostChange(originalIndex, 'tags', e.target.value)}
+                                                        placeholder="Tags (comma separated)"
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none"
+                                                    />
+                                                </div>
+
+                                                <input
+                                                    value={post.excerpt || ''}
+                                                    onChange={(e) => handlePostChange(originalIndex, 'excerpt', e.target.value)}
+                                                    placeholder="Excerpt / summary (optional)"
+                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm focus:border-indigo-500 outline-none"
+                                                />
 
                                                 <input
                                                     value={post.imageUrl}
@@ -1194,7 +1788,7 @@ export default function AdminPage() {
                             <h2 className="text-2xl font-bold text-white mb-6">Projects</h2>
                             <div className="space-y-6">
                                 {formData.projects?.map((project, index) => (
-                                    <div key={project.id} className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
+                                    <div key={project.id} className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-4">
                                         <div className="flex justify-between items-start">
                                             <h3 className="text-lg font-semibold text-gray-300">Project #{index + 1}</h3>
                                             <button onClick={() => removeProject(index)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg"><Trash2 size={20}/></button>
@@ -1219,7 +1813,7 @@ export default function AdminPage() {
                         <section className="space-y-6">
                             <h2 className="text-2xl font-bold text-white mb-6">Library & Files</h2>
                             
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h3 className="text-xl font-semibold text-indigo-400">Upload Configuration</h3>
@@ -1268,7 +1862,7 @@ export default function AdminPage() {
                                 )}
                             </div>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-indigo-400">Upload New File</h3>
                                 <FileUploader 
                                     userHash={formData.integrations?.catbox?.userHash} 
@@ -1301,7 +1895,7 @@ export default function AdminPage() {
                                                 <input 
                                                     value={file.name} 
                                                     onChange={(e) => handleFileChange(index, 'name', e.target.value)} 
-                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors text-sm"
                                                 />
                                                 <div className="flex items-center gap-2">
                                                     <span className={`text-[10px] px-2 py-0.5 rounded ${file.source === 'local' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400'}`}>
@@ -1315,7 +1909,7 @@ export default function AdminPage() {
                                                     <input 
                                                         value={file.url} 
                                                         onChange={(e) => handleFileChange(index, 'url', e.target.value)} 
-                                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm"
+                                                        className="w-full bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors text-sm"
                                                     />
                                                     <a 
                                                         href={file.url} 
@@ -1359,13 +1953,11 @@ export default function AdminPage() {
                         </section>
                     )}
 
-
-
                     {activeTab === 'music' && (
                         <section className="space-y-6">
                             <h2 className="text-2xl font-bold text-white mb-6">Music Player Configuration</h2>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-indigo-400">Player Settings</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Switch
@@ -1403,12 +1995,12 @@ export default function AdminPage() {
                                         </div>
                                         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <input value={track.title} onChange={(e) => handlePlaylistChange(index, 'title', e.target.value)} placeholder="Song Title" className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm"/>
-                                                <input value={track.artist} onChange={(e) => handlePlaylistChange(index, 'artist', e.target.value)} placeholder="Artist" className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm"/>
+                                                <input value={track.title} onChange={(e) => handlePlaylistChange(index, 'title', e.target.value)} placeholder="Song Title" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors text-sm"/>
+                                                <input value={track.artist} onChange={(e) => handlePlaylistChange(index, 'artist', e.target.value)} placeholder="Artist" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors text-sm"/>
                                             </div>
                                             <div className="space-y-2">
-                                                <input value={track.url} onChange={(e) => handlePlaylistChange(index, 'url', e.target.value)} placeholder="Audio URL (mp3)" className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm"/>
-                                                <input value={track.coverUrl || ''} onChange={(e) => handlePlaylistChange(index, 'coverUrl', e.target.value)} placeholder="Cover Image URL" className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-sm"/>
+                                                <input value={track.url} onChange={(e) => handlePlaylistChange(index, 'url', e.target.value)} placeholder="Audio URL (mp3)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors text-sm"/>
+                                                <input value={track.coverUrl || ''} onChange={(e) => handlePlaylistChange(index, 'coverUrl', e.target.value)} placeholder="Cover Image URL" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 hover:bg-white/10 transition-colors text-sm"/>
                                             </div>
                                         </div>
                                         <button onClick={() => removeTrack(index)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg"><Trash2 size={20}/></button>
@@ -1424,98 +2016,54 @@ export default function AdminPage() {
 
                     {activeTab === 'metadata' && (
                         <section className="space-y-6">
-                            <h2 className="text-2xl font-bold text-white mb-6">Site Metadata & Integrations</h2>
+                            <h2 className="text-2xl font-bold text-white mb-6">Site Metadata</h2>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
-                                <h3 className="text-xl font-semibold text-indigo-400">SEO & Browser Info</h3>
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
+                                <h3 className="text-xl font-semibold text-indigo-400 flex items-center gap-2">SEO & Display Info</h3>
+
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-sm text-gray-400">Website Title</label>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            <input
-                                                value={formData.metadata?.title || ''}
-                                                onChange={(e) => handleMetadataChange('title', e.target.value)}
-                                                className="md:col-span-2 bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
-                                            />
-                                            <Switch
-                                                checked={formData.metadata?.enableTypewriter || false}
-                                                onChange={() => handleMetadataChange('enableTypewriter', !formData.metadata?.enableTypewriter)}
-                                                label="Typewriter Effect"
-                                            />
-                                        </div>
+                                        <label className="text-sm text-gray-400">Site Title</label>
+                                        <input
+                                            value={formData.metadata?.title || ''}
+                                            onChange={(e) => handleMetadataChange('title', e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
+                                            placeholder="e.g. My Awesome Profile"
+                                        />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-sm text-gray-400">Description (Meta Desc)</label>
+                                        <label className="text-sm text-gray-400">Site Description</label>
                                         <textarea
                                             value={formData.metadata?.description || ''}
                                             onChange={(e) => handleMetadataChange('description', e.target.value)}
                                             rows={3}
-                                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20 resize-none"
+                                            placeholder="Write a brief description..."
                                         />
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-sm text-gray-400">Favicon URL (.ico, .png, .jpg supported)</label>
-                                            <input
-                                                value={formData.metadata?.iconUrl || ''}
-                                                onChange={(e) => handleMetadataChange('iconUrl', e.target.value)}
-                                                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
-                                                placeholder="/favicon.ico or https://..."
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm text-gray-400">OG Image URL (Thumbnail)</label>
-                                            <input
-                                                value={formData.metadata?.ogImageUrl || ''}
-                                                onChange={(e) => handleMetadataChange('ogImageUrl', e.target.value)}
-                                                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
-                                            />
-                                        </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-400">Favicon URL (iconUrl)</label>
+                                        <input
+                                            value={formData.metadata?.iconUrl || ''}
+                                            onChange={(e) => handleMetadataChange('iconUrl', e.target.value)}
+                                            placeholder="e.g. /favicon.ico or https://..."
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
+                                        />
                                     </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
-                                <h3 className="text-xl font-semibold text-indigo-400">Live Previews</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-3">
-                                        <h4 className="text-sm text-gray-400 font-medium border-b border-white/10 pb-2">Google Search Result</h4>
-                                        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 font-sans max-w-full overflow-hidden">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
-                                                    {formData.metadata?.iconUrl ? <img src={formData.metadata.iconUrl} className="w-5 h-5 object-contain" /> : <Globe size={16} className="text-gray-500" />}
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm text-[#202124] leading-tight">8w6s Profile</span>
-                                                    <span className="text-xs text-[#5f6368] leading-tight">https://8w6s.profile</span>
-                                                </div>
-                                            </div>
-                                            <h3 className="text-xl text-[#1a0dab] hover:underline cursor-pointer truncate font-normal">
-                                                {formData.metadata?.title || 'Profile Title'}
-                                            </h3>
-                                            <p className="text-sm text-[#4d5156] line-clamp-2 mt-1">
-                                                {formData.metadata?.description || 'This is your profile description that will appear in search results.'}
-                                            </p>
-                                        </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-400">Open Graph Image URL (ogImageUrl)</label>
+                                        <input
+                                            value={formData.metadata?.ogImageUrl || ''}
+                                            onChange={(e) => handleMetadataChange('ogImageUrl', e.target.value)}
+                                            placeholder="e.g. /og-image.jpg or https://..."
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
+                                        />
                                     </div>
-
-                                    <div className="space-y-3">
-                                        <h4 className="text-sm text-gray-400 font-medium border-b border-white/10 pb-2">Social Share / Discord Embed</h4>
-                                        <div className="bg-[#2f3136] rounded border-l-4 border-[#202225] p-3 max-w-[432px] font-sans">
-                                            <div className="text-xs text-[#b9bbbe] mb-1">8w6s Profile</div>
-                                            <div className="text-[#00b0f4] font-semibold hover:underline cursor-pointer mb-1">
-                                                {formData.metadata?.title || 'Profile Title'}
-                                            </div>
-                                            <div className="text-sm text-[#dcddde] mb-2">
-                                                {formData.metadata?.description || 'This is your profile description.'}
-                                            </div>
-                                            {formData.metadata?.ogImageUrl && (
-                                                <div className="rounded overflow-hidden mt-2">
-                                                    <img src={formData.metadata.ogImageUrl} className="max-w-full h-auto object-cover max-h-[250px] rounded" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                    <Switch
+                                        checked={formData.metadata?.enableTypewriter ?? true}
+                                        onChange={() => handleMetadataChange('enableTypewriter', !(formData.metadata?.enableTypewriter ?? true))}
+                                        label="Enable Typewriter Title Effect"
+                                    />
                                 </div>
                             </div>
                         </section>
@@ -1523,9 +2071,9 @@ export default function AdminPage() {
 
                     {activeTab === 'integrations' && (
                         <section className="space-y-6">
-                            <h2 className="text-2xl font-bold text-white mb-6">Platform Integrations</h2>
+                            <h2 className="text-2xl font-bold text-white mb-6">Integrations</h2>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-indigo-400 flex items-center gap-2"><File size={20}/> Catbox.moe Integration</h3>
                                 <div className="flex justify-between items-center">
                                     <div className="space-y-1">
@@ -1545,14 +2093,14 @@ export default function AdminPage() {
                                             value={formData.integrations?.catbox?.userHash || ''}
                                             onChange={(e) => handleIntegrationChange('catbox', 'userHash', e.target.value)}
                                             placeholder="Enter your Catbox User Hash"
-                                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
                                         />
                                         <p className="text-xs text-gray-500">You can find your User Hash on the <a href="https://catbox.moe/user/manage.php" target="_blank" className="text-indigo-400 hover:underline">Catbox Manage Page</a>.</p>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-indigo-400 flex items-center gap-2"><Github size={20}/> GitHub Integration</h3>
                                 <div className="space-y-4">
                                     <Switch
@@ -1569,7 +2117,7 @@ export default function AdminPage() {
                                                     <input
                                                         value={formData.github?.username || ''}
                                                         onChange={(e) => handleGithubChange('username', e.target.value)}
-                                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
@@ -1578,7 +2126,7 @@ export default function AdminPage() {
                                                         value={formData.github?.pinnedRepo || ''}
                                                         onChange={(e) => handleGithubChange('pinnedRepo', e.target.value)}
                                                         placeholder="e.g. 8w6s/profile"
-                                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
                                                     />
                                                 </div>
                                             </div>
@@ -1592,7 +2140,7 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-green-400 flex items-center gap-2"><Music size={20}/> Spotify Integration</h3>
                                 <div className="space-y-4">
                                     <Switch
@@ -1613,7 +2161,7 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-pink-400 flex items-center gap-2">Osu! Integration</h3>
                                 <div className="space-y-4">
                                     <Switch
@@ -1634,86 +2182,7 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
-                                <h3 className="text-xl font-semibold text-blue-400 flex items-center gap-2">Hoyoverse Integration</h3>
-                                <div className="space-y-4">
-                                    <Switch
-                                        checked={formData.integrations?.hoyoverse?.enabled || false}
-                                        onChange={() => handleIntegrationChange('hoyoverse', 'enabled', !formData.integrations?.hoyoverse?.enabled)}
-                                        label="Enable Hoyoverse Game Stats"
-                                    />
-                                    {formData.integrations?.hoyoverse?.enabled && (
-                                        <div className="space-y-4">
-                                            {formData.integrations?.hoyoverse?.accounts?.map((account, index) => (
-                                                <div key={account.id} className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-3">
-                                                    <div className="flex justify-between items-start">
-                                                        <span className="text-xs text-gray-500">Account #{index + 1}</span>
-                                                        <button onClick={() => removeHoyoverseAccount(index)} className="text-red-400 hover:text-red-300"><Trash2 size={16}/></button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div className="space-y-2">
-                                                            <label className="text-sm text-gray-400">Game</label>
-                                                            <CustomSelect
-                                                                value={account.game || 'genshin'}
-                                                                onChange={(val) => handleHoyoverseAccountChange(index, 'game', val)}
-                                                                options={[
-                                                                    { value: "genshin", label: "Genshin Impact" },
-                                                                    { value: "hsr", label: "Honkai: Star Rail" },
-                                                                    { value: "hi3", label: "Honkai Impact 3rd" },
-                                                                    { value: "zzz", label: "Zenless Zone Zero" }
-                                                                ]}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <label className="text-sm text-gray-400">UID</label>
-                                                            <input
-                                                                value={account.uid || ''}
-                                                                onChange={(e) => handleHoyoverseAccountChange(index, 'uid', e.target.value)}
-                                                                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 h-11.5"
-                                                                placeholder="Enter your UID"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            <button onClick={addHoyoverseAccount} className="w-full py-2 border border-dashed border-white/20 rounded-xl text-gray-400 hover:text-white flex items-center justify-center gap-2 text-sm">
-                                                <Plus size={16} /> Add Hoyoverse Account
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
-                                <h3 className="text-xl font-semibold text-blue-300 flex items-center gap-2">Steam Integration</h3>
-                                <div className="space-y-4">
-                                    <Switch
-                                        checked={formData.integrations?.steam?.enabled || false}
-                                        onChange={() => handleIntegrationChange('steam', 'enabled', !formData.integrations?.steam?.enabled)}
-                                        label="Enable Steam Profile"
-                                    />
-                                    {formData.integrations?.steam?.enabled && (
-                                        <div className="space-y-2">
-                                            <label className="text-sm text-gray-400">Steam ID / Custom URL</label>
-                                            <input
-                                                value={formData.integrations?.steam?.steamId || ''}
-                                                onChange={(e) => handleIntegrationChange('steam', 'steamId', e.target.value)}
-                                                className="w-full bg-black/40 border border-white/10 rounded-lg p-3"
-                                                placeholder="e.g. 76561198000000000"
-                                            />
-                                            <label className="text-sm text-gray-400 mt-2 block">Steam Web API Key</label>
-                                            <input
-                                                value={formData.integrations?.steam?.apiKey || ''}
-                                                onChange={(e) => handleIntegrationChange('steam', 'apiKey', e.target.value)}
-                                                className="w-full bg-black/40 border border-white/10 rounded-lg p-3"
-                                                placeholder="Get at: https://steamcommunity.com/dev/apikey"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-yellow-500 flex items-center gap-2">LeetCode Integration</h3>
                                 <div className="space-y-4">
                                     <Switch
@@ -1735,7 +2204,7 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-orange-400 flex items-center gap-2"><Clock size={20}/> WakaTime Integration</h3>
                                 <div className="space-y-4">
                                     <Switch
@@ -1765,7 +2234,43 @@ export default function AdminPage() {
                     {activeTab === 'theme' && (
                         <section className="space-y-6">
                             <h2 className="text-2xl font-bold text-white mb-6">Theme & Appearance</h2>
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
+
+                                <div className="space-y-4">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <h3 className="text-xl font-semibold text-indigo-400">Theme Quick Presets</h3>
+                                            <p className="mt-2 text-sm text-gray-400">Áp dụng nhanh bộ màu và style phổ biến, sau đó vẫn có thể tinh chỉnh từng trường bên dưới.</p>
+                                        </div>
+                                        <button
+                                            onClick={() => applyThemePreset({
+                                                primaryColor: '#4f46e5',
+                                                accentColor: '#ec4899',
+                                                textColor: '#ffffff',
+                                                backgroundColor: '#000000',
+                                                cardColor: '#000000',
+                                                buttonColor: '#4f46e5',
+                                                socialButtonStyle: 'glass',
+                                                avatarGlow: false,
+                                            })}
+                                            className="text-xs px-3 py-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/25 transition-colors"
+                                        >
+                                            Reset Theme Base
+                                        </button>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                        {themeQuickPresets.map((preset) => (
+                                            <button
+                                                key={preset.id}
+                                                onClick={() => applyThemePreset(preset.values)}
+                                                className="rounded-lg border border-white/10 px-3 py-2 text-xs text-gray-300 transition-colors hover:border-indigo-500/40 hover:text-white"
+                                            >
+                                                {preset.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
 
                                 <div className="space-y-4">
                                     <h3 className="text-lg font-semibold text-gray-300 border-b border-white/10 pb-2">Color Palette</h3>
@@ -1799,6 +2304,99 @@ export default function AdminPage() {
                                             <ColorPicker color={formData.theme?.buttonColor || '#4f46e5'} onChange={(color) => handleThemeChange('buttonColor', color)} />
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="space-y-6 pt-6 border-t border-white/10">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <label className="text-sm text-gray-400">Card Width Preset</label>
+                                        </div>
+                                        <CustomSelect
+                                            value={formData.theme?.cardWidthPreset || 'default'}
+                                            onChange={(val) => handleThemeChange('cardWidthPreset', val)}
+                                            options={[
+                                                { value: 'compact', label: 'Compact' },
+                                                { value: 'default', label: 'Default' },
+                                                { value: 'wide', label: 'Wide' },
+                                            ]}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <label className="text-sm text-gray-400">UID Badge Style</label>
+                                        </div>
+                                        <CustomSelect
+                                            value={formData.theme?.uidStyle || 'pill'}
+                                            onChange={(val) => handleThemeChange('uidStyle', val)}
+                                            options={[
+                                                { value: 'pill', label: 'UID: 1337' },
+                                                { value: 'bracket', label: '[1337]' },
+                                                { value: 'minimal', label: '1337' },
+                                            ]}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <label className="text-sm text-gray-400">Social Button Style</label>
+                                        </div>
+                                        <CustomSelect
+                                            value={formData.theme?.socialButtonStyle || 'glass'}
+                                            onChange={(val) => handleThemeChange('socialButtonStyle', val)}
+                                            options={[
+                                                { value: 'glass', label: 'Glass' },
+                                                { value: 'solid', label: 'Solid' },
+                                                { value: 'outline', label: 'Outline' },
+                                            ]}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-400">Avatar Ring Color</label>
+                                        <ColorPicker
+                                            color={formData.theme?.avatarRingColor || '#171717'}
+                                            onChange={(color) => handleThemeChange('avatarRingColor', color)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-400">Banner Overlay Opacity ({formData.theme?.bannerOverlayOpacity ?? 80}%)</label>
+                                        <CustomRange
+                                            value={formData.theme?.bannerOverlayOpacity ?? 80}
+                                            min={0}
+                                            max={100}
+                                            onChange={(val) => handleThemeChange('bannerOverlayOpacity', val)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-400">Avatar Ring Width ({formatPxOrOff(formData.theme?.avatarRingWidth, 4)})</label>
+                                        <CustomRange
+                                            value={formData.theme?.avatarRingWidth ?? 4}
+                                            min={0}
+                                            max={12}
+                                            onChange={(val) => handleThemeChange('avatarRingWidth', val)}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-gray-400">Social Icon Size ({formData.theme?.socialIconSize ?? 24}px)</label>
+                                        <CustomRange
+                                            value={formData.theme?.socialIconSize ?? 24}
+                                            min={16}
+                                            max={36}
+                                            onChange={(val) => handleThemeChange('socialIconSize', val)}
+                                        />
+                                    </div>
+
+                                    <Switch
+                                        checked={formData.theme?.avatarGlow || false}
+                                        onChange={() => handleThemeChange('avatarGlow', !formData.theme?.avatarGlow)}
+                                        label="Enable Avatar Ring Glow"
+                                    />
                                 </div>
 
                                 <div className="space-y-4 pt-4 border-t border-white/10">
@@ -1840,7 +2438,7 @@ export default function AdminPage() {
                                 <div className="space-y-6 pt-6 border-t border-white/10">
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
-                                            <label className="text-sm text-gray-400">Background Blur ({formData.theme?.backgroundBlur || 0}px)</label>
+                                            <label className="text-sm text-gray-400">Background Blur ({formatPxOrOff(formData.theme?.backgroundBlur, 0)})</label>
                                         </div>
                                         <CustomRange
                                             value={formData.theme?.backgroundBlur || 0}
@@ -1851,7 +2449,7 @@ export default function AdminPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
-                                            <label className="text-sm text-gray-400">Card Blur ({formData.theme?.cardBlur || 20}px)</label>
+                                            <label className="text-sm text-gray-400">Card Blur ({formatPxOrOff(formData.theme?.cardBlur, 20)})</label>
                                         </div>
                                         <CustomRange
                                             value={formData.theme?.cardBlur || 20}
@@ -1873,7 +2471,7 @@ export default function AdminPage() {
                                     </div>
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
-                                            <label className="text-sm text-gray-400">Enter Screen Background Blur ({formData.theme?.enterScreenBlur || 16}px)</label>
+                                            <label className="text-sm text-gray-400">Enter Screen Background Blur ({formatPxOrOff(formData.theme?.enterScreenBlur, 16)})</label>
                                         </div>
                                         <CustomRange
                                             value={formData.theme?.enterScreenBlur || 16}
@@ -1936,7 +2534,7 @@ export default function AdminPage() {
                                                         value={formData.cursor?.customUrl || ''}
                                                         onChange={(e) => handleCursorChange('customUrl', e.target.value)}
                                                         placeholder="Leave empty for default dot cursor"
-                                                        className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
                                                     />
                                                 </div>
                                                 <div className="flex justify-between items-center">
@@ -1982,7 +2580,7 @@ export default function AdminPage() {
                                                 value={formData.theme?.fontFamily || ''}
                                                 onChange={(e) => handleThemeChange('fontFamily', e.target.value)}
                                                 placeholder="e.g. Press Start 2P, Roboto Mono"
-                                                className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
                                             />
                                         </div>
                                     </div>
@@ -1994,7 +2592,7 @@ export default function AdminPage() {
                         <section className="space-y-6">
                             <h2 className="text-2xl font-bold text-white mb-6">Settings & Features</h2>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-indigo-400">Feature Toggles</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Switch
@@ -2035,7 +2633,7 @@ export default function AdminPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
                                 <h3 className="text-xl font-semibold text-indigo-400">Enter Screen Configuration</h3>
                                 <div className="space-y-4">
                                     <div className="space-y-2">
@@ -2044,10 +2642,70 @@ export default function AdminPage() {
                                             name="enterScreen.title"
                                             value={formData.enterScreen?.title || 'click to enter...'}
                                             onChange={handleChange}
-                                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 focus:border-indigo-500 focus:outline-none"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:outline-none transition-all hover:bg-white/10 hover:border-white/20"
                                         />
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-6">
+                                <h3 className="text-xl font-semibold text-indigo-400">Backup & Export</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <button onClick={exportProfileBackup} className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-white transition-colors hover:bg-indigo-500">
+                                        <Download size={16} /> Export JSON Backup
+                                    </button>
+                                    <button onClick={exportPostsCsv} className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-gray-200 transition-colors hover:border-white/25 hover:text-white">
+                                        <File size={16} /> Export Posts CSV
+                                    </button>
+                                    <button onClick={triggerImport} className="w-full flex items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-300 transition-colors hover:bg-emerald-500/20">
+                                        <Upload size={16} /> Import JSON Backup
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <button
+                                        onClick={() => {
+                                            const snapshot = createLocalBackupSnapshot('manual');
+                                            if (snapshot) {
+                                                showToast('Đã lưu snapshot cục bộ.', 'success');
+                                            } else {
+                                                showToast('Không thể lưu snapshot cục bộ.', 'error');
+                                            }
+                                        }}
+                                        className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-gray-200 transition-colors hover:border-white/25 hover:text-white"
+                                    >
+                                        <Save size={16} /> Save Local Snapshot
+                                    </button>
+                                    <button onClick={downloadLatestLocalSnapshot} className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-gray-200 transition-colors hover:border-white/25 hover:text-white">
+                                        <Download size={16} /> Download Last Snapshot
+                                    </button>
+                                    <div className="rounded-xl border border-white/10 bg-black/30 p-2">
+                                        <CustomSelect
+                                            value={String(scheduledBackupMinutes)}
+                                            onChange={(value) => setScheduledBackupMinutes(Number(value))}
+                                            options={[
+                                                { value: '0', label: 'Auto Backup: Off' },
+                                                { value: '15', label: 'Auto Backup: Every 15 min' },
+                                                { value: '30', label: 'Auto Backup: Every 30 min' },
+                                                { value: '60', label: 'Auto Backup: Every 60 min' },
+                                            ]}
+                                        />
+                                    </div>
+                                </div>
+                                <input
+                                    ref={importFileInputRef}
+                                    type="file"
+                                    accept="application/json"
+                                    className="hidden"
+                                    onChange={(event) => {
+                                        const file = event.target.files?.[0];
+                                        if (file) {
+                                            void handleImportProfile(file);
+                                        }
+                                    }}
+                                />
+                                <p className="text-xs text-gray-500">
+                                    Backup JSON sẽ giữ nguyên cấu trúc profile hiện tại. Khi import, hệ thống chỉ ghi đè các trường hợp hợp lệ và giữ lại workflow để tránh mất trạng thái đang có.
+                                </p>
                             </div>
                         </section>
                     )}
@@ -2091,3 +2749,5 @@ export default function AdminPage() {
         </div>
     );
 }
+
+// trigger turbopack rebuild

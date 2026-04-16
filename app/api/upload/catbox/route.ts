@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
+const reportServerError = (...args: unknown[]) => {
+  if (isDev) {
+    console.error(...args);
+  }
+};
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -30,7 +38,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(url, { status: 200 });
 
   } catch (error) {
-    console.error('Upload proxy error:', error);
+    reportServerError('Upload proxy error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

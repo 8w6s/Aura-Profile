@@ -12,43 +12,62 @@ const TypewriterBio: React.FC<TypewriterBioProps> = ({ config, className }) => {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  const [typingSpeed, setTypingSpeed] = useState(100);
+
+  const activeLines = (config.lines || []).filter((line) => typeof line?.text === 'string');
 
   useEffect(() => {
-    if (!config.enabled || !config.lines || config.lines.length === 0) {
-        setDisplayText('');
-        return;
+    setCurrentLineIndex(0);
+    setDisplayText('');
+    setIsDeleting(false);
+  }, [config.enabled, config.loop, activeLines.length]);
+
+  useEffect(() => {
+    if (!config.enabled || activeLines.length === 0) {
+      return;
     }
 
-    const currentLine = config.lines[currentLineIndex];
-    
-    const handleTyping = () => {
-      const fullText = currentLine.text;
-      
-      if (isDeleting) {
-        setDisplayText(prev => fullText.substring(0, prev.length - 1));
-        setTypingSpeed(currentLine.deleteSpeed || 50);
-      } else {
-        setDisplayText(prev => fullText.substring(0, prev.length + 1));
-        setTypingSpeed(currentLine.typeSpeed || 100);
+    if (currentLineIndex >= activeLines.length) {
+      setCurrentLineIndex(0);
+      return;
+    }
+
+    const currentLine = activeLines[currentLineIndex];
+    const fullText = currentLine.text || '';
+    const typeSpeed = Math.max(16, Number(currentLine.typeSpeed) || 100);
+    const deleteSpeed = Math.max(16, Number(currentLine.deleteSpeed) || 50);
+
+    if (!isDeleting) {
+      if (displayText.length < fullText.length) {
+        const timer = setTimeout(() => {
+          setDisplayText(fullText.slice(0, displayText.length + 1));
+        }, typeSpeed);
+        return () => clearTimeout(timer);
       }
 
-      if (!isDeleting && displayText === fullText) {
-        if (!config.loop && currentLineIndex === config.lines.length - 1) {
-          return;
-        }
-        setTimeout(() => setIsDeleting(true), 2000);
-      } else if (isDeleting && displayText === '') {
-        setIsDeleting(false);
-        setCurrentLineIndex((prev) => (prev + 1) % config.lines.length);
+      if (!config.loop && currentLineIndex === activeLines.length - 1) {
+        return;
       }
-    };
 
-    const timer = setTimeout(handleTyping, typingSpeed);
-    return () => clearTimeout(timer);
-  }, [displayText, isDeleting, currentLineIndex, config, typingSpeed]);
+      const timer = setTimeout(() => {
+        setIsDeleting(true);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
 
-  if (!config.enabled || !config.lines || config.lines.length === 0) return null;
+    if (displayText.length > 0) {
+      const timer = setTimeout(() => {
+        setDisplayText(fullText.slice(0, displayText.length - 1));
+      }, deleteSpeed);
+      return () => clearTimeout(timer);
+    }
+
+    setIsDeleting(false);
+    setCurrentLineIndex((prev) => (prev + 1) % activeLines.length);
+
+    return undefined;
+  }, [activeLines, config.enabled, config.loop, currentLineIndex, displayText, isDeleting]);
+
+  if (!config.enabled || activeLines.length === 0) return null;
 
   return (
     <div className={className}>

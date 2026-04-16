@@ -1,9 +1,28 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { headers } from 'next/headers';
+import { getSupabaseClient } from '@/utils/supabase';
 
-const dataFilePath = path.join(process.cwd(), 'data', 'profile.json');
+const isDev = process.env.NODE_ENV !== 'production';
+
+type ProfilePost = {
+  id: string;
+  views?: number;
+  viewedIps?: string[];
+};
+
+type ProfileData = {
+  posts?: ProfilePost[];
+  stats?: {
+    views?: number;
+    viewedIps?: string[];
+  };
+};
+
+const reportServerError = (...args: unknown[]) => {
+  if (isDev) {
+    console.error(...args);
+  }
+};
 
 export async function POST(request: Request) {
   try {
@@ -15,19 +34,25 @@ export async function POST(request: Request) {
     try {
       const body = await request.json();
       postId = body.postId;
-    } catch (e) {
+    } catch {
     }
 
-    if (!fs.existsSync(dataFilePath)) {
+    const supabase = getSupabaseClient();
+    const { data: dbData, error } = await supabase
+      .from('profile_data')
+      .select('content')
+      .eq('id', 'main')
+      .maybeSingle();
+
+    if (error || !dbData || !dbData.content) {
       return NextResponse.json({ error: 'Profile data not found' }, { status: 404 });
     }
 
-    const fileContents = fs.readFileSync(dataFilePath, 'utf8');
-    const data = JSON.parse(fileContents);
+    const data = dbData.content as ProfileData;
 
     if (postId) {
-      const postIndex = data.posts?.findIndex((p: any) => p.id === postId);
-      if (postIndex !== -1) {
+      const postIndex = data.posts?.findIndex((p) => p.id === postId);
+      if (typeof postIndex === 'number' && postIndex !== -1 && data.posts) {
         const post = data.posts[postIndex];
         if (!post.viewedIps) post.viewedIps = [];
 
@@ -35,7 +60,8 @@ export async function POST(request: Request) {
           post.views = (post.views || 0) + 1;
           post.viewedIps.push(ip);
           data.posts[postIndex] = post;
-          fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+          const { error: upsertError } = await supabase.from('profile_data').upsert({ id: 'main', content: data }, { onConflict: 'id' });
+          if (upsertError) console.error('Views Module - Database error:', upsertError.message);
           return NextResponse.json({ success: true, views: post.views });
         } else {
           return NextResponse.json({ success: false, error: 'Already viewed' });
@@ -53,7 +79,8 @@ export async function POST(request: Request) {
         data.stats.views = (data.stats.views || 0) + 1;
         data.stats.viewedIps.push(ip);
 
-        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+        const { error: upsertError } = await supabase.from('profile_data').upsert({ id: 'main', content: data }, { onConflict: 'id' });
+        if (upsertError) console.error('Views Module - Database error:', upsertError.message);
         return NextResponse.json({ success: true, views: data.stats.views });
       } else {
         return NextResponse.json({ success: false, error: 'Already viewed' });
@@ -62,7 +89,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Failed to increment views:', error);
+    reportServerError('Failed to increment views:', error);
     return NextResponse.json({ error: 'Failed to increment views' }, { status: 500 });
   }
 }

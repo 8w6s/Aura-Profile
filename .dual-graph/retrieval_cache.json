@@ -1,0 +1,197 @@
+{
+  "entries": {
+    "find all bugs potential errors issues areas improvement|tf=5|te=12": {
+      "created_epoch": 1776380398,
+      "files": [
+        "app\\context\\ProfileContext.tsx::SocialLink",
+        "app\\api\\download\\route.ts::GET",
+        "app\\api\\leetcode\\route.ts::GET",
+        "app\\api\\like\\route.ts::POST",
+        "app\\api\\profile\\route.ts::GET"
+      ],
+      "mtimes_ns": {
+        "app\\context\\ProfileContext.tsx::SocialLink": 1776375015872336800,
+        "app\\api\\download\\route.ts::GET": 1776372348911636000,
+        "app\\api\\leetcode\\route.ts::GET": 1776343277254136000,
+        "app\\api\\like\\route.ts::POST": 1776372342175288700,
+        "app\\api\\profile\\route.ts::GET": 1776372324522654100
+      },
+      "result": {
+        "ok": true,
+        "query": "find all bugs potential errors issues and areas for improvement in the codebase",
+        "graph_files": [
+          {
+            "id": "app\\context\\ProfileContext.tsx::SocialLink",
+            "kind": "symbol",
+            "path": "app\\context\\ProfileContext.tsx",
+            "ext": ".tsx",
+            "size": 6,
+            "keywords": [
+              "sociallink",
+              "social",
+              "link"
+            ],
+            "symbol_type": "model",
+            "name": "SocialLink",
+            "line_start": 14,
+            "line_end": 19,
+            "body_hash": "f5fe93bb",
+            "confidence": "high",
+            "exported": true,
+            "_score": 16,
+            "_role": "code",
+            "_intent": "debug"
+          },
+          {
+            "id": "app\\api\\download\\route.ts::GET",
+            "kind": "symbol",
+            "path": "app\\api\\download\\route.ts",
+            "ext": ".ts",
+            "size": 67,
+            "keywords": [
+              "get"
+            ],
+            "symbol_type": "api_route",
+            "name": "GET",
+            "line_start": 23,
+            "line_end": 89,
+            "body_hash": "9f0f1fd2",
+            "confidence": "high",
+            "exported": true,
+            "_score": 11,
+            "_role": "code",
+            "_intent": "debug"
+          },
+          {
+            "id": "app\\api\\leetcode\\route.ts::GET",
+            "kind": "symbol",
+            "path": "app\\api\\leetcode\\route.ts",
+            "ext": ".ts",
+            "size": 27,
+            "keywords": [
+              "get"
+            ],
+            "symbol_type": "api_route",
+            "name": "GET",
+            "line_start": 10,
+            "line_end": 36,
+            "body_hash": "e03c9264",
+            "confidence": "high",
+            "exported": true,
+            "_score": 11,
+            "_role": "code",
+            "_intent": "debug"
+          },
+          {
+            "id": "app\\api\\like\\route.ts::POST",
+            "kind": "symbol",
+            "path": "app\\api\\like\\route.ts",
+            "ext": ".ts",
+            "size": 59,
+            "keywords": [
+              "post"
+            ],
+            "symbol_type": "api_route",
+            "name": "POST",
+            "line_start": 22,
+            "line_end": 80,
+            "body_hash": "36c89252",
+            "confidence": "high",
+            "exported": true,
+            "_score": 11,
+            "_role": "code",
+            "_intent": "debug"
+          },
+          {
+            "id": "app\\api\\profile\\route.ts::GET",
+            "kind": "symbol",
+            "path": "app\\api\\profile\\route.ts",
+            "ext": ".ts",
+            "size": 39,
+            "keywords": [
+              "get"
+            ],
+            "symbol_type": "api_route",
+            "name": "GET",
+            "line_start": 176,
+            "line_end": 214,
+            "body_hash": "ac131362",
+            "confidence": "high",
+            "exported": true,
+            "_score": 11,
+            "_role": "code",
+            "_intent": "debug"
+          }
+        ],
+        "graph_edges": [
+          {
+            "from": "app\\context\\ProfileContext.tsx",
+            "to": "app\\context\\ProfileContext.tsx::SocialLink",
+            "rel": "contains"
+          },
+          {
+            "from": "app\\api\\download\\route.ts",
+            "to": "app\\api\\download\\route.ts::GET",
+            "rel": "contains"
+          },
+          {
+            "from": "app\\api\\leetcode\\route.ts",
+            "to": "app\\api\\leetcode\\route.ts::GET",
+            "rel": "contains"
+          },
+          {
+            "from": "app\\api\\like\\route.ts",
+            "to": "app\\api\\like\\route.ts::POST",
+            "rel": "contains"
+          },
+          {
+            "from": "app\\api\\profile\\route.ts",
+            "to": "app\\api\\profile\\route.ts::GET",
+            "rel": "contains"
+          },
+          {
+            "from": "app\\admin\\page.tsx",
+            "to": "@/app/context/ProfileContext",
+            "rel": "imports"
+          },
+          {
+            "from": "app\\admin\\page.tsx",
+            "to": "@/app/context/ToastContext",
+            "rel": "imports"
+          },
+          {
+            "from": "app\\admin\\page.tsx",
+            "to": "@/components/ColorPicker",
+            "rel": "imports"
+          },
+          {
+            "from": "app\\admin\\page.tsx",
+            "to": "@/components/ConfirmModal",
+            "rel": "imports"
+          },
+          {
+            "from": "app\\admin\\page.tsx",
+            "to": "@/components/ContentEnhancements",
+            "rel": "imports"
+          },
+          {
+            "from": "app\\admin\\page.tsx",
+            "to": "@/components/CustomRange",
+            "rel": "imports"
+          },
+          {
+            "from": "app\\admin\\page.tsx",
+            "to": "@/components/CustomSelect",
+            "rel": "imports"
+          }
+        ],
+        "grep_hits": [],
+        "reuse_candidates": [],
+        "read_budget": {
+          "remaining_chars": 60000,
+          "reuse_gate_candidates": []
+        }
+      }
+    }
+  }
+}

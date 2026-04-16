@@ -98,3 +98,36 @@
   background-clip: text;
   color: transparent;
 }
+
+.text-shadow-glow {
+  text-shadow: 0 0 10px var(--primary), 0 0 20px var(--accent);
+}
+
+.parallax-bg {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.responsive-profile-bg {
+  background-image: var(--desktop-bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 768px) {
+  .responsive-profile-bg {
+    background-image: var(--mobile-bg-image, var(--desktop-bg-image));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+

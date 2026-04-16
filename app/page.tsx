@@ -12,14 +12,12 @@ import {
   Info,
   Heart,
   MessageCircle,
-  Bookmark,
   MapPin,
   Mail,
   Link as LinkIcon,
-  Settings,
   ExternalLink,
+  X,
   Grid,
-  User,
   Eye,
   Code
 } from 'lucide-react';
@@ -32,73 +30,123 @@ import MusicPlayer from '@/components/MusicPlayer';
 import ClickSparkle from '@/components/ClickSparkle';
 import EnterScreen from '@/components/EnterScreen';
 import BackgroundEffects from '@/components/BackgroundEffects';
-import CustomCursor from '@/components/CustomCursor';
 import TypewriterBio from '@/components/TypewriterBio';
 import Clock from '@/components/Clock';
+import CustomSelect from '@/components/CustomSelect';
 import { useProfile } from '@/app/context/ProfileContext';
 import { useToast } from '@/app/context/ToastContext';
 import { useLanyard } from '@/hooks/useLanyard';
+import { usePerformanceMode } from '@/hooks/usePerformanceMode';
 import RichPresence from '@/components/RichPresence';
 import WakaTimeStats from '@/components/WakaTimeStats';
-import PostDownloadButton from '@/components/PostDownloadButton';
 import PostAttachments from '@/components/PostAttachments';
-import ReactMarkdown from 'react-markdown';
+import { CustomCssInjection, MarkdownContent, estimateReadingTime } from '@/components/ContentEnhancements';
+import { LayoutSectionId } from '@/app/context/ProfileContext';
+
+type IntegrationState = 'idle' | 'loading' | 'success' | 'error';
+
+const isDev = process.env.NODE_ENV !== 'production';
+
+const reportClientError = (...args: unknown[]) => {
+  if (isDev) {
+    console.error(...args);
+  }
+};
 
 export default function Home() {
-  const { profile, updateProfile, refreshProfile } = useProfile();
+  const { profile, updateProfile } = useProfile();
   const { showToast } = useToast();
   const { data: lanyardData } = useLanyard(profile.discordId);
-  const [activeTab, setActiveTab] = useState<'home' | 'posts'>('home');
+  const { isMinimal, isBalanced } = usePerformanceMode();
   const [entered, setEntered] = useState(false);
   const [typedRole, setTypedRole] = useState('');
   const [typedName, setTypedName] = useState('');
-  const [hoyoverseData, setHoyoverseData] = useState<Record<string, any>>({});
-  const [steamData, setSteamData] = useState<any>(null);
   const [leetcodeData, setLeetCodeData] = useState<any>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [postSearchQuery, setPostSearchQuery] = useState('');
+  const [postCategoryFilter, setPostCategoryFilter] = useState('all');
+  const [leetcodeState, setLeetcodeState] = useState<IntegrationState>('idle');
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
-    if (!profile.integrations?.hoyoverse?.enabled) return;
+    setHasHydrated(true);
+  }, []);
 
-    profile.integrations.hoyoverse.accounts?.forEach(async (account) => {
-      if ((account.game === 'genshin' || account.game === 'hsr') && account.uid) {
-        try {
-          const res = await fetch(`/api/hoyoverse?game=${account.game}&uid=${account.uid}`);
-          if (res.ok) {
-            const data = await res.json();
-            setHoyoverseData(prev => ({ ...prev, [account.id]: data }));
+  // Effect fetch LeetCode data
+  useEffect(() => {
+    if (!profile.integrations?.leetcode?.enabled || !profile.integrations.leetcode.username) {
+      setLeetcodeState('idle');
+      setLeetCodeData(null);
+      return;
+    }
+
+    setLeetcodeState('loading');
+    fetch(`/api/leetcode?username=${profile.integrations.leetcode.username}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            setLeetCodeData(null);
+            setLeetcodeState('error');
+            return;
           }
-        } catch (e) {
-          console.error("Failed to fetch Hoyoverse data", e);
-        }
-      }
-    });
-  }, [profile.integrations?.hoyoverse]);
 
-  useEffect(() => {
-    if (profile.integrations?.steam?.enabled && profile.integrations.steam.steamId && profile.integrations.steam.apiKey) {
-      fetch(`/api/steam?steamId=${profile.integrations.steam.steamId}&apiKey=${profile.integrations.steam.apiKey}`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error) setSteamData(data);
+          setLeetCodeData(data);
+          setLeetcodeState('success');
         })
-        .catch(console.error);
-    }
-  }, [profile.integrations?.steam]);
-
-  useEffect(() => {
-    if (profile.integrations?.leetcode?.enabled && profile.integrations.leetcode.username) {
-      fetch(`/api/leetcode?username=${profile.integrations.leetcode.username}`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error) setLeetCodeData(data);
-        })
-        .catch(console.error);
-    }
+        .catch((error) => {
+          reportClientError('Failed to fetch LeetCode data', error);
+          setLeetCodeData(null);
+          setLeetcodeState('error');
+        });
   }, [profile.integrations?.leetcode]);
 
   const postCount = profile.posts?.length || 0;
   const totalLikes = profile.posts?.reduce((sum, post) => sum + (post.likes || 0), 0) || 0;
   const totalComments = profile.posts?.reduce((sum, post) => sum + (post.comments?.length || 0), 0) || 0;
+  const selectedPost = profile.posts?.find((post) => post.id === selectedPostId) || null;
+
+  const openPostModal = (postId: string) => {
+    setSelectedPostId(postId);
+    window.history.pushState({ postModal: true, postId }, '', `/post/${postId}`);
+  };
+
+  const closePostModal = () => {
+    setSelectedPostId(null);
+    if (window.location.pathname.startsWith('/post/')) {
+      window.history.pushState({}, '', '/');
+    }
+  };
+
+  useEffect(() => {
+    const onPopState = () => {
+      const postMatch = window.location.pathname.match(/^\/post\/([^/]+)$/);
+      if (postMatch) {
+        const targetId = decodeURIComponent(postMatch[1]);
+        const exists = profile.posts?.some((post) => post.id === targetId);
+        setSelectedPostId(exists ? targetId : null);
+        return;
+      }
+
+      setSelectedPostId(null);
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [profile.posts]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closePostModal();
+      }
+    };
+
+    if (selectedPostId) {
+      window.addEventListener('keydown', onKeyDown);
+    }
+
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedPostId]);
 
   const handleLike = async (postId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -131,7 +179,7 @@ export default function Home() {
       }
 
     } catch (error) {
-      console.error(error);
+      reportClientError(error);
       showToast('Network error', 'error');
     }
   };
@@ -147,11 +195,12 @@ export default function Home() {
     });
   };
 
-  const maskName = (name: string) => {
-    if (name.length <= 4) return name[0] + '***';
-    return name.slice(0, 2) + '*****' + name.slice(-2);
-  };
   useEffect(() => {
+    if (isMinimal) {
+      setTypedRole(profile.role || '');
+      return;
+    }
+
     if (!entered) return;
     let i = 0;
     const text = profile.role;
@@ -166,9 +215,14 @@ export default function Home() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [entered, profile.role]);
+  }, [entered, isMinimal, profile.role]);
 
   useEffect(() => {
+    if (isMinimal) {
+      setTypedName(profile.name || '');
+      return;
+    }
+
     if (!entered || profile.textEffects?.name !== 'typewriter') return;
     let i = 0;
     const text = profile.name;
@@ -183,14 +237,14 @@ export default function Home() {
     }, 150);
 
     return () => clearInterval(interval);
-  }, [entered, profile.name, profile.textEffects?.name]);
+  }, [entered, isMinimal, profile.name, profile.textEffects?.name]);
 
   useEffect(() => {
     const incrementView = async () => {
       try {
         await fetch('/api/views', { method: 'POST' });
       } catch (error) {
-        console.error('Failed to increment view count', error);
+        reportClientError('Failed to increment view count', error);
       }
     };
     if (entered) {
@@ -200,7 +254,7 @@ export default function Home() {
 
   useEffect(() => {
     if (profile.metadata?.title) {
-      if (profile.metadata.enableTypewriter) {
+      if (profile.metadata.enableTypewriter && !isMinimal) {
         let i = 0;
         const originalTitle = profile.metadata.title;
         const interval = setInterval(() => {
@@ -223,25 +277,27 @@ export default function Home() {
       (link as HTMLLinkElement).href = profile.metadata.iconUrl;
       document.getElementsByTagName('head')[0].appendChild(link);
     }
-  }, [profile.metadata?.iconUrl, profile.metadata?.title, profile.metadata?.enableTypewriter]);
+  }, [isMinimal, profile.metadata?.iconUrl, profile.metadata?.title, profile.metadata?.enableTypewriter]);
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
+        staggerChildren: isMinimal ? 0 : 0.08,
+        delayChildren: isMinimal ? 0 : 0.12
       }
     }
   };
 
   const itemVariants: Variants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: isMinimal ? 0 : 16, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { type: 'spring', stiffness: 100 }
+      transition: isMinimal
+        ? { duration: 0.12 }
+        : { type: 'spring', stiffness: 100 }
     }
   };
 
@@ -271,15 +327,107 @@ export default function Home() {
     facebook: "hover:bg-blue-600",
   };
 
+  const cardWidthClass = profile.theme?.cardWidthPreset === 'compact'
+    ? 'max-w-3xl'
+    : profile.theme?.cardWidthPreset === 'wide'
+      ? 'max-w-6xl'
+      : 'max-w-4xl';
+
+  const bannerOverlayOpacity = Math.max(0, Math.min(100, profile.theme?.bannerOverlayOpacity ?? 80));
+  const avatarRingWidth = Math.max(0, Math.min(12, profile.theme?.avatarRingWidth ?? 4));
+  const socialIconSize = Math.max(16, Math.min(36, profile.theme?.socialIconSize ?? 24));
+
+  const uidText = profile.uid || '1337';
+  const uidBadgeLabel = profile.theme?.uidStyle === 'bracket'
+    ? `[${uidText}]`
+    : profile.theme?.uidStyle === 'minimal'
+      ? uidText
+      : `UID: ${uidText}`;
+
+  const socialButtonClass = profile.theme?.socialButtonStyle === 'solid'
+    ? 'bg-black/40'
+    : profile.theme?.socialButtonStyle === 'outline'
+      ? 'bg-transparent border border-white/25'
+      : 'bg-white/10';
+
+  const defaultLayoutOrder: LayoutSectionId[] = ['hero', 'links', 'overview', 'projects', 'posts', 'integrations'];
+  const layoutOrder = profile.layout?.sectionOrder?.length ? profile.layout.sectionOrder : defaultLayoutOrder;
+  const hiddenSections = new Set(profile.layout?.hiddenSections || []);
+
+  const getSectionOrder = (sectionId: LayoutSectionId, fallback: number) => {
+    const explicitOrder = layoutOrder.indexOf(sectionId);
+    return explicitOrder === -1 ? fallback : explicitOrder;
+  };
+
+  const getSectionWidthClass = (sectionId: LayoutSectionId) => {
+    const width = profile.layout?.sectionWidths?.[sectionId] || 'default';
+
+    switch (width) {
+      case 'compact':
+        return 'max-w-3xl';
+      case 'wide':
+        return 'max-w-6xl';
+      case 'full':
+        return 'max-w-none';
+      default:
+        return 'max-w-4xl';
+    }
+  };
+
+  const isSectionVisible = (sectionId: LayoutSectionId) => !hiddenSections.has(sectionId);
+
+  const showBlogCategories = profile.blog?.showCategories !== false;
+  const showBlogTags = profile.blog?.showTags !== false;
+  const effectivePostLayout = profile.layout?.postLayout || profile.blog?.defaultLayout || 'grid';
+
+  const desktopBackgroundImage = profile.theme?.backgroundImageUrl || "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop";
+  const mobileBackgroundImage = profile.theme?.mobileBackgroundImageUrl || desktopBackgroundImage;
+
+  const filteredBlogPosts = (profile.posts || [])
+    .filter((post) => !post.hidden)
+    .filter((post) => {
+      if (!showBlogCategories || postCategoryFilter === 'all') {
+        return true;
+      }
+
+      return (post.category || '').toLowerCase() === postCategoryFilter.toLowerCase();
+    })
+    .filter((post) => {
+      if (!postSearchQuery.trim()) {
+        return true;
+      }
+
+      try {
+        const regex = new RegExp(postSearchQuery, 'i');
+        return regex.test(post.title) || regex.test(post.content) || regex.test(post.category || '') || (post.tags || []).some((tag) => regex.test(tag));
+      } catch {
+        const query = postSearchQuery.toLowerCase();
+        return [post.title, post.content, post.category || '', ...(post.tags || [])].some((value) => value.toLowerCase().includes(query));
+      }
+    });
+
+  const blogCategories = Array.from(new Set((profile.posts || []).flatMap((post) => (post.category ? [post.category] : []))));
+
+  const postsLayoutClass = effectivePostLayout === 'list'
+    ? 'flex flex-col gap-4'
+    : 'grid grid-cols-1 gap-6';
+
+  const projectsLayoutClass = profile.layout?.projectLayout === 'list'
+    ? 'flex flex-col gap-4'
+    : 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
+  const formatCount = (value: number | undefined) =>
+    new Intl.NumberFormat('en-US').format(value ?? 0);
+
   const themeStyles = {
     '--primary': profile.theme?.primaryColor || '#4f46e5',
     '--accent': profile.theme?.accentColor || '#ec4899',
     '--text': profile.theme?.textColor || '#ffffff',
     '--background': profile.theme?.backgroundColor || '#000000',
     '--card-bg': profile.theme?.cardColor ? `${profile.theme.cardColor}${Math.round((profile.theme.cardOpacity || 0.4) * 255).toString(16).padStart(2, '0')}` : 'rgba(0,0,0,0.4)',
-    '--card-blur': `${profile.theme?.cardBlur || 20}px`,
+    '--card-blur': `${isMinimal ? 0 : isBalanced ? Math.min(profile.theme?.cardBlur || 20, 8) : (profile.theme?.cardBlur || 20)}px`,
     '--component-bg': profile.theme?.componentColor || 'rgba(255,255,255,0.05)',
-    '--bg-blur': `${profile.theme?.backgroundBlur || 0}px`,
+    '--bg-blur': `${isMinimal ? 0 : isBalanced ? Math.min(profile.theme?.backgroundBlur || 0, 6) : (profile.theme?.backgroundBlur || 0)}px`,
     '--card-radius': `${profile.theme?.cardBorderRadius || 40}px`,
     '--component-radius': `${profile.theme?.componentBorderRadius || 12}px`,
     '--btn-radius': `${profile.theme?.buttonBorderRadius || 12}px`,
@@ -292,28 +440,9 @@ export default function Home() {
       className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden select-none"
       style={{ ...themeStyles, fontFamily: 'var(--font-custom)' }}
       onContextMenu={(e) => e.preventDefault()}
+      suppressHydrationWarning
     >
-      <style jsx global>{`
-        body {
-          cursor: none !important;
-        }
-        * {
-          cursor: none !important;
-        }
-        a, button, input, textarea, select {
-          cursor: none !important;
-        }
-        [role="button"], [type="button"], [type="submit"], [type="reset"] {
-          cursor: none !important;
-        }
-        .text-shadow-glow {
-          text-shadow: 0 0 10px var(--primary), 0 0 20px var(--accent);
-        }
-        .parallax-bg {
-           transform-style: preserve-3d;
-           will-change: transform;
-        }
-      `}</style>
+      <CustomCssInjection css={profile.customCss} />
       {profile.theme?.fontFamily && (
         <link
           rel="stylesheet"
@@ -321,19 +450,20 @@ export default function Home() {
         />
       )}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat scale-105"
-        style={{
-          backgroundImage: `url('${profile.theme?.backgroundImageUrl || "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop"}')`,
-        }}
+        className="absolute inset-0 z-0 scale-105 hidden bg-cover bg-center bg-no-repeat md:block"
+        style={{ backgroundImage: `url('${desktopBackgroundImage}')` }}
+      />
+      <div
+        className="absolute inset-0 z-0 scale-105 bg-cover bg-center bg-no-repeat md:hidden"
+        style={{ backgroundImage: `url('${mobileBackgroundImage}')` }}
       />
       <div className="absolute inset-0 z-0 bg-black/60" style={{
         backgroundColor: profile.theme?.backgroundColor ? `${profile.theme.backgroundColor}99` : undefined,
-        backdropFilter: 'blur(var(--bg-blur))',
-        WebkitBackdropFilter: 'blur(var(--bg-blur))'
+        backdropFilter: isMinimal ? 'none' : 'blur(var(--bg-blur))',
+        WebkitBackdropFilter: isMinimal ? 'none' : 'blur(var(--bg-blur))'
       }} />
 
       <BackgroundEffects />
-      <CustomCursor />
       <ClickSparkle />
       <MusicPlayer waitUserInteraction={!entered && profile.features?.enableEnterScreen !== false} />
 
@@ -353,26 +483,42 @@ export default function Home() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="relative z-10 w-full max-w-4xl border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto ring-1 ring-white/5 no-scrollbar"
+          className={`relative z-10 w-full ${cardWidthClass} border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto ring-1 ring-white/5 no-scrollbar`}
           style={{
             backgroundColor: 'var(--card-bg)',
-            backdropFilter: 'blur(var(--card-blur))',
-            WebkitBackdropFilter: 'blur(var(--card-blur))',
+            backdropFilter: isMinimal ? 'none' : 'blur(var(--card-blur))',
+            WebkitBackdropFilter: isMinimal ? 'none' : 'blur(var(--card-blur))',
             borderRadius: 'var(--card-radius)',
           }}
         >
           <div className="grid grid-rows-[200px_auto] md:grid-rows-[250px_auto]">
             <div className="relative h-full w-full bg-cover bg-center" style={{ backgroundImage: `url('${profile.bannerUrl}')` }}>
-              <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(to top, rgba(0, 0, 0, ${bannerOverlayOpacity / 100}) 0%, rgba(0, 0, 0, 0) 75%)`,
+                }}
+              />
             </div>
 
             <div className="p-6 md:p-10 grid grid-cols-1 md:grid-cols-[180px_auto] gap-8">
+              {isSectionVisible('hero') && (
               <div className="relative -mt-24 md:-mt-32 mb-4 group z-10 flex flex-col items-center md:items-start text-center md:text-left">
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={isMinimal ? undefined : { scale: 1.05 }}
                   className="relative inline-block"
                 >
-                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-[#171717] shadow-2xl bg-gray-800 relative z-10 overflow-hidden">
+                  <div
+                    className="w-32 h-32 md:w-40 md:h-40 rounded-full shadow-2xl bg-gray-800 relative z-10 overflow-hidden"
+                    style={{
+                      borderStyle: 'solid',
+                      borderWidth: `${avatarRingWidth}px`,
+                      borderColor: profile.theme?.avatarRingColor || '#171717',
+                      boxShadow: profile.theme?.avatarGlow
+                        ? `0 0 20px ${(profile.theme?.avatarRingColor || '#171717')}88`
+                        : undefined,
+                    }}
+                  >
                     <img
                       src={lanyardData?.discord_user.avatar ? `https://cdn.discordapp.com/avatars/${lanyardData.discord_user.id}/${lanyardData.discord_user.avatar}.png?size=256` : profile.avatarUrl}
                       alt="Profile"
@@ -466,13 +612,15 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="flex items-center justify-center md:justify-start gap-3 mt-1">
-                    <span className="px-2 py-0.5 rounded-full border border-white/10 text-[10px] text-gray-400 font-mono" style={{ backgroundColor: 'var(--component-bg)' }}>
-                      UID: 1337
-                    </span>
+                    {profile.features?.showUid !== false && (
+                      <span className="px-2 py-0.5 rounded-full border border-white/10 text-[10px] text-gray-400 font-mono" style={{ backgroundColor: 'var(--component-bg)' }}>
+                        {uidBadgeLabel}
+                      </span>
+                    )}
                     {profile.features?.showViews !== false && (
                       <div className="flex items-center gap-1 text-[10px] text-gray-400 font-mono">
                         <Eye size={12} />
-                        <span>{profile.stats?.views?.toLocaleString() || 0}</span>
+                        <span>{formatCount(profile.stats?.views)}</span>
                       </div>
                     )}
                   </div>
@@ -507,10 +655,15 @@ export default function Home() {
                 </div>
 
               </div>
+              )}
 
               <div className="flex flex-col gap-8">
-                {profile.directLinks.length > 0 && (
-                  <motion.div variants={itemVariants} className="space-y-3">
+                {profile.directLinks.length > 0 && isSectionVisible('links') && (
+                  <motion.div
+                    variants={itemVariants}
+                    className={`space-y-3 ${getSectionWidthClass('links')}`}
+                    style={{ order: getSectionOrder('links', 0) }}
+                  >
                     {profile.directLinks.map((link) => (
                       <a
                         key={link.id}
@@ -530,26 +683,33 @@ export default function Home() {
                   </motion.div>
                 )}
 
-                <motion.div variants={itemVariants} className="grid grid-cols-3 gap-4 p-6 border border-white/5 backdrop-blur-md" style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}>
+                {isSectionVisible('overview') && (
+                  <motion.div
+                    variants={itemVariants}
+                    className={`grid grid-cols-3 gap-4 p-6 border border-white/5 backdrop-blur-md ${getSectionWidthClass('overview')}`}
+                    style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('overview', 1) }}
+                  >
                   <div className="flex flex-col items-center justify-center text-center border-r border-white/10">
-                    <span className="text-2xl font-bold text-white">{postCount.toLocaleString()}</span>
+                    <span className="text-2xl font-bold text-white">{formatCount(postCount)}</span>
                     <span className="text-gray-400 text-sm">Posts</span>
                   </div>
                   {profile.features?.showLikes !== false && (
                     <div className="flex flex-col items-center justify-center text-center border-r border-white/10">
-                      <span className="text-2xl font-bold text-white">{totalLikes.toLocaleString()}</span>
+                      <span className="text-2xl font-bold text-white">{formatCount(totalLikes)}</span>
                       <span className="text-gray-400 text-sm">Likes</span>
                     </div>
                   )}
                   {profile.features?.showComments !== false && (
                     <div className="flex flex-col items-center justify-center text-center">
-                      <span className="text-2xl font-bold text-white">{totalComments.toLocaleString()}</span>
+                      <span className="text-2xl font-bold text-white">{formatCount(totalComments)}</span>
                       <span className="text-gray-400 text-sm">Comments</span>
                     </div>
                   )}
-                </motion.div>
+                  </motion.div>
+                )}
 
-                <motion.div variants={itemVariants} className="space-y-4">
+                {isSectionVisible('overview') && (
+                  <motion.div variants={itemVariants} className={`space-y-4 ${getSectionWidthClass('overview')}`} style={{ order: getSectionOrder('overview', 2) }}>
                   <div className="flex items-center gap-2 text-(--primary) font-semibold border-b border-white/10 pb-2">
                     <Info size={18} />
                     <h2>About Me</h2>
@@ -561,19 +721,22 @@ export default function Home() {
                       {profile.bio}
                     </p>
                   )}
-                </motion.div>
+                  </motion.div>
+                )}
 
-                <motion.div variants={itemVariants}>
+                {isSectionVisible('overview') && (
+                  <motion.div variants={itemVariants} style={{ order: getSectionOrder('overview', 3) }} className={getSectionWidthClass('overview')}>
                   <WakaTimeStats />
-                </motion.div>
+                  </motion.div>
+                )}
 
-                {profile.projects && profile.projects.length > 0 && (
-                  <motion.div variants={itemVariants} className="space-y-4">
+                {profile.projects && profile.projects.length > 0 && isSectionVisible('projects') && (
+                  <motion.div variants={itemVariants} className={`space-y-4 ${getSectionWidthClass('projects')}`} style={{ order: getSectionOrder('projects', 4) }}>
                     <div className="flex items-center gap-2 text-(--primary) font-semibold border-b border-white/10 pb-2">
                       <Grid size={18} />
                       <h2>Projects</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={projectsLayoutClass}>
                       {profile.projects.map((project) => (
                         <a
                           key={project.id}
@@ -611,7 +774,8 @@ export default function Home() {
                   </motion.div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {isSectionVisible('overview') && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ order: getSectionOrder('overview', 5) }}>
                   <motion.div variants={itemVariants} className="p-6 border border-white/5 space-y-4" style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}>
                     <h3 className="text-white font-medium mb-4">Engagement</h3>
                     <div className="space-y-4">
@@ -622,7 +786,7 @@ export default function Home() {
                           </div>
                           <span>Likes</span>
                         </div>
-                        <span className="font-bold text-white">{totalLikes.toLocaleString()}</span>
+                        <span className="font-bold text-white">{formatCount(totalLikes)}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 text-gray-300">
@@ -631,7 +795,7 @@ export default function Home() {
                           </div>
                           <span>Comments</span>
                         </div>
-                        <span className="font-bold text-white">{totalComments.toLocaleString()}</span>
+                        <span className="font-bold text-white">{formatCount(totalComments)}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -649,10 +813,10 @@ export default function Home() {
                             href={social.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`flex items-center justify-center aspect-square bg-white/10 text-white transition-all duration-300 ${socialColors[social.platform]} hover:scale-110`}
+                            className={`flex items-center justify-center aspect-square ${socialButtonClass} text-white transition-all duration-300 ${socialColors[social.platform]} hover:scale-110`}
                             style={{ borderRadius: 'var(--btn-radius)' }}
                           >
-                            <Icon size={24} />
+                            <Icon size={socialIconSize} />
                           </a>
                         );
                       })}
@@ -666,251 +830,206 @@ export default function Home() {
                       )}
                     </div>
                   </motion.div>
-                </div>
+                  </div>
+                )}
 
-                {profile.posts && profile.posts.length > 0 && (
-                  <motion.div variants={itemVariants} className="space-y-4">
+                {profile.posts && profile.posts.length > 0 && isSectionVisible('posts') && (
+                  <motion.div variants={itemVariants} className={`space-y-4 ${getSectionWidthClass('posts')}`} style={{ order: getSectionOrder('posts', 6) }}>
                     <div className="flex items-center gap-2 text-(--primary) font-semibold border-b border-white/10 pb-2">
                       <Grid size={18} />
                       <h2>Recent Posts</h2>
                     </div>
-                    <div className="grid grid-cols-1 gap-6">
-                      {profile.posts
-                        .filter(post => !post.hidden)
-                        .map((post) => (
-                        <Link href={`/post/${post.id}`} key={post.id} className="block overflow-hidden border border-white/10 transition-transform duration-300 hover:scale-[1.01] hover:border-white/20" style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}>
-                          {post.imageUrl && (
-                            <div className="h-64 w-full overflow-hidden">
-                              <img
-                                src={post.imageUrl}
-                                alt={post.title}
-                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                              />
-                            </div>
-                          )}
-                          <div className="p-6 space-y-4">
-                            <div>
-                              <h3 className="text-xl font-bold text-white mb-2 hover:text-(--primary) transition-colors">{post.title}</h3>
-                              <div className="text-gray-300 line-clamp-3 prose prose-invert max-w-none text-sm">
-                                <ReactMarkdown>{post.content}</ReactMarkdown>
+                    <div className={`grid grid-cols-1 gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 ${showBlogCategories ? 'md:grid-cols-[1fr_220px]' : ''}`}>
+                      <div className="space-y-2">
+                        <label className="text-xs text-gray-500">Search Posts</label>
+                        <input
+                          value={postSearchQuery}
+                          onChange={(event) => setPostSearchQuery(event.target.value)}
+                          placeholder="Search title, content, tags, category..."
+                          className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-indigo-500"
+                        />
+                      </div>
+                      {showBlogCategories && (
+                        <div className="space-y-2">
+                          <label className="text-xs text-gray-500">Category</label>
+                          <CustomSelect
+                            value={postCategoryFilter}
+                            onChange={(value) => setPostCategoryFilter(value)}
+                            options={[
+                              { value: 'all', label: 'All Categories' },
+                              ...blogCategories.map((category) => ({ value: category, label: category })),
+                            ]}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className={postsLayoutClass}>
+                      {filteredBlogPosts.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-8 text-center text-sm text-gray-500">
+                          No posts found matching the current filters.
+                        </div>
+                      ) : filteredBlogPosts.map((post) => (
+                          <article
+                            key={post.id}
+                            onClick={() => openPostModal(post.id)}
+                            className="block overflow-hidden border border-white/10 transition-transform duration-300 hover:scale-[1.01] hover:border-white/20 cursor-pointer"
+                            style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}
+                          >
+                            {post.imageUrl && (
+                              <div className="h-64 w-full overflow-hidden">
+                                <img
+                                  src={post.imageUrl}
+                                  alt={post.title}
+                                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                />
                               </div>
-
-                              {post.attachments && post.attachments.length > 0 && (
-                                <div className="mt-4" onClick={(e) => e.preventDefault()}>
-                                  <PostAttachments attachments={post.attachments} files={profile.files} />
+                            )}
+                            <div className="p-6 space-y-4">
+                              <div>
+                                <h3 className="text-xl font-bold text-white mb-2 hover:text-(--primary) transition-colors">{post.title}</h3>
+                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
+                                  {showBlogCategories && post.category && <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">{post.category}</span>}
+                                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">{estimateReadingTime(post.content)} min read</span>
                                 </div>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                              <div className="flex items-center gap-4">
-                                {profile.features?.showLikes !== false && (
-                                  <button
-                                    onClick={(e) => profile.features?.allowLikes !== false && handleLike(post.id, e)}
-                                    className={`flex items-center gap-2 transition-colors ${profile.features?.allowLikes === false ? 'cursor-default text-gray-500' : 'text-gray-400 hover:text-(--accent)'}`}
-                                  >
-                                    <Heart size={20} className={post.likes > 0 ? "fill-(--accent) text-(--accent)" : ""} />
-                                    <span>{post.likes || 0}</span>
-                                  </button>
+                                {post.excerpt ? (
+                                  <p className="mt-3 text-sm leading-6 text-gray-300">{post.excerpt}</p>
+                                ) : (
+                                  <MarkdownContent content={post.content} className="text-gray-300 line-clamp-3 prose prose-invert max-w-none text-sm" />
                                 )}
-                                {profile.features?.showComments !== false && (
-                                  <div className="flex items-center gap-2 text-gray-400">
-                                    <MessageCircle size={20} />
-                                    <span>{post.comments?.length || 0}</span>
+
+                                {showBlogTags && post.tags && post.tags.length > 0 && (
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {post.tags.map((tag) => (
+                                      <span key={tag} className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-gray-300">#{tag}</span>
+                                    ))}
                                   </div>
                                 )}
-                                {profile.features?.showViews !== false && (
-                                  <div className="flex items-center gap-2 text-gray-400 cursor-default">
-                                    <Eye size={20} />
-                                    <span>{post.views || 0}</span>
+
+                                {post.attachments && post.attachments.length > 0 && (
+                                  <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                                    <PostAttachments attachments={post.attachments} files={profile.files} />
                                   </div>
                                 )}
                               </div>
-                              <button
-                                onClick={(e) => handleShare(post.id, e)}
-                                className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
-                              >
-                                <ExternalLink size={18} />
-                              </button>
+                              <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                                <div className="flex items-center gap-4">
+                                  {profile.features?.showLikes !== false && (
+                                    <button
+                                      onClick={(e) => profile.features?.allowLikes !== false && handleLike(post.id, e)}
+                                      className={`flex items-center gap-2 transition-colors ${profile.features?.allowLikes === false ? 'cursor-default text-gray-500' : 'text-gray-400 hover:text-(--accent)'}`}
+                                    >
+                                      <Heart size={20} className={post.likes > 0 ? 'fill-(--accent) text-(--accent)' : ''} />
+                                      <span>{post.likes || 0}</span>
+                                    </button>
+                                  )}
+                                  {profile.features?.showComments !== false && (
+                                    <div className="flex items-center gap-2 text-gray-400">
+                                      <MessageCircle size={20} />
+                                      <span>{post.comments?.length || 0}</span>
+                                    </div>
+                                  )}
+                                  {profile.features?.showViews !== false && (
+                                    <div className="flex items-center gap-2 text-gray-400 cursor-default">
+                                      <Eye size={20} />
+                                      <span>{post.views || 0}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={(e) => handleShare(post.id, e)}
+                                  className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
+                                >
+                                  <ExternalLink size={18} />
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        </Link>
+                          </article>
                       ))}
                     </div>
                   </motion.div>
                 )}
 
-                {profile.github?.enabled && (
-                  <motion.div variants={itemVariants} className="space-y-4">
-                    <div className="flex items-center gap-2 text-(--primary) font-semibold border-b border-white/10 pb-2">
-                      <Github size={18} />
-                      <h2>GitHub Activity</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-6 border border-white/10 flex flex-col items-center justify-center text-center space-y-4" style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}>
-                        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
-                          <Github size={32} />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-white text-lg">@{profile.github.username}</h3>
-                          <a
-                            href={`https://github.com/${profile.github.username}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1 justify-center mt-1"
+                <AnimatePresence>
+                  {selectedPost && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-[999] flex items-center justify-center p-4"
+                    >
+                      <div
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                        onClick={closePostModal}
+                      />
+                      <motion.div
+                        initial={{ scale: 0.96, opacity: 0, y: 12 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.96, opacity: 0, y: 12 }}
+                        className="relative z-10 w-full max-w-4xl max-h-[88vh] overflow-y-auto border border-white/10 shadow-2xl"
+                        style={{
+                          backgroundColor: 'var(--card-bg)',
+                          backdropFilter: 'blur(var(--card-blur))',
+                          WebkitBackdropFilter: 'blur(var(--card-blur))',
+                          borderRadius: 'var(--card-radius)',
+                        }}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b border-white/10 bg-black/40 backdrop-blur-md">
+                          <div className="text-sm text-gray-300 truncate">
+                            /post/{selectedPost.id}
+                          </div>
+                          <button
+                            onClick={closePostModal}
+                            className="p-2 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                            aria-label="Close post modal"
                           >
-                            View Profile <ExternalLink size={12} />
-                          </a>
+                            <X size={18} />
+                          </button>
                         </div>
-                        {profile.github.showContributions && (
-                          <img
-                            src={`https://ghchart.rshah.org/${profile.theme.primaryColor.replace('#', '')}/${profile.github.username}`}
-                            alt="GitHub Contributions"
-                            className="w-full rounded-lg opacity-80 hover:opacity-100 transition-opacity"
-                          />
+
+                        {selectedPost.imageUrl && (
+                          <div className="h-72 w-full overflow-hidden border-b border-white/10">
+                            <img
+                              src={selectedPost.imageUrl}
+                              alt={selectedPost.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         )}
-                      </div>
-                      {profile.github.pinnedRepo && (
-                        <a
-                          href={`https://github.com/${profile.github.pinnedRepo}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-6 border border-white/10 hover:border-white/30 transition-all group flex flex-col h-full"
-                          style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2 text-gray-400 group-hover:text-white">
-                              <Bookmark size={20} />
-                              <span className="text-xs font-mono uppercase tracking-widest">Pinned Repo</span>
-                            </div>
-                            <ExternalLink size={16} className="text-gray-500 group-hover:text-white" />
-                          </div>
-                          <h3 className="text-xl font-bold text-white mb-2 group-hover:text-(--primary) transition-colors">
-                            {profile.github.pinnedRepo.split('/')[1]}
-                          </h3>
-                          <div className="mt-auto pt-4 flex gap-4 text-sm text-gray-400">
-                            <span className="flex items-center gap-1">View Repository</span>
-                          </div>
-                        </a>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
 
-                {profile.integrations?.hoyoverse?.enabled && (
-                  <motion.div variants={itemVariants} className="space-y-4">
-                    <div className="flex items-center gap-2 text-(--primary) font-semibold border-b border-white/10 pb-2">
-                      <Grid size={18} />
-                      <h2>Game Activities</h2>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                      {profile.integrations.hoyoverse.accounts?.map((account, index) => {
-                        const data = hoyoverseData[account.id];
-                        return (
-                          <Link
-                            href={`/game/${account.game}/${account.uid}`}
-                            key={index}
-                            className="p-4 border border-white/10 flex flex-col gap-3 block hover:bg-white/5 transition-colors group"
-                            style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center overflow-hidden relative">
-                                  {data?.avatarUrl ? (
-                                    <img src={data.avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
-                                  ) : (
-                                    <>
-                                      {account.game === 'genshin' && <img src="https://upload.wikimedia.org/wikipedia/en/thumb/5/5d/Genshin_Impact_logo.svg/1200px-Genshin_Impact_logo.svg.png" className="w-8 h-8 object-contain" alt="Genshin" />}
-                                      {account.game === 'hsr' && <img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/91/Honkai_Star_Rail_icon.png/220px-Honkai_Star_Rail_icon.png" className="w-8 h-8 object-contain" alt="HSR" />}
-                                      {account.game === 'hi3' && <span className="text-xs font-bold">HI3</span>}
-                                      {account.game === 'zzz' && <span className="text-xs font-bold">ZZZ</span>}
-                                    </>
-                                  )}
-                                </div>
-                                <div>
-                                  <h3 className="font-bold text-white text-sm group-hover:text-(--primary) transition-colors">
-                                    {data?.nickname || (account.game === 'genshin' ? 'Genshin Impact' :
-                                      account.game === 'hsr' ? 'Honkai: Star Rail' :
-                                        account.game === 'hi3' ? 'Honkai Impact 3rd' : 'Zenless Zone Zero')}
-                                  </h3>
-                                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                                    <span>UID: {account.uid}</span>
-                                    <button
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        navigator.clipboard.writeText(account.uid);
-                                        showToast('UID copied!', 'success');
-                                      }}
-                                      className="hover:text-white z-10 relative"
-                                    >
-                                      (Copy)
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                              {data && (
-                                <div className="text-right">
-                                  <span className="text-xs text-gray-400 block">Level</span>
-                                  <span className="text-lg font-bold text-(--primary)">{data.level}</span>
-                                </div>
-                              )}
-                            </div>
-                            {data?.signature && (
-                              <div className="text-xs text-gray-400 italic bg-black/20 p-2 rounded">
-                                "{data.signature}"
-                              </div>
-                            )}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
+                        <div className="p-6 space-y-4">
+                          <h3 className="text-2xl font-bold text-white">{selectedPost.title}</h3>
+                          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+                            <span className="flex items-center gap-1"><Eye size={14} /> {selectedPost.views || 0}</span>
+                            <span className="flex items-center gap-1"><Heart size={14} /> {selectedPost.likes || 0}</span>
+                            <span className="flex items-center gap-1"><MessageCircle size={14} /> {selectedPost.comments?.length || 0}</span>
+                            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">{estimateReadingTime(selectedPost.content)} min read</span>
+                            {showBlogCategories && selectedPost.category && <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">{selectedPost.category}</span>}
+                          </div>
+                          <MarkdownContent content={selectedPost.content} className="text-gray-300 prose prose-invert max-w-none text-sm" />
 
-                {profile.integrations?.steam?.enabled && steamData && (
-                  <motion.div variants={itemVariants} className="p-6 border border-white/5 space-y-4" style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}>
-                    <div className="flex items-center gap-2 text-(--primary) font-semibold border-b border-white/10 pb-2">
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-5 h-5" alt="Steam" />
-                      <h2>Steam Status</h2>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className={`w-16 h-16 rounded-full p-0.5 ${steamData.personastate === 1 ? 'bg-green-500' : steamData.personastate === 0 ? 'bg-gray-500' : 'bg-blue-500'}`}>
-                        <img src={steamData.avatarfull} className="w-full h-full rounded-full" alt="Steam Avatar" />
-                      </div>
-                      <div>
-                        <a href={steamData.profileurl} target="_blank" rel="noopener noreferrer" className="font-bold text-white hover:text-(--primary) text-lg">
-                          {steamData.personaname}
-                        </a>
-                        <div className="text-sm">
-                          {steamData.gameextrainfo ? (
-                            <span className="text-green-400">Playing: {steamData.gameextrainfo}</span>
-                          ) : (
-                            <span className={steamData.personastate === 1 ? 'text-green-500' : steamData.personastate === 0 ? 'text-gray-500' : 'text-blue-400'}>
-                              {steamData.personastate === 1 ? 'Online' : steamData.personastate === 0 ? 'Offline' : 'In-Game / Busy'}
-                            </span>
+                          {showBlogTags && selectedPost.tags && selectedPost.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {selectedPost.tags.map((tag) => (
+                                <span key={tag} className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-gray-300">#{tag}</span>
+                              ))}
+                            </div>
+                          )}
+
+                          {selectedPost.attachments && selectedPost.attachments.length > 0 && (
+                            <div className="pt-2" onClick={(event) => event.stopPropagation()}>
+                              <PostAttachments attachments={selectedPost.attachments} files={profile.files} />
+                            </div>
                           )}
                         </div>
-                      </div>
-                    </div>
-                    {steamData.recentGames && steamData.recentGames.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2 mt-2">
-                        {steamData.recentGames.map((game: any) => (
-                          <div key={game.appid} className="text-center group relative">
-                            <img
-                              src={`http://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.img_icon_url}.jpg`}
-                              className="w-10 h-10 mx-auto rounded"
-                              alt={game.name}
-                            />
-                            <span className="text-[10px] text-gray-400 mt-1 block truncate">{game.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                {profile.integrations?.leetcode?.enabled && leetcodeData && (
-                  <motion.div variants={itemVariants} className="p-6 border border-white/5 space-y-4" style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)' }}>
+
+                {profile.integrations?.leetcode?.enabled && leetcodeData && isSectionVisible('integrations') && (
+                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 space-y-4 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 11) }}>
                     <div className="flex items-center gap-2 text-(--primary) font-semibold border-b border-white/10 pb-2">
                       <Code size={18} />
                       <h2>LeetCode Stats</h2>
@@ -942,6 +1061,18 @@ export default function Home() {
                   </motion.div>
                 )}
 
+                {profile.integrations?.leetcode?.enabled && leetcodeState === 'loading' && isSectionVisible('integrations') && (
+                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 text-sm text-gray-400 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 12) }}>
+                    Loading LeetCode stats...
+                  </motion.div>
+                )}
+
+                {profile.integrations?.leetcode?.enabled && leetcodeState === 'error' && isSectionVisible('integrations') && (
+                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 text-sm text-red-300 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 13) }}>
+                    Could not load LeetCode stats at the moment.
+                  </motion.div>
+                )}
+
               </div>
             </div>
           </div>
@@ -950,3 +1081,10 @@ export default function Home() {
     </main>
   );
 }
+
+
+// trigger rebuild
+
+// rebuild
+
+// run rebuild

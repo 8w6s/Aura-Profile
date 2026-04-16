@@ -6,37 +6,20 @@ import { useToast } from '@/app/context/ToastContext';
 interface PostDownloadButtonProps {
   fileId: string;
   label: string;
-  url?: string; // Optional URL if it's a direct link
 }
 
-const PostDownloadButton: React.FC<PostDownloadButtonProps> = ({ fileId, label, url }) => {
+const PostDownloadButton: React.FC<PostDownloadButtonProps> = ({ fileId, label }) => {
   const { showToast } = useToast();
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    if (url) {
-        // Direct link (e.g. Catbox)
-        window.open(url, '_blank');
-        showToast('Opening download link...', 'success');
-        return;
-    }
 
-    // Legacy/Internal download logic
     try {
         const downloadUrl = `/api/download?fileId=${fileId}`;
-        
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.target = '_blank';
-        link.download = label;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
+        window.open(downloadUrl, '_blank', 'noopener,noreferrer');
         showToast('Download started...', 'success');
-    } catch (error) {
+    } catch {
         showToast('Failed to start download', 'error');
     }
   };

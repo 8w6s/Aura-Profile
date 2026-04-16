@@ -1,102 +1,41 @@
-# Aura Profile (Beta 0.1)
-
-> A highly customizable, beautiful, and responsive personal profile/biolink page built with Next.js, Tailwind CSS, and Framer Motion. Inspired by premium bio services.
-
-![Preview Placeholder](https://camo.githubusercontent.com/63d1ba2074a4ba6565a5189b77d864683274def6303fd2234bd479bf0f1f7be1/68747470733a2f2f66696c65732e636174626f782e6d6f652f74637a6b72622e706e67)
-
-## ✨ Features
-
-*   **Modern UI/UX**: Glassmorphism design, smooth animations (Framer Motion), and fully responsive layout for Mobile & PC.
-*   **Highly Customizable**:
-    *   **Themes**: Change primary colors, background images, blur effects, and fonts.
-    *   **Effects**: Typewriter bio, text glows, glitches, and custom cursors.
-    *   **Layout**: Toggle visibility of sections (Likes, Views, Comments, etc.).
-*   **Rich Integrations**:
-    *   **Discord Presence (Lanyard)**: Real-time status, Spotify listening, and game activity.
-    *   **Hoyoverse**: Display Genshin Impact, HSR, HI3, ZZZ stats.
-    *   **Steam**: Show online status and recent games.
-    *   **WakaTime**: Display coding statistics.
-    *   **LeetCode**: Show coding problem stats.
-*   **File Management**:
-    *   **Dual Upload System**: Choose between cloud hosting (**Catbox.moe**) or local storage (`/public/assets`) for your files.
-    *   **Source Indicators**: Clearly see if a file is from "Local Asset" or "Catbox.moe".
-    *   **Library**: Manage, delete, and organize all uploaded files.
-*   **Content Management**:
-    *   **Blog/Posts**: Create posts with **Markdown support**, image support, and **multi-file attachments** (with popup selection).
-    *   **Projects**: Showcase your portfolio with tags, **multiple direct links**, and visibility toggles.
-    *   **Skills**: Visual progress sliders with skill types (Frontend, Backend, etc.).
-    *   **Music Player**: Global music player with playlist support.
-*   **Admin Panel**: A comprehensive dashboard to manage all your data without touching code.
-
-## 🚀 Getting Started
-
+# Aura Profile (1.0)
+A highly customizable, beautiful, and responsive personal biolink & portfolio page built with Next.js, Tailwind CSS, & Framer Motion. 
+Features a complete in-browser Admin CMS and database storage powered by Supabase.
+![Preview](https://files.catbox.moe/tczkrb.png)
+## ?? Super Simple Setup
 ### Prerequisites
-
-*   Node.js 18+
-*   npm or yarn
-
-### Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/8w6s/Aura-Profile.git
-    cd Aura-Profile
-    ```
-
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:3000](http://localhost:3000) to view your profile.
-    Open [http://localhost:3000/admin](http://localhost:3000/admin) to manage content.
-
-### Building for Production
-
-```bash
-npm run build
-npm start
+- Node.js 18+ installed on your PC
+- A free account on [Supabase](https://supabase.com/)
+### 1. Database Setup
+1. Create a new project on **Supabase**.
+2. Open your project's **SQL Editor**.
+3. Copy and run this command to create the required table:
+```sql
+CREATE TABLE public.profile_data (
+    id TEXT PRIMARY KEY,
+    data JSONB NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+NOTIFY pgrst, 'reload schema';
 ```
-
-## 🛠 Configuration
-
-### Admin Panel
-Access `/admin` to configure:
-*   **Profile**: Name, bio, avatar, banner, skills (sliders).
-*   **Library**: Upload files to Catbox.moe or Local Storage.
-*   **Integrations**: Enable/Disable Discord, Spotify, etc.
-*   **Catbox**: Enter your User Hash to enable file uploads.
-
-### File Upload Modes
-1.  **Catbox.moe (Cloud)**:
-    *   Requires **User Hash** (Get it from [Catbox.moe](https://catbox.moe/user/manage.php)).
-    *   Files are hosted externally.
-    *   Supports tracking and deletion if User Hash is provided.
-2.  **Local Assets**:
-    *   Files are saved to your project's `/public/assets` folder.
-    *   Best for permanent site assets (backgrounds, favicons).
-    *   No external account required.
-
-## 🎨 Customization Tips
-*   **Backgrounds**: Use high-quality dark wallpapers for the best glassmorphism effect.
-*   **Markdown**: Use Markdown in your post content for rich text formatting.
-*   **Skills**: Group your skills by type (Frontend, Backend) for a colorful progress bar display.
-
-## 🤝 Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📜 License
-
-This project is licensed under a **Custom Non-Commercial License**.
-
-*   ✅ **Allowed**: You can freely use, modify, customize, and share this project.
-*   ❌ **Prohibited**: You are **strictly prohibited** from selling this project or any derivative works for money. This project is free and must remain free.
-
-See the [LICENSE](LICENSE) file for details.
-
+### 2. Website Setup
+1. Clone or download this repository.
+2. Open the folder in Terminal and run:
+```bash
+npm install
+```
+3. Create a `.env` file in the root folder with your Supabase credentials (found in Supabase -> Project Settings -> API):
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
+### 3. Run It!
+Start your local server:
+```bash
+npm run dev
+```
+Open **[http://localhost:3000](http://localhost:3000)** in your browser!
+If you want to edit your profile visually, simply go to **[http://localhost:3000/admin](http://localhost:3000/admin)**.
 ---
-*Created by 8w6s*
+*Built with ?? by 8w6s.*
+

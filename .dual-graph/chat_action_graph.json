@@ -1,0 +1,539 @@
+{
+  "nodes": [
+    {
+      "id": "query:review project structure features functionality tech stack evaluate",
+      "type": "query",
+      "meta": {
+        "text": "review project structure features functionality tech stack to evaluate monetization strategy"
+      }
+    },
+    {
+      "id": "app\\context\\ProfileContext.tsx::Project",
+      "type": "file"
+    },
+    {
+      "id": "app\\api\\download\\route.ts::GET",
+      "type": "file"
+    },
+    {
+      "id": "app\\api\\hoyoverse\\route.ts::GET",
+      "type": "file"
+    },
+    {
+      "id": "app\\api\\leetcode\\route.ts::GET",
+      "type": "file"
+    },
+    {
+      "id": "app\\api\\like\\route.ts::POST",
+      "type": "file"
+    },
+    {
+      "id": "query:understand main features functionality",
+      "type": "query",
+      "meta": {
+        "text": "understand main features and functionality"
+      }
+    },
+    {
+      "id": "app/context/ProfileContext.tsx",
+      "type": "file"
+    },
+    {
+      "id": "query:tech stack dependencies",
+      "type": "query",
+      "meta": {
+        "text": "tech stack dependencies"
+      }
+    },
+    {
+      "id": "package.json",
+      "type": "file"
+    },
+    {
+      "id": "query:profile data structure",
+      "type": "query",
+      "meta": {
+        "text": "profile data structure"
+      }
+    },
+    {
+      "id": "data/profile.json",
+      "type": "file"
+    },
+    {
+      "id": "query:admin panel features structure",
+      "type": "query",
+      "meta": {
+        "text": "admin panel features and structure"
+      }
+    },
+    {
+      "id": "app/admin/page.tsx",
+      "type": "file"
+    },
+    {
+      "id": "query:music player features",
+      "type": "query",
+      "meta": {
+        "text": "music player features"
+      }
+    },
+    {
+      "id": "components/MusicPlayer.tsx",
+      "type": "file"
+    },
+    {
+      "id": "query:find all bugs potential errors issues areas improvement",
+      "type": "query",
+      "meta": {
+        "text": "find all bugs potential errors issues and areas for improvement in the codebase"
+      }
+    },
+    {
+      "id": "app\\context\\ProfileContext.tsx::SocialLink",
+      "type": "file"
+    },
+    {
+      "id": "app\\api\\profile\\route.ts::GET",
+      "type": "file"
+    },
+    {
+      "id": "query:(empty)",
+      "type": "query",
+      "meta": {
+        "text": ""
+      }
+    },
+    {
+      "id": "app\\context\\ProfileContext.tsx",
+      "type": "file"
+    },
+    {
+      "id": "app\\api\\download\\route.ts",
+      "type": "file"
+    },
+    {
+      "id": "app\\api\\leetcode\\route.ts",
+      "type": "file"
+    },
+    {
+      "id": "query:profile api implementation error handling",
+      "type": "query",
+      "meta": {
+        "text": "profile API implementation error handling"
+      }
+    },
+    {
+      "id": "app\\api\\profile\\route.ts",
+      "type": "file"
+    },
+    {
+      "id": "query:like api implementation",
+      "type": "query",
+      "meta": {
+        "text": "like API implementation"
+      }
+    },
+    {
+      "id": "app\\api\\like\\route.ts",
+      "type": "file"
+    },
+    {
+      "id": "query:views tracking implementation",
+      "type": "query",
+      "meta": {
+        "text": "views tracking implementation"
+      }
+    },
+    {
+      "id": "app\\api\\views\\route.ts",
+      "type": "file"
+    },
+    {
+      "id": "query:music player implementation",
+      "type": "query",
+      "meta": {
+        "text": "music player implementation"
+      }
+    },
+    {
+      "id": "components\\MusicPlayer.tsx",
+      "type": "file"
+    },
+    {
+      "id": "query:admin panel security authentication",
+      "type": "query",
+      "meta": {
+        "text": "admin panel security authentication"
+      }
+    },
+    {
+      "id": "app\\admin\\page.tsx",
+      "type": "file"
+    }
+  ],
+  "edges": [
+    {
+      "from": "query:review project structure features functionality tech stack evaluate",
+      "to": "app\\context\\ProfileContext.tsx::Project",
+      "rel": "retrieved",
+      "ts": 1776352029
+    },
+    {
+      "from": "query:review project structure features functionality tech stack evaluate",
+      "to": "app\\api\\download\\route.ts::GET",
+      "rel": "retrieved",
+      "ts": 1776352029
+    },
+    {
+      "from": "query:review project structure features functionality tech stack evaluate",
+      "to": "app\\api\\hoyoverse\\route.ts::GET",
+      "rel": "retrieved",
+      "ts": 1776352029
+    },
+    {
+      "from": "query:review project structure features functionality tech stack evaluate",
+      "to": "app\\api\\leetcode\\route.ts::GET",
+      "rel": "retrieved",
+      "ts": 1776352029
+    },
+    {
+      "from": "query:review project structure features functionality tech stack evaluate",
+      "to": "app\\api\\like\\route.ts::POST",
+      "rel": "retrieved",
+      "ts": 1776352029
+    },
+    {
+      "from": "query:understand main features functionality",
+      "to": "app/context/ProfileContext.tsx",
+      "rel": "read",
+      "ts": 1776352061,
+      "meta": {
+        "mode": "full"
+      }
+    },
+    {
+      "from": "query:tech stack dependencies",
+      "to": "package.json",
+      "rel": "read",
+      "ts": 1776352061,
+      "meta": {
+        "mode": "full"
+      }
+    },
+    {
+      "from": "query:profile data structure",
+      "to": "data/profile.json",
+      "rel": "read",
+      "ts": 1776352061,
+      "meta": {
+        "mode": "query_excerpt"
+      }
+    },
+    {
+      "from": "query:admin panel features structure",
+      "to": "app/admin/page.tsx",
+      "rel": "read",
+      "ts": 1776352113,
+      "meta": {
+        "mode": "query_excerpt"
+      }
+    },
+    {
+      "from": "query:music player features",
+      "to": "components/MusicPlayer.tsx",
+      "rel": "read",
+      "ts": 1776352423,
+      "meta": {
+        "mode": "query_excerpt"
+      }
+    },
+    {
+      "from": "query:find all bugs potential errors issues areas improvement",
+      "to": "app\\context\\ProfileContext.tsx::SocialLink",
+      "rel": "retrieved",
+      "ts": 1776380398
+    },
+    {
+      "from": "query:find all bugs potential errors issues areas improvement",
+      "to": "app\\api\\download\\route.ts::GET",
+      "rel": "retrieved",
+      "ts": 1776380398
+    },
+    {
+      "from": "query:find all bugs potential errors issues areas improvement",
+      "to": "app\\api\\leetcode\\route.ts::GET",
+      "rel": "retrieved",
+      "ts": 1776380398
+    },
+    {
+      "from": "query:find all bugs potential errors issues areas improvement",
+      "to": "app\\api\\like\\route.ts::POST",
+      "rel": "retrieved",
+      "ts": 1776380398
+    },
+    {
+      "from": "query:find all bugs potential errors issues areas improvement",
+      "to": "app\\api\\profile\\route.ts::GET",
+      "rel": "retrieved",
+      "ts": 1776380398
+    },
+    {
+      "from": "query:(empty)",
+      "to": "app\\context\\ProfileContext.tsx",
+      "rel": "read",
+      "ts": 1776380430,
+      "meta": {
+        "mode": "anchor_excerpt"
+      }
+    },
+    {
+      "from": "query:(empty)",
+      "to": "app\\api\\download\\route.ts",
+      "rel": "read",
+      "ts": 1776380430,
+      "meta": {
+        "mode": "anchor_excerpt"
+      }
+    },
+    {
+      "from": "query:(empty)",
+      "to": "app\\api\\leetcode\\route.ts",
+      "rel": "read",
+      "ts": 1776380430,
+      "meta": {
+        "mode": "anchor_excerpt"
+      }
+    },
+    {
+      "from": "query:profile api implementation error handling",
+      "to": "app\\api\\profile\\route.ts",
+      "rel": "read",
+      "ts": 1776380447,
+      "meta": {
+        "mode": "full"
+      }
+    },
+    {
+      "from": "query:like api implementation",
+      "to": "app\\api\\like\\route.ts",
+      "rel": "read",
+      "ts": 1776380448,
+      "meta": {
+        "mode": "full"
+      }
+    },
+    {
+      "from": "query:views tracking implementation",
+      "to": "app\\api\\views\\route.ts",
+      "rel": "read",
+      "ts": 1776380448,
+      "meta": {
+        "mode": "full"
+      }
+    },
+    {
+      "from": "query:music player implementation",
+      "to": "components\\MusicPlayer.tsx",
+      "rel": "read",
+      "ts": 1776380449,
+      "meta": {
+        "mode": "full"
+      }
+    },
+    {
+      "from": "query:admin panel security authentication",
+      "to": "app\\admin\\page.tsx",
+      "rel": "read",
+      "ts": 1776380449,
+      "meta": {
+        "mode": "query_excerpt"
+      }
+    }
+  ],
+  "files": {
+    "app/context/ProfileContext.tsx": {
+      "query_terms": [
+        "understand",
+        "main",
+        "features",
+        "functionality"
+      ],
+      "cached_content": "'use client';\n\nimport React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';\n\nexport type SocialPlatform = string;\n\nexport interface Comment {\n  id: string;\n  author: string;\n  content: string;\n  date: string;\n  replies?: Comment[];\n}\n\nexport interface Social",
+      "cached_chars": 10634,
+      "cached_tokens_est": 2658,
+      "last_action": "read",
+      "last_ts": 1776352061
+    },
+    "package.json": {
+      "query_terms": [
+        "tech",
+        "stack",
+        "dependencies"
+      ],
+      "cached_content": "{\n  \"name\": \"aura-profile\",\n  \"version\": \"0.1.0-beta\",\n  \"description\": \"Aura Profile: A stunning, highly customizable biolink & portfolio built with Next.js & Tailwind. Features Admin Panel, Dual Upload, and Rich Integrations.\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"echo \\\"Starting Aura Pro",
+      "cached_chars": 1059,
+      "cached_tokens_est": 264,
+      "last_action": "read",
+      "last_ts": 1776352061
+    },
+    "data/profile.json": {
+      "query_terms": [
+        "profile",
+        "data",
+        "structure"
+      ],
+      "cached_content": "    \"showComments\": true,\n    \"showViews\": true,\n    \"allowComments\": true,\n    \"allowLikes\": true,\n    \"enableEnterScreen\": true\n  },\n  \"textEffects\": {\n    \"name\": \"glow\",\n    \"role\": \"typewriter\",\n    \"bio\": \"none\"\n  },\n  \"projects\": [],\n  \"metadata\": {\n    \"title\": \"8w6s\",\n    \"description\": \"Pe",
+      "cached_chars": 20000,
+      "cached_tokens_est": 5000,
+      "last_action": "read",
+      "last_ts": 1776352061
+    },
+    "app/admin/page.tsx": {
+      "query_terms": [
+        "admin",
+        "panel",
+        "features",
+        "structure"
+      ],
+      "cached_content": "        return (\n            <>\n                {parts.map((part, i) =>\n                    regex.test(part) ? <span key={i} className=\"bg-indigo-500/30 text-indigo-200 font-bold px-0.5 rounded\">{part}</span> : part\n                )}\n            </>\n        );\n    } catch (e) {\n        return <>{te",
+      "cached_chars": 20000,
+      "cached_tokens_est": 5000,
+      "last_action": "read",
+      "last_ts": 1776352113
+    },
+    "components/MusicPlayer.tsx": {
+      "query_terms": [
+        "music",
+        "player",
+        "features"
+      ],
+      "cached_content": "'use client';\n\nimport React, { useState, useRef, useEffect } from 'react';\nimport { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, ListMusic, Minimize2, Maximize2 } from 'lucide-react';\nimport { motion, AnimatePresence } from 'framer-motion';\nimport { useProfile, MusicTrack }",
+      "cached_chars": 8307,
+      "cached_tokens_est": 2076,
+      "last_action": "read",
+      "last_ts": 1776352423
+    },
+    "app\\context\\ProfileContext.tsx": {
+      "query_terms": [],
+      "cached_content": "'use client';\n\nimport React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';\n\nexport type SocialPlatform = string;\n\nexport interface Comment {\n  id: string;\n  author: string;\n  content: string;\n  date: string;\n  replies?: Comment[];\n}\n\nexport interface Social",
+      "cached_chars": 9962,
+      "cached_tokens_est": 2490,
+      "last_action": "read",
+      "last_ts": 1776380430
+    },
+    "app\\api\\download\\route.ts": {
+      "query_terms": [],
+      "cached_content": "import { NextResponse } from 'next/server';\nimport { getSupabaseClient } from '@/utils/supabase';\n\ntype StoredFile = {\n  id: string;\n  name: string;\n  url: string;\n  downloadCount?: number;\n};\n\ntype ProfileStore = {\n  files?: StoredFile[];\n};\n\nconst toAbsoluteFileUrl = (requestUrl: string, fileUrl: ",
+      "cached_chars": 2749,
+      "cached_tokens_est": 687,
+      "last_action": "read",
+      "last_ts": 1776380430
+    },
+    "app\\api\\leetcode\\route.ts": {
+      "query_terms": [],
+      "cached_content": "import { NextResponse } from 'next/server';\n\nconst isDev = process.env.NODE_ENV !== 'production';\n\nconst reportServerError = (...args: unknown[]) => {\n  if (isDev) {\n    console.error(...args);\n  }\n};\n\nexport async function GET(request: Request) {\n  const { searchParams } = new URL(request.url);\n  c",
+      "cached_chars": 1046,
+      "cached_tokens_est": 261,
+      "last_action": "read",
+      "last_ts": 1776380430
+    },
+    "app\\api\\profile\\route.ts": {
+      "query_terms": [
+        "profile",
+        "api",
+        "implementation",
+        "error",
+        "handling"
+      ],
+      "cached_content": "import { NextResponse } from 'next/server';\nimport { getSupabaseClient } from '@/utils/supabase';\n\ntype LooseProfile = Record<string, unknown>;\n\ntype Revision = {\n  id: string;\n  createdAt: string;\n  type: 'publish' | 'rollback';\n  snapshot: LooseProfile;\n};\n\ntype WorkflowMeta = {\n  draft?: LoosePro",
+      "cached_chars": 12037,
+      "cached_tokens_est": 3009,
+      "last_action": "read",
+      "last_ts": 1776380447
+    },
+    "app\\api\\like\\route.ts": {
+      "query_terms": [
+        "like",
+        "api",
+        "implementation"
+      ],
+      "cached_content": "import { NextResponse } from 'next/server';\nimport { headers } from 'next/headers';\nimport { getSupabaseClient } from '@/utils/supabase';\n\nconst isDev = process.env.NODE_ENV !== 'production';\n\ntype ProfilePost = {\n  id: string;\n  likes?: number;\n  likedIps?: string[];\n};\n\ntype ProfileData = {\n  post",
+      "cached_chars": 2594,
+      "cached_tokens_est": 648,
+      "last_action": "read",
+      "last_ts": 1776380448
+    },
+    "app\\api\\views\\route.ts": {
+      "query_terms": [
+        "views",
+        "tracking",
+        "implementation"
+      ],
+      "cached_content": "import { NextResponse } from 'next/server';\nimport { headers } from 'next/headers';\nimport { getSupabaseClient } from '@/utils/supabase';\n\nconst isDev = process.env.NODE_ENV !== 'production';\n\ntype ProfilePost = {\n  id: string;\n  views?: number;\n  viewedIps?: string[];\n};\n\ntype ProfileData = {\n  pos",
+      "cached_chars": 3046,
+      "cached_tokens_est": 761,
+      "last_action": "read",
+      "last_ts": 1776380448
+    },
+    "components\\MusicPlayer.tsx": {
+      "query_terms": [
+        "music",
+        "player",
+        "implementation"
+      ],
+      "cached_content": "'use client';\n\nimport React, { useState, useRef, useEffect } from 'react';\nimport { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, ListMusic, Minimize2, Maximize2 } from 'lucide-react';\nimport { motion, AnimatePresence } from 'framer-motion';\nimport { useProfile, MusicTrack }",
+      "cached_chars": 13023,
+      "cached_tokens_est": 3255,
+      "last_action": "read",
+      "last_ts": 1776380449
+    },
+    "app\\admin\\page.tsx": {
+      "query_terms": [
+        "admin",
+        "panel",
+        "security",
+        "authentication"
+      ],
+      "cached_content": "            accentColor: '#fbbf24',\n            textColor: '#fff1f2',\n            backgroundColor: '#4c0519',\n            cardColor: '#881337',\n            componentColor: 'rgba(244, 63, 94, 0.1)',\n            buttonColor: '#f43f5e',\n            socialButtonStyle: 'solid',\n            avatarGlow: fa",
+      "cached_chars": 15543,
+      "cached_tokens_est": 3885,
+      "last_action": "read",
+      "last_ts": 1776380449
+    }
+  },
+  "actions": [
+    {
+      "ts": 1776352028,
+      "kind": "retrieve",
+      "payload": {
+        "kind": "retrieve",
+        "query": "review project structure features functionality tech stack to evaluate monetization strategy"
+      }
+    },
+    {
+      "ts": 1776352029,
+      "kind": "continue_retrieve",
+      "payload": {
+        "kind": "continue_retrieve",
+        "query": "review project structure features functionality tech stack to evaluate monetization strategy"
+      }
+    },
+    {
+      "ts": 1776380398,
+      "kind": "retrieve",
+      "payload": {
+        "kind": "retrieve",
+        "query": "find all bugs potential errors issues and areas for improvement in the codebase"
+      }
+    },
+    {
+      "ts": 1776380398,
+      "kind": "continue_retrieve",
+      "payload": {
+        "kind": "continue_retrieve",
+        "query": "find all bugs potential errors issues and areas for improvement in the codebase"
+      }
+    }
+  ]
+}

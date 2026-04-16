@@ -1,66 +1,85 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
+import { usePerformanceMode } from '@/hooks/usePerformanceMode';
 
-interface Sparkle {
-  id: number;
-  x: number;
-  y: number;
-  color: string;
-}
+type SparkleAnimationParams = {
+  translateX: number;
+  translateY: number;
+  scale: [number, number];
+  opacity: [number, number];
+  duration: number;
+  easing: string;
+  complete: () => void;
+};
+
+type SparkleAnimator = (targets: HTMLElement, params: SparkleAnimationParams) => unknown;
+
+const sparklePalette = ['#FFD700', '#FF69B4', '#00FFFF', '#FFFFFF'];
 
 const ClickSparkle = () => {
-  const [sparkles, setSparkles] = useState<Sparkle[]>([]);
+  const { isMinimal, isBalanced } = usePerformanceMode();
 
   useEffect(() => {
+    if (isMinimal) {
+      return;
+    }
+
+    let animateSparkle: SparkleAnimator | null = null;
+    let destroyed = false;
+
+    const setupAnime = async () => {
+      const animeImport = await import('animejs');
+      animateSparkle = animeImport.animate as unknown as SparkleAnimator;
+    };
+
+    setupAnime();
+
     const handleClick = (e: MouseEvent) => {
-      const newSparkles = Array.from({ length: 8 }).map((_, i) => ({
-        id: Date.now() + i + Math.random(),
-        x: e.clientX,
-        y: e.clientY,
-        color: ['#FFD700', '#FF69B4', '#00FFFF', '#FFFFFF'][Math.floor(Math.random() * 4)]
-      }));
+      if (!animateSparkle || destroyed) {
+        return;
+      }
 
-      setSparkles(prev => [...prev, ...newSparkles]);
+      const sparkleCount = isBalanced ? 4 : 7;
 
-      setTimeout(() => {
-        setSparkles(prev => prev.filter(s => !newSparkles.find(ns => ns.id === s.id)));
-      }, 1000);
+      for (let index = 0; index < sparkleCount; index += 1) {
+        const sparkle = document.createElement('span');
+        const color = sparklePalette[Math.floor(Math.random() * sparklePalette.length)];
+
+        sparkle.style.position = 'fixed';
+        sparkle.style.left = `${e.clientX}px`;
+        sparkle.style.top = `${e.clientY}px`;
+        sparkle.style.width = '6px';
+        sparkle.style.height = '6px';
+        sparkle.style.borderRadius = '9999px';
+        sparkle.style.pointerEvents = 'none';
+        sparkle.style.backgroundColor = color;
+        sparkle.style.boxShadow = `0 0 8px ${color}`;
+        sparkle.style.zIndex = '9999';
+        document.body.appendChild(sparkle);
+
+        animateSparkle(sparkle, {
+          translateX: (Math.random() - 0.5) * 70,
+          translateY: (Math.random() - 0.5) * 70,
+          scale: [1, 0],
+          opacity: [1, 0],
+          duration: isBalanced ? 420 : 620,
+          easing: 'easeOutQuad',
+          complete: () => {
+            sparkle.remove();
+          },
+        });
+      }
     };
 
     window.addEventListener('click', handleClick);
-    return () => window.removeEventListener('click', handleClick);
-  }, []);
+    return () => {
+      destroyed = true;
+      window.removeEventListener('click', handleClick);
+    };
+  }, [isBalanced, isMinimal]);
 
-  return (
-    <AnimatePresence>
-      {sparkles.map(sparkle => (
-        <motion.div
-          key={sparkle.id}
-          initial={{ x: sparkle.x, y: sparkle.y, scale: 0, opacity: 1 }}
-          animate={{
-            x: sparkle.x + (Math.random() - 0.5) * 100,
-            y: sparkle.y + (Math.random() - 0.5) * 100,
-            scale: 0,
-            opacity: 0
-          }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          style={{
-            position: 'fixed',
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            backgroundColor: sparkle.color,
-            pointerEvents: 'none',
-            zIndex: 9999,
-            boxShadow: `0 0 10px ${sparkle.color}`
-          }}
-        />
-      ))}
-    </AnimatePresence>
-  );
+  return null;
 };
 
 export default ClickSparkle;

@@ -1,22 +1,28 @@
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
+import Image from 'next/image';
 import { useProfile } from '@/app/context/ProfileContext';
 import { useToast } from '@/app/context/ToastContext';
 import Link from 'next/link';
 import { ArrowLeft, Heart, MessageCircle, Calendar, Eye, Share2, Reply, Send, User } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { CustomCssInjection, MarkdownContent, estimateReadingTime, extractMarkdownHeadings, getRelatedPosts } from '@/components/ContentEnhancements';
+import type { Comment } from '@/app/context/ProfileContext';
 
 export default function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { profile, updateProfile, refreshProfile, isLoading } = useProfile();
   const { showToast } = useToast();
-  const [post, setPost] = useState<any>(null);
   const [commentName, setCommentName] = useState('');
   const [commentContent, setCommentContent] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyingToAuthor, setReplyingToAuthor] = useState<string>('');
-  
+  const post = profile.posts?.find((entry) => entry.id === resolvedParams.id) || null;
+  const readingTime = post ? estimateReadingTime(post.content) : 0;
+  const headings = post ? extractMarkdownHeadings(post.content) : [];
+  const relatedPosts = post ? getRelatedPosts(profile.posts || [], post) : [];
+
   useEffect(() => {
     const incrementView = async () => {
         try {
@@ -31,13 +37,6 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
     };
     incrementView();
   }, [resolvedParams.id]);
-
-  useEffect(() => {
-    if (profile && profile.posts) {
-      const foundPost = profile.posts.find(p => p.id === resolvedParams.id);
-      setPost(foundPost);
-    }
-  }, [profile, resolvedParams.id]);
 
   const maskName = (name: string) => {
     if (name.length <= 4) return name[0] + '***';
@@ -71,7 +70,7 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
     const currentPost = { ...newPosts[postIndex] };
 
     if (replyingTo) {
-        const commentIndex = currentPost.comments.findIndex((c: any) => c.id === replyingTo);
+        const commentIndex = currentPost.comments.findIndex((c: Comment) => c.id === replyingTo);
         if (commentIndex !== -1) {
             const updatedComments = [...currentPost.comments];
             updatedComments[commentIndex] = {
@@ -148,7 +147,8 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
         className="min-h-screen bg-black text-white relative overflow-hidden select-none"
         onContextMenu={(e) => e.preventDefault()}
     >
-        <div className="fixed inset-0 pointer-events-none z-0 opacity-20" 
+        <CustomCssInjection css={profile.customCss} />
+        <div className="fixed inset-0 pointer-events-none z-0 opacity-20"
              style={{ 
                  backgroundImage: `url(${post.imageUrl || profile.theme.backgroundImageUrl})`,
                  backgroundSize: 'cover',
@@ -171,7 +171,7 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
             >
                 {post.imageUrl && (
                     <div className="w-full h-64 md:h-96 relative">
-                        <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                        <Image src={post.imageUrl} alt={post.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 896px" />
                         <div className="absolute inset-0 bg-linear-to-t from-[#111] to-transparent" />
                     </div>
                 )}
@@ -183,12 +183,36 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
                             <span className="flex items-center gap-1.5"><Calendar size={14} /> {new Date(post.date).toLocaleDateString()}</span>
                             <span className="flex items-center gap-1.5"><Eye size={14} /> {post.views || 0} views</span>
                             <span className="flex items-center gap-1.5"><Heart size={14} /> {post.likes || 0} likes</span>
+                            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs">{readingTime} min read</span>
+                            {post.category && <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-xs">{post.category}</span>}
                         </div>
+                        {post.tags && post.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {post.tags.map((tag: string) => (
+                                    <span key={tag} className="rounded-full bg-white/10 px-2 py-1 text-xs text-gray-300">#{tag}</span>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    <div className="prose prose-invert max-w-none">
-                        <p className="text-gray-300 text-lg leading-relaxed whitespace-pre-wrap">{post.content}</p>
-                    </div>
+                    {headings.length > 0 && (
+                        <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                            <p className="mb-3 text-xs uppercase tracking-[0.2em] text-gray-500">Table of Contents</p>
+                            <div className="space-y-2">
+                                {headings.map((heading) => (
+                                    <a
+                                        key={heading.id}
+                                        href={`#${heading.id}`}
+                                        className={`block transition-colors hover:text-cyan-300 ${heading.level >= 3 ? 'pl-4 text-sm text-gray-400' : 'text-gray-300'}`}
+                                    >
+                                        {heading.text}
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <MarkdownContent content={post.content} className="prose prose-invert max-w-none" />
 
                     <div className="flex gap-4 pt-8 border-t border-white/10">
                         <button 
@@ -267,7 +291,7 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
                 )}
 
                 <div className="space-y-6">
-                    {post.comments?.map((comment: any) => (
+                    {post.comments?.map((comment: Comment) => (
                         <div key={comment.id} className="group">
                             <div className="flex gap-4">
                                 <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-indigo-300 font-bold border border-white/5">
@@ -294,7 +318,7 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
                                     
                                     {comment.replies && comment.replies.length > 0 && (
                                         <div className="pt-2 pl-4 border-l-2 border-white/10 space-y-4 mt-2">
-                                            {comment.replies.map((reply: any) => (
+                                            {comment.replies.map((reply: Comment) => (
                                                 <div key={reply.id} className="bg-white/5 p-3 rounded-lg border border-white/5">
                                                     <div className="flex justify-between items-center mb-1">
                                                         <span className="font-bold text-indigo-300 text-sm">{reply.author === '8w6s' ? <span className="flex items-center gap-1 text-pink-400">8w6s <span className="bg-pink-500/20 text-pink-400 text-[10px] px-1 rounded">OWNER</span></span> : maskName(reply.author)}</span>
@@ -309,6 +333,35 @@ export default function PostPage({ params }: { params: Promise<{ id: string }> }
                             </div>
                         </div>
                     ))}
+                </div>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+                <div className="rounded-3xl border border-white/10 bg-[#111]/80 backdrop-blur-xl p-6 md:p-8">
+                    <h3 className="mb-4 flex items-center gap-2 text-xl font-bold text-white">
+                        <Share2 className="text-cyan-400" /> Related Posts
+                    </h3>
+                    {relatedPosts.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            {relatedPosts.map((related) => (
+                                <Link key={related.id} href={`/post/${related.id}`} className="rounded-2xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-cyan-400/40 hover:bg-white/10">
+                                    <h4 className="mb-2 font-semibold text-white">{related.title}</h4>
+                                    <p className="line-clamp-2 text-sm text-gray-400">{related.excerpt || related.content}</p>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-gray-500">No eligible related posts found.</p>
+                    )}
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-[#111]/80 backdrop-blur-xl p-6 md:p-8">
+                    <h3 className="mb-4 text-xl font-bold text-white">Quick Meta</h3>
+                    <div className="space-y-3 text-sm text-gray-400">
+                        <div className="flex items-center justify-between"><span>Reading time</span><span className="text-white">{readingTime} min</span></div>
+                        <div className="flex items-center justify-between"><span>Category</span><span className="text-white">{post.category || 'Uncategorized'}</span></div>
+                        <div className="flex items-center justify-between"><span>Tags</span><span className="text-white">{post.tags?.length || 0}</span></div>
+                    </div>
                 </div>
             </div>
         </div>

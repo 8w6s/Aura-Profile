@@ -60,18 +60,15 @@ const DownloadPopup: React.FC<DownloadPopupProps> = ({ isOpen, onClose, files })
             
             <div className="p-4 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-2">
               {files.map((file) => (
-                <a
+                <button
                   key={file.id}
-                  href={file.url}
-                  download={file.name}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  type="button"
                   className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all group"
                   onClick={(e) => {
-                     // If it's a direct download link, we might not need to prevent default.
-                     // But if it's handled by an API, we might. 
-                     // Usually target="_blank" is enough for external.
-                     // If local, `download` attribute works.
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(`/api/download?fileId=${file.id}`, '_blank', 'noopener,noreferrer');
+                    onClose();
                   }}
                 >
                   <div className="flex items-center gap-3 overflow-hidden">
@@ -93,7 +90,7 @@ const DownloadPopup: React.FC<DownloadPopupProps> = ({ isOpen, onClose, files })
                     </div>
                   </div>
                   <Download size={18} className="text-gray-500 group-hover:text-white transition-colors shrink-0" />
-                </a>
+                </button>
               ))}
             </div>
           </motion.div>

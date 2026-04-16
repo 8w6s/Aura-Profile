@@ -1,9 +1,24 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { headers } from 'next/headers';
+import { getSupabaseClient } from '@/utils/supabase';
 
-const dataFilePath = path.join(process.cwd(), 'data', 'profile.json');
+const isDev = process.env.NODE_ENV !== 'production';
+
+type ProfilePost = {
+  id: string;
+  likes?: number;
+  likedIps?: string[];
+};
+
+type ProfileData = {
+  posts?: ProfilePost[];
+};
+
+const reportServerError = (...args: unknown[]) => {
+  if (isDev) {
+    console.error(...args);
+  }
+};
 
 export async function POST(request: Request) {
   try {
@@ -12,18 +27,24 @@ export async function POST(request: Request) {
     const forwardedFor = headersList.get('x-forwarded-for');
     const ip = forwardedFor ? forwardedFor.split(',')[0] : 'unknown';
 
-    if (!fs.existsSync(dataFilePath)) {
+    const supabase = getSupabaseClient();
+    const { data: dbData, error } = await supabase
+      .from('profile_data')
+      .select('content')
+      .eq('id', 'main')
+      .maybeSingle();
+
+    if (error || !dbData || !dbData.content) {
       return NextResponse.json({ error: 'Data not found' }, { status: 404 });
     }
 
-    const fileContents = fs.readFileSync(dataFilePath, 'utf8');
-    const data = JSON.parse(fileContents);
+    const data = dbData.content as ProfileData;
 
     if (!data.posts) {
       return NextResponse.json({ error: 'No posts found' }, { status: 404 });
     }
 
-    const postIndex = data.posts.findIndex((p: any) => p.id === postId);
+    const postIndex = data.posts.findIndex((p) => p.id === postId);
     if (postIndex === -1) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
@@ -37,19 +58,24 @@ export async function POST(request: Request) {
     if (post.likedIps.includes(ip)) {
       post.likedIps = post.likedIps.filter((i: string) => i !== ip);
       post.likes = Math.max(0, (post.likes || 0) - 1);
-      fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+
+      data.posts[postIndex] = post;
+      const { error: upsertError } = await supabase.from('profile_data').upsert({ id: 'main', content: data }, { onConflict: 'id' });
+      if (upsertError) return NextResponse.json({ error: 'Database error: ' + upsertError.message }, { status: 500 });
       return NextResponse.json({ success: true, likes: post.likes, liked: false });
     }
 
     post.likedIps.push(ip);
     post.likes = (post.likes || 0) + 1;
+    data.posts[postIndex] = post;
 
-    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+    const { error: upsertError } = await supabase.from('profile_data').upsert({ id: 'main', content: data }, { onConflict: 'id' });
+    if (upsertError) return NextResponse.json({ error: 'Database error: ' + upsertError.message }, { status: 500 });
 
     return NextResponse.json({ success: true, likes: post.likes, liked: true });
 
   } catch (error) {
-    console.error('Like error:', error);
+    reportServerError('Like error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

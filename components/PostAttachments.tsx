@@ -24,7 +24,7 @@ const PostAttachments: React.FC<PostAttachmentsProps> = ({ attachments, files })
 
   if (attachedFiles.length === 1) {
     const file = attachedFiles[0];
-    return <PostDownloadButton fileId={file.id} label={file.name} url={file.url} />;
+    return <PostDownloadButton fileId={file.id} label={file.name} />;
   }
 
   return (

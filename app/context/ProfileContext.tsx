@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 export type SocialPlatform = string;
 
@@ -51,6 +51,10 @@ export interface Post {
   likedIps?: string[];
   comments: Comment[];
   attachments?: string[];
+  category?: string;
+  tags?: string[];
+  excerpt?: string;
+  readingTime?: number;
   hidden?: boolean;
 }
 
@@ -67,11 +71,19 @@ export interface ThemeConfig {
   cardColor?: string;
   componentColor?: string;
   backgroundEffect?: 'none' | 'noise' | 'rain' | 'snow';
+  bannerOverlayOpacity?: number;
   backgroundBlur?: number;
   cardBorderRadius?: number;
+  cardWidthPreset?: 'compact' | 'default' | 'wide';
   componentBorderRadius?: number;
   buttonBorderRadius?: number;
   buttonColor?: string;
+  avatarRingColor?: string;
+  avatarRingWidth?: number;
+  avatarGlow?: boolean;
+  uidStyle?: 'pill' | 'bracket' | 'minimal';
+  socialButtonStyle?: 'glass' | 'solid' | 'outline';
+  socialIconSize?: number;
   fontFamily?: string;
 }
 
@@ -132,7 +144,27 @@ export interface Project {
   link?: string;
   links?: { id: string; title: string; url: string; icon?: string }[];
   tags?: string[];
+  category?: string;
+  excerpt?: string;
   hidden?: boolean;
+}
+
+export type LayoutSectionId = 'hero' | 'links' | 'overview' | 'projects' | 'posts' | 'integrations';
+
+export type SectionWidthPreset = 'compact' | 'default' | 'wide' | 'full';
+
+export interface LayoutConfig {
+  sectionOrder?: LayoutSectionId[];
+  hiddenSections?: LayoutSectionId[];
+  sectionWidths?: Partial<Record<LayoutSectionId, SectionWidthPreset>>;
+  postLayout?: 'grid' | 'list';
+  projectLayout?: 'grid' | 'list';
+}
+
+export interface BlogConfig {
+  defaultLayout?: 'grid' | 'list';
+  showCategories?: boolean;
+  showTags?: boolean;
 }
 
 export interface SiteMetadata {
@@ -154,11 +186,6 @@ export interface IntegrationsConfig {
   github?: GithubConfig;
   spotify?: { enabled: boolean; url?: string };
   osu?: { enabled: boolean; username?: string };
-  hoyoverse?: {
-    enabled: boolean;
-    accounts?: { id: string; game: 'genshin' | 'hsr' | 'hi3' | 'zzz'; uid: string }[];
-  };
-  steam?: { enabled: boolean; steamId?: string; apiKey?: string };
   wakatime?: { enabled: boolean; username?: string };
   leetcode?: { enabled: boolean; username?: string };
   catbox?: { enabled: boolean; userHash?: string };
@@ -177,7 +204,7 @@ export interface ProfileData {
   adminName?: string;
   role: string;
   location: string;
-  skills?: Skill[];
+  skills?: (Skill | string)[];
   timezone?: string;
   timeFormat?: string;
   email: string;
@@ -205,6 +232,9 @@ export interface ProfileData {
   posts: Post[];
   theme: ThemeConfig;
   features: FeatureConfig;
+  layout?: LayoutConfig;
+  blog?: BlogConfig;
+  customCss?: string;
   enterScreen: EnterScreenConfig;
   typewriterBio?: TypewriterBioConfig;
   cursor?: CursorConfig;
@@ -215,13 +245,29 @@ export interface ProfileData {
   integrations?: IntegrationsConfig;
 }
 
+export interface ProfileRevisionMeta {
+  id: string;
+  createdAt: string;
+  type: 'publish' | 'rollback';
+}
+
+export interface ProfileWorkflowMeta {
+  revisions: ProfileRevisionMeta[];
+  updatedAt: string | null;
+  publishedAt: string | null;
+}
+
 import profileData from '@/data/profile.json';
 
 const defaultProfile: ProfileData = profileData as unknown as ProfileData;
 
 interface ProfileContextType {
   profile: ProfileData;
+  workflow: ProfileWorkflowMeta;
   updateProfile: (data: Partial<ProfileData>) => Promise<void>;
+  saveDraft: (data: Partial<ProfileData>) => Promise<void>;
+  publishDraft: () => Promise<void>;
+  rollbackToRevision: (revisionId: string) => Promise<void>;
   resetProfile: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   isLoading: boolean;
@@ -231,21 +277,63 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<ProfileData>(defaultProfile);
+  const [workflow, setWorkflow] = useState<ProfileWorkflowMeta>({
+    revisions: [],
+    updatedAt: null,
+    publishedAt: null,
+  });
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async () => {
+  const applyWorkflowResponse = (nextProfile: ProfileData, nextWorkflow?: ProfileWorkflowMeta) => {
+    setProfile(nextProfile);
+    if (nextWorkflow) {
+      setWorkflow(nextWorkflow);
+    }
+  };
+
+  const performProfileAction = async (
+    action: 'saveDraft' | 'publish' | 'rollback',
+    payload?: Partial<ProfileData> | { revisionId: string }
+  ) => {
+    const body =
+      action === 'saveDraft'
+        ? { action, profile: payload }
+        : action === 'rollback'
+          ? { action, revisionId: (payload as { revisionId: string }).revisionId }
+          : { action };
+
+    const headers = new Headers();
+    headers.set('Content-Type', 'application/json');
+
+    const response = await fetch('/api/profile', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result?.error || 'Profile action failed');
+    }
+
+    applyWorkflowResponse(result.profile as ProfileData, result.workflow as ProfileWorkflowMeta);
+  };
+
+  const fetchProfile = useCallback(async () => {
     try {
-      const response = await fetch('/api/profile');
+      const endpoint = '/api/profile';
+      const response = await fetch(endpoint);
+
       if (response.ok) {
         const data = await response.json();
-        setProfile({ ...defaultProfile, ...data });
+        setProfile({ ...defaultProfile, ...(data as ProfileData) });
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProfile();
@@ -255,51 +343,69 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchProfile]);
 
   const refreshProfile = async () => {
     await fetchProfile();
   };
 
   const updateProfile = async (data: Partial<ProfileData>) => {
-    const newProfile = { ...profile, ...data };
-    setProfile(newProfile);
+    setProfile((prev) => ({ ...prev, ...data }));
+  };
+
+  const saveDraft = async (data: Partial<ProfileData>) => {
+    const nextDraft = { ...profile, ...data };
+    setProfile(nextDraft);
 
     try {
-      const response = await fetch('/api/profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newProfile),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save profile');
-      }
+      await performProfileAction('saveDraft', nextDraft);
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Failed to save changes to the server.');
+      throw error;
+    }
+  };
+
+  const publishDraft = async () => {
+    try {
+      await performProfileAction('publish');
+    } catch (error) {
+      console.error('Error publishing draft:', error);
+      throw error;
+    }
+  };
+
+  const rollbackToRevision = async (revisionId: string) => {
+    try {
+      await performProfileAction('rollback', { revisionId });
+    } catch (error) {
+      console.error('Error rolling back revision:', error);
+      throw error;
     }
   };
 
   const resetProfile = async () => {
-    setProfile(defaultProfile);
     try {
-      await fetch('/api/profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(defaultProfile),
-      });
+      await saveDraft(defaultProfile);
     } catch (error) {
       console.error('Error resetting profile:', error);
+      throw error;
     }
   };
 
   return (
-    <ProfileContext.Provider value={{ profile, updateProfile, resetProfile, refreshProfile, isLoading }}>
+    <ProfileContext.Provider
+      value={{
+        profile,
+        workflow,
+        updateProfile,
+        saveDraft,
+        publishDraft,
+        rollbackToRevision,
+        resetProfile,
+        refreshProfile,
+        isLoading,
+      }}
+    >
       {children}
     </ProfileContext.Provider>
   );
