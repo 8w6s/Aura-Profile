@@ -305,7 +305,7 @@ export default function AdminPage() {
             URL.revokeObjectURL(url);
             showToast('Loaded latest snapshot.', 'success');
         } catch {
-            showToast('Snapshot format is invalid.', 'error');
+            showToast('Snapshot bị lỗi định dạng.', 'error');
         }
     };
 
@@ -1450,7 +1450,7 @@ export default function AdminPage() {
                                         <style>{sanitizeCustomCss(formData.customCss)}</style>
                                         <div className="profile-card rounded-xl border border-white/10 bg-white/5 p-4">
                                             <h4 className="effect-glow text-base font-semibold text-white">Preview Card</h4>
-                                            <p className="mt-2 text-sm text-gray-300">Khung xem trước này giúp test nhanh selector trước khi publish.</p>
+                                            <p className="mt-2 text-sm text-gray-300">This preview frame helps you quickly test selectors before publishing.</p>
                                         </div>
                                     </div>
                                 </div>
