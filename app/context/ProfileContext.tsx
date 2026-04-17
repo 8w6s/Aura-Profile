@@ -69,6 +69,8 @@ export interface ThemeConfig {
   cardBlur?: number;
   cardOpacity?: number;
   cardColor?: string;
+  cardBorderWidth?: number;
+  cardBorderColor?: string;
   componentColor?: string;
   backgroundEffect?: 'none' | 'noise' | 'rain' | 'snow';
   bannerOverlayOpacity?: number;
@@ -95,6 +97,7 @@ export interface FeatureConfig {
   allowLikes: boolean;
   enableEnterScreen: boolean;
   showUid?: boolean;
+  showCardBorder?: boolean;
 }
 
 export interface EnterScreenConfig {
@@ -185,8 +188,7 @@ export interface GithubConfig {
 export interface IntegrationsConfig {
   github?: GithubConfig;
   spotify?: { enabled: boolean; url?: string };
-  osu?: { enabled: boolean; username?: string };
-  wakatime?: { enabled: boolean; username?: string };
+  osu?: { enabled: boolean; username?: string };wakatime?: { enabled: boolean; username?: string };
   leetcode?: { enabled: boolean; username?: string };
   catbox?: { enabled: boolean; userHash?: string };
 }
@@ -321,12 +323,20 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = useCallback(async () => {
     try {
-      const endpoint = '/api/profile';
+      const endpoint = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+        ? '/api/profile?mode=admin'
+        : '/api/profile';
       const response = await fetch(endpoint);
 
       if (response.ok) {
         const data = await response.json();
-        setProfile({ ...defaultProfile, ...(data as ProfileData) });
+        const profileData = data.profile ? data.profile : data;
+        const workflowData = data.workflow ? data.workflow : undefined;
+
+        setProfile({ ...defaultProfile, ...(profileData as ProfileData) });
+        if (workflowData) {
+          setWorkflow(workflowData as ProfileWorkflowMeta);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);

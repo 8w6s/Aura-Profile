@@ -483,12 +483,17 @@ export default function Home() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className={`relative z-10 w-full ${cardWidthClass} border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto ring-1 ring-white/5 no-scrollbar`}
+          className={`relative z-10 w-full ${cardWidthClass} shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto no-scrollbar ${profile.features?.showCardBorder ? '' : 'border border-white/10 ring-1 ring-white/5'}`}
           style={{
             backgroundColor: 'var(--card-bg)',
             backdropFilter: isMinimal ? 'none' : 'blur(var(--card-blur))',
             WebkitBackdropFilter: isMinimal ? 'none' : 'blur(var(--card-blur))',
             borderRadius: 'var(--card-radius)',
+            ...(profile.features?.showCardBorder && {
+              borderWidth: `${profile.theme?.cardBorderWidth || 1}px`,
+              borderColor: profile.theme?.cardBorderColor || '#ffffff',
+              borderStyle: 'solid',
+            })
           }}
         >
           <div className="grid grid-rows-[200px_auto] md:grid-rows-[250px_auto]">
@@ -1029,7 +1034,7 @@ export default function Home() {
 
 
                 {profile.integrations?.leetcode?.enabled && leetcodeData && isSectionVisible('integrations') && (
-                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 space-y-4 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 11) }}>
+                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 space-y-4 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 11) }}>
                     <div className="flex items-center gap-2 text-(--primary) font-semibold border-b border-white/10 pb-2">
                       <Code size={18} />
                       <h2>LeetCode Stats</h2>
@@ -1062,13 +1067,13 @@ export default function Home() {
                 )}
 
                 {profile.integrations?.leetcode?.enabled && leetcodeState === 'loading' && isSectionVisible('integrations') && (
-                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 text-sm text-gray-400 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 12) }}>
+                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 text-sm text-gray-400 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 12) }}>
                     Loading LeetCode stats...
                   </motion.div>
                 )}
 
                 {profile.integrations?.leetcode?.enabled && leetcodeState === 'error' && isSectionVisible('integrations') && (
-                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 text-sm text-red-300 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--component-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 13) }}>
+                  <motion.div variants={itemVariants} className={`p-6 border border-white/5 text-sm text-red-300 ${getSectionWidthClass('integrations')}`} style={{ backgroundColor: 'var(--card-bg)', borderRadius: 'var(--component-radius)', order: getSectionOrder('integrations', 13) }}>
                     Could not load LeetCode stats at the moment.
                   </motion.div>
                 )}

@@ -2469,6 +2469,25 @@ export default function AdminPage() {
                                             onChange={(val) => handleThemeChange('cardOpacity', val / 100)}
                                         />
                                     </div>
+                                    {formData.features?.showCardBorder && (
+                                        <>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between">
+                                                    <label className="text-sm text-gray-400">Card Border Width ({formData.theme?.cardBorderWidth || 1}px)</label>
+                                                </div>
+                                                <CustomRange
+                                                    value={formData.theme?.cardBorderWidth || 1}
+                                                    min={1}
+                                                    max={10}
+                                                    onChange={(val) => handleThemeChange('cardBorderWidth', val)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2 flex flex-col">
+                                                <label className="text-sm text-gray-400">Card Border Color</label>
+                                                <ColorPicker color={formData.theme?.cardBorderColor || '#ffffff'} onChange={(color) => handleThemeChange('cardBorderColor', color)} />
+                                            </div>
+                                        </>
+                                    )}
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
                                             <label className="text-sm text-gray-400">Enter Screen Background Blur ({formatPxOrOff(formData.theme?.enterScreenBlur, 16)})</label>
@@ -2614,6 +2633,11 @@ export default function AdminPage() {
                                         checked={formData.features?.showViews !== false}
                                         onChange={() => handleFeatureToggle('showViews')}
                                         label="Show View Counts"
+                                    />
+                                    <Switch
+                                        checked={formData.features?.showCardBorder === true}
+                                        onChange={() => handleFeatureToggle('showCardBorder')}
+                                        label="Show Card Border"
                                     />
                                     <Switch
                                         checked={formData.features?.allowComments !== false}

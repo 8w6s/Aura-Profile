@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { HexColorPicker } from 'react-colorful';
+import { HexAlphaColorPicker as HexColorPicker } from 'react-colorful';
 import { Palette } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -90,13 +90,13 @@ export default function ColorPicker({ color, onChange, label }: ColorPickerProps
                   value={color.replace('#', '')}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (/^[0-9A-Fa-f]{0,6}$/.test(val)) {
+                    if (/^[0-9A-Fa-f]{0,8}$/.test(val)) {
                       onChange(`#${val}`);
                     }
                   }}
                   className="w-full bg-black/40 border border-white/10 rounded-lg py-2 pl-6 pr-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
                   placeholder="HEX"
-                  maxLength={6}
+                  maxLength={8}
                 />
               </div>
             </div>
