@@ -305,7 +305,7 @@ export default function AdminPage() {
             URL.revokeObjectURL(url);
             showToast('Loaded latest snapshot.', 'success');
         } catch {
-            showToast('Snapshot bị lỗi định dạng.', 'error');
+            showToast('Snapshot format is invalid.', 'error');
         }
     };
 
