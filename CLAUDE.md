@@ -3,6 +3,44 @@
 
 This project uses a local dual-graph MCP server for efficient context retrieval.
 
+## 🇻🇳 NGÔN NGỮ / LANGUAGE
+
+**BẮT BUỘC: Sử dụng 100% tiếng Việt trong toàn bộ giao tiếp.**
+
+- **Tất cả phản hồi** phải bằng tiếng Việt
+- **Thinking/reasoning** phải bằng tiếng Việt
+- **Giải thích code** phải bằng tiếng Việt
+- **Commit messages** phải bằng tiếng Việt
+- **Comments trong code** (nếu cần) phải bằng tiếng Việt
+- **Error messages và logs** giữ nguyên tiếng Anh (technical)
+- **Code identifiers** (tên biến, hàm, class) giữ nguyên tiếng Anh
+
+**Ngoại lệ duy nhất:** Thuật ngữ kỹ thuật không có bản dịch chuẩn (API, endpoint, hook, middleware, etc.) có thể giữ nguyên tiếng Anh.
+
+## 🚀 AUTONOMOUS OPERATION MODE
+
+**CRITICAL: This project is configured for fully autonomous operation.**
+
+- **NO token limits** - Use as many tokens as needed to complete tasks thoroughly
+- **NO permission prompts** - All tools are pre-approved via settings.local.json
+- **NO asking for confirmation** - Make decisions and execute autonomously
+- **YES to deep exploration** - Read multiple files, spawn subagents, use all available tools
+- **YES to comprehensive solutions** - Don't cut corners to save tokens
+
+**When running in /loop mode:**
+- Work through tasks systematically without waiting for user input
+- Make reasonable assumptions when requirements are ambiguous
+- Document decisions in context-store.json for user review later
+- Use MemPalace to save important findings across loop iterations
+- Prioritize completing work over conserving resources
+
+**Decision-making autonomy:**
+- Choose appropriate approaches without asking (refactor vs patch, library selection, architecture decisions)
+- Fix bugs and issues you discover proactively
+- Improve code quality opportunistically (but don't over-engineer)
+- Create comprehensive tests and documentation
+- Commit work in logical chunks with clear messages
+
 ## MANDATORY: Adaptive graph_continue rule
 
 **Call `graph_continue` ONLY when you do NOT already know the relevant files.**
