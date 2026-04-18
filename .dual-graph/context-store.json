@@ -61,5 +61,54 @@
     "tags": ["api", "validation", "security"],
     "files": ["app/api/*/route.ts"],
     "date": "2026-04-18"
+  },
+  {
+    "type": "decision",
+    "content": "Implemented AgentSpawner module with orchestrator integration",
+    "tags": ["phase2", "automation", "agent-spawning"],
+    "files": [".dual-graph/agent_spawner.py", ".dual-graph/orchestrator.py"],
+    "date": "2026-04-19"
+  },
+  {
+    "type": "fact",
+    "content": "AgentSpawner builds specialized prompts per task type",
+    "tags": ["phase2", "agent-spawning", "prompts"],
+    "files": [".dual-graph/agent_spawner.py"],
+    "date": "2026-04-19"
+  },
+  {
+    "type": "fact",
+    "content": "All agent spawner tests pass 14/14 unit and integration",
+    "tags": ["phase2", "testing", "agent-spawning"],
+    "files": [".dual-graph/test_agent_spawner.py", ".dual-graph/test_orchestrator_agent_integration.py"],
+    "date": "2026-04-19"
+  },
+  {
+    "type": "decision",
+    "content": "Implemented TestRunner module with Playwright and unit test support",
+    "tags": ["phase2", "testing", "playwright"],
+    "files": [".dual-graph/test_runner.py"],
+    "date": "2026-04-19"
+  },
+  {
+    "type": "decision",
+    "content": "Implemented GitAutomation module with smart commit message generation",
+    "tags": ["phase2", "git", "automation"],
+    "files": [".dual-graph/git_automation.py"],
+    "date": "2026-04-19"
+  },
+  {
+    "type": "fact",
+    "content": "Phase 2 Tasks 2 and 3 complete with 20/21 tests passing",
+    "tags": ["phase2", "testing", "milestone"],
+    "files": [".dual-graph/test_runner.py", ".dual-graph/git_automation.py", ".dual-graph/orchestrator.py"],
+    "date": "2026-04-19"
+  },
+  {
+    "type": "fact",
+    "content": "Orchestrator now supports full workflow CLASSIFYING to COMMITTING transitions",
+    "tags": ["phase2", "orchestrator", "state-machine"],
+    "files": [".dual-graph/orchestrator.py"],
+    "date": "2026-04-19"
   }
 ]
