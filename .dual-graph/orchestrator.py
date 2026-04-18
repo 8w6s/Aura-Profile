@@ -7,6 +7,7 @@ import os
 from datetime import datetime
 from typing import Dict, Any, Optional
 from contextlib import contextmanager
+from notifier import send_notification
 
 # Configure logging
 log_dir = os.path.dirname(os.path.abspath(__file__))
@@ -90,6 +91,28 @@ class WorkflowOrchestrator:
         logger.info(f"Task classified as: {result['type']} (confidence: {result['confidence']})")
         return result
 
+    def notify_workflow_start(self, session_id: str, task_type: str):
+        """Gửi notification khi workflow bắt đầu"""
+        try:
+            send_notification(
+                "Automation Started",
+                f"Đang xử lý: {task_type} (Session: {session_id})"
+            )
+            logger.info(f"Sent start notification for session {session_id}")
+        except Exception as e:
+            logger.warning(f"Failed to send start notification: {e}")
+
+    def notify_workflow_done(self, session_id: str, duration: str):
+        """Gửi notification khi workflow hoàn thành"""
+        try:
+            send_notification(
+                "Automation Complete",
+                f"Hoàn thành trong {duration} (Session: {session_id})"
+            )
+            logger.info(f"Sent completion notification for session {session_id}")
+        except Exception as e:
+            logger.warning(f"Failed to send completion notification: {e}")
+
     def create_workflow(self, prompt: str, cwd: str) -> str:
         import uuid
         session_id = str(uuid.uuid4())[:8]
@@ -103,6 +126,9 @@ class WorkflowOrchestrator:
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (session_id, 'CLASSIFYING', classification['type'], prompt,
                   datetime.now().isoformat(), datetime.now().isoformat()))
+
+        # Gửi notification khi workflow bắt đầu
+        self.notify_workflow_start(session_id, classification['type'])
 
         return session_id
 
