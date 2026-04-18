@@ -6,7 +6,7 @@ import IconPicker from '@/components/IconPicker';
 import CustomRange from '@/components/CustomRange';
 import CustomSelect from '@/components/CustomSelect';
 import FileUploader from '@/components/FileUploader';
-import { useProfile } from '@/app/context/ProfileContext';
+import { useProfile, TypewriterBioLine } from '@/app/context/ProfileContext';
 import { useToast } from '@/app/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ArrowLeft, Plus, Trash2, Save, RotateCcw, Loader2, Music, GripVertical, PlayCircle, ChevronUp, ChevronDown, Layout, Share2, MessageSquare, Image as ImageIcon, Type, Eye, EyeOff, Settings, Info, ExternalLink, Reply, Github, Globe, Puzzle, Search, Filter, Calendar, ThumbsUp, MessageCircle, Clock, File, Upload, Download } from 'lucide-react';
@@ -32,15 +32,11 @@ const HighlightText = ({ text, highlight }: { text: string, highlight: string })
     try {
         const regex = new RegExp(`(${highlight})`, 'gi');
         const parts = text.split(regex);
-
-        return (
-            <>
-                {parts.map((part, i) =>
-                    regex.test(part) ? <span key={i} className="bg-indigo-500/30 text-indigo-200 font-bold px-0.5 rounded">{part}</span> : part
-                )}
-            </>
+        const elements = parts.map((part, i) =>
+            regex.test(part) ? <span key={i} className="bg-indigo-500/30 text-indigo-200 font-bold px-0.5 rounded">{part}</span> : part
         );
-    } catch (e) {
+        return <>{elements}</>;
+    } catch {
         return <>{text}</>;
     }
 };
@@ -98,7 +94,6 @@ export default function AdminPage() {
         profile,
         saveDraft,
         publishDraft,
-        rollbackToRevision,
         resetProfile,
         workflow,
         authError,
@@ -112,7 +107,6 @@ export default function AdminPage() {
     const [showResetModal, setShowResetModal] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [uploadMode, setUploadMode] = useState<'catbox' | 'local'>('catbox');
-    const [selectedRevisionId, setSelectedRevisionId] = useState('');
     const importFileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [loginUsername, setLoginUsername] = useState('');
@@ -134,8 +128,8 @@ export default function AdminPage() {
             }
             showToast('Login successful. Reloading...', 'success');
             window.location.reload();
-        } catch (error: any) {
-            showToast(error.message, 'error');
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'Login failed', 'error');
         } finally {
             setIsLoggingIn(false);
         }
@@ -610,22 +604,22 @@ export default function AdminPage() {
         }));
     };
 
-    const handleIntegrationChange = (platform: 'spotify' | 'osu' | 'wakatime' | 'leetcode' | 'catbox' | 'github', field: string, value: any) => {
+    const handleIntegrationChange = (platform: 'spotify' | 'osu' | 'wakatime' | 'leetcode' | 'catbox' | 'github', field: string, value: string | boolean) => {
         setFormData(prev => {
             const next = { ...prev };
-            // @ts-ignore
+            // @ts-expect-error - Dynamic platform access
     const currentValue = next.integrations?.[platform]?.[field];
 
             if (typeof currentValue === 'boolean') {
-                // @ts-ignore
+                // @ts-expect-error - Dynamic platform access
                 next.integrations[platform] = {
-                    ...(next.integrations as any)[platform],
+                    ...next.integrations?.[platform],
                     [field]: !currentValue,
                 };
             } else {
-                // @ts-ignore
+                // @ts-expect-error - Dynamic platform access
                 next.integrations[platform] = {
-                    ...(next.integrations as any)[platform],
+                    ...next.integrations?.[platform],
                     [field]: value,
                 };
             }
@@ -634,7 +628,7 @@ export default function AdminPage() {
         });
     };
 
-    const handleWakaTimeChange = (field: string, value: any) => {
+    const handleWakaTimeChange = (field: string, value: string | boolean) => {
         setFormData(prev => ({
             ...prev,
             integrations: {
@@ -648,7 +642,7 @@ export default function AdminPage() {
         }));
     };
 
-    const handleLeetCodeChange = (field: string, value: any) => {
+    const handleLeetCodeChange = (field: string, value: string | boolean) => {
         setFormData(prev => ({
             ...prev,
             integrations: {
@@ -662,9 +656,9 @@ export default function AdminPage() {
         }));
     };
 
-    const handleSkillsChange = (index: number, field: string, value: any) => {
+    const handleSkillsChange = (index: number, field: string, value: string | number) => {
         const newSkills = [...(formData.skills || [])];
-        let currentSkill = newSkills[index];
+        const currentSkill = newSkills[index];
 
         if (!currentSkill) return;
 
@@ -739,7 +733,7 @@ export default function AdminPage() {
         }));
     };
 
-    const handleTypewriterBioChange = (field: string, value: any) => {
+    const handleTypewriterBioChange = (field: string, value: boolean | TypewriterBioLine[]) => {
         setFormData(prev => ({
             ...prev,
             typewriterBio: {
@@ -752,7 +746,7 @@ export default function AdminPage() {
         }));
     };
 
-    const handleTypewriterLineChange = (index: number, field: string, value: any) => {
+    const handleTypewriterLineChange = (index: number, field: string, value: string | number) => {
         const newLines = [...(formData.typewriterBio?.lines || [])];
         newLines[index] = { ...newLines[index], [field]: value };
         handleTypewriterBioChange('lines', newLines);
@@ -769,7 +763,7 @@ export default function AdminPage() {
         handleTypewriterBioChange('lines', newLines);
     };
 
-    const handleCursorChange = (field: string, value: any) => {
+    const handleCursorChange = (field: string, value: string | boolean) => {
         setFormData(prev => ({
             ...prev,
             cursor: {
@@ -779,34 +773,6 @@ export default function AdminPage() {
                 [field]: value
             }
         }));
-    };
-
-    const handleSave = async () => {
-        setSaveStatus('saving');
-        try {
-            await saveDraft(formData);
-            setSaveStatus('saved');
-            showToast('Draft saved successfully!', 'success');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (error) {
-            setSaveStatus('error');
-            showToast(error instanceof Error ? error.message : 'Failed to save draft. Please login again.', 'error');
-            setTimeout(() => setSaveStatus('idle'), 3000);
-        }
-    };
-
-    const handlePublish = async () => {
-        setSaveStatus('publishing');
-        try {
-            await publishDraft();
-            setSaveStatus('saved');
-            showToast('Draft published successfully!', 'success');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (error) {
-            setSaveStatus('error');
-            showToast(error instanceof Error ? error.message : 'Failed to publish draft. Please login again.', 'error');
-            setTimeout(() => setSaveStatus('idle'), 3000);
-        }
     };
 
     const handleSaveAndPublish = async () => {
@@ -821,26 +787,6 @@ export default function AdminPage() {
         } catch (error) {
             setSaveStatus('error');
             showToast(error instanceof Error ? error.message : 'Failed to save/publish. Please login again.', 'error');
-            setTimeout(() => setSaveStatus('idle'), 3000);
-        }
-    };
-
-    const handleRollback = async () => {
-        if (!selectedRevisionId) {
-            showToast('Please select a revision to rollback.', 'info');
-            return;
-        }
-
-        setSaveStatus('saving');
-        try {
-            await rollbackToRevision(selectedRevisionId);
-            setSaveStatus('saved');
-            showToast('Rollback completed and published.', 'success');
-            setSelectedRevisionId('');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        } catch (error) {
-            setSaveStatus('error');
-            showToast(error instanceof Error ? error.message : 'Rollback failed. Please login again.', 'error');
             setTimeout(() => setSaveStatus('idle'), 3000);
         }
     };
