@@ -1,0 +1,14 @@
+2026-04-19 02:25:57,639 - test_runner - INFO - Running Playwright tests for session test1234
+2026-04-19 02:25:57,647 - test_runner - ERROR - Playwright not found for session test1234
+2026-04-19 02:25:57,649 - test_runner - INFO - Running Playwright tests for session test1234
+2026-04-19 02:25:57,649 - test_runner - INFO - Running Playwright tests for session test1234
+2026-04-19 02:25:57,654 - test_runner - ERROR - Playwright not found for session test1234
+2026-04-19 02:25:57,654 - test_runner - ERROR - Playwright not found for session test1234
+2026-04-19 02:25:57,657 - test_runner - INFO - Running unit tests for session test1234
+2026-04-19 02:25:57,657 - test_runner - INFO - Running unit tests for session test1234
+2026-04-19 02:25:57,657 - test_runner - INFO - Running unit tests for session test1234
+2026-04-19 02:25:57,657 - test_runner - INFO - Running unit tests for session test1234
+2026-04-19 02:25:57,662 - test_runner - ERROR - Unit tests failed: [WinError 2] The system cannot find the file specified
+2026-04-19 02:25:57,662 - test_runner - ERROR - Unit tests failed: [WinError 2] The system cannot find the file specified
+2026-04-19 02:25:57,662 - test_runner - ERROR - Unit tests failed: [WinError 2] The system cannot find the file specified
+2026-04-19 02:25:57,662 - test_runner - ERROR - Unit tests failed: [WinError 2] The system cannot find the file specified

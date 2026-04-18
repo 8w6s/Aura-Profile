@@ -1,0 +1,7 @@
+[orchestrator] Starting HTTP server on port 8081
+[orchestrator] Database: C:\Users\FUJITSU\Documents\PROJECTS\8w6s_profile\.dual-graph\workflows.db
+[orchestrator] "GET /health HTTP/1.1" 200 -
+[orchestrator] "POST /orchestrate HTTP/1.1" 200 -
+[orchestrator] "GET /status/497dd592 HTTP/1.1" 200 -
+[orchestrator] "POST /workflow HTTP/1.1" 404 -
+[orchestrator] "POST /orchestrate HTTP/1.1" 500 -

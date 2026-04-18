@@ -1,0 +1,207 @@
+2026-04-19 02:21:41,742 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:21:41,743 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpe_hfrn1e.db
+2026-04-19 02:21:41,754 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:21:41,755 - orchestrator - INFO - Creating workflow with session_id: 52a7f3da, task_type: bug
+2026-04-19 02:21:42,025 - orchestrator - INFO - Sent start notification for session 52a7f3da
+2026-04-19 02:21:42,025 - orchestrator - INFO - Transitioning session 52a7f3da to EXECUTING state
+2026-04-19 02:21:42,034 - orchestrator - INFO - State updated to EXECUTING for session 52a7f3da
+2026-04-19 02:21:42,034 - orchestrator - INFO - Agent spawn result: running
+2026-04-19 02:21:42,052 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:21:42,052 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpe0_ouciy.db
+2026-04-19 02:21:42,052 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:21:42,052 - orchestrator - INFO - Creating workflow with session_id: 6f1d54c3, task_type: bug
+2026-04-19 02:21:45,101 - orchestrator - INFO - Sent start notification for session 6f1d54c3
+2026-04-19 02:21:45,103 - orchestrator - INFO - Status found for session_id 6f1d54c3: CLASSIFYING
+2026-04-19 02:21:45,118 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:21:45,118 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp_lgmxckh.db
+2026-04-19 02:21:45,130 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:21:45,130 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpeh4s1kew.db
+2026-04-19 02:21:45,131 - orchestrator - WARNING - Invalid session_id format: invalid123
+2026-04-19 02:21:45,143 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:21:45,144 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpkqxuj5sh.db
+2026-04-19 02:21:45,145 - orchestrator - INFO - Transitioning session abcd1234 to EXECUTING state
+2026-04-19 02:21:45,146 - orchestrator - ERROR - Workflow not found for session_id: abcd1234
+2026-04-19 02:21:45,170 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:21:45,170 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpbuqlz0ag.db
+2026-04-19 02:21:45,171 - orchestrator - INFO - Task classified as: feature (confidence: 0.8)
+2026-04-19 02:21:45,172 - orchestrator - INFO - Creating workflow with session_id: 290737be, task_type: feature
+2026-04-19 02:21:45,186 - orchestrator - INFO - Sent start notification for session 290737be
+2026-04-19 02:21:45,187 - orchestrator - INFO - Status found for session_id 290737be: CLASSIFYING
+2026-04-19 02:21:45,188 - orchestrator - INFO - Transitioning session 290737be to EXECUTING state
+2026-04-19 02:21:45,196 - orchestrator - INFO - State updated to EXECUTING for session 290737be
+2026-04-19 02:21:45,197 - orchestrator - INFO - Agent spawn result: running
+2026-04-19 02:21:45,199 - orchestrator - INFO - Status found for session_id 290737be: EXECUTING
+2026-04-19 02:22:05,127 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:22:05,128 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpm1_xcstx.db
+2026-04-19 02:22:05,134 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:22:05,134 - orchestrator - INFO - Creating workflow with session_id: d9b68437, task_type: bug
+2026-04-19 02:22:05,438 - orchestrator - INFO - Sent start notification for session d9b68437
+2026-04-19 02:22:05,439 - orchestrator - INFO - Transitioning session d9b68437 to EXECUTING state
+2026-04-19 02:22:05,445 - orchestrator - INFO - State updated to EXECUTING for session d9b68437
+2026-04-19 02:22:05,446 - orchestrator - INFO - Agent spawn result: running
+2026-04-19 02:22:05,457 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:22:05,457 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpbby9zk3_.db
+2026-04-19 02:22:05,458 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:22:05,458 - orchestrator - INFO - Creating workflow with session_id: 157d2d0c, task_type: bug
+2026-04-19 02:22:09,096 - orchestrator - INFO - Sent start notification for session 157d2d0c
+2026-04-19 02:22:09,097 - orchestrator - INFO - Status found for session_id 157d2d0c: CLASSIFYING
+2026-04-19 02:22:09,110 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:22:09,111 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpiwzwnl1s.db
+2026-04-19 02:22:09,128 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:22:09,129 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp8b62hhcn.db
+2026-04-19 02:22:09,130 - orchestrator - WARNING - Invalid session_id format: invalid123
+2026-04-19 02:22:09,144 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:22:09,144 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpusnn0bjv.db
+2026-04-19 02:22:09,145 - orchestrator - INFO - Transitioning session abcd1234 to EXECUTING state
+2026-04-19 02:22:09,146 - orchestrator - ERROR - Workflow not found for session_id: abcd1234
+2026-04-19 02:22:09,161 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:22:09,162 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmplcid56ht.db
+2026-04-19 02:22:09,164 - orchestrator - INFO - Task classified as: feature (confidence: 0.8)
+2026-04-19 02:22:09,164 - orchestrator - INFO - Creating workflow with session_id: c2bc8542, task_type: feature
+2026-04-19 02:22:09,177 - orchestrator - INFO - Sent start notification for session c2bc8542
+2026-04-19 02:22:09,178 - orchestrator - INFO - Status found for session_id c2bc8542: CLASSIFYING
+2026-04-19 02:22:09,179 - orchestrator - INFO - Transitioning session c2bc8542 to EXECUTING state
+2026-04-19 02:22:09,192 - orchestrator - INFO - State updated to EXECUTING for session c2bc8542
+2026-04-19 02:22:09,194 - orchestrator - INFO - Agent spawn result: running
+2026-04-19 02:22:09,195 - orchestrator - INFO - Status found for session_id c2bc8542: EXECUTING
+2026-04-19 02:26:07,795 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:07,796 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp8es3i2pp\test_workflows.db
+2026-04-19 02:26:07,800 - orchestrator - INFO - Task classified as: feature (confidence: 0.8)
+2026-04-19 02:26:07,800 - orchestrator - INFO - Creating workflow with session_id: c1a68853, task_type: feature
+2026-04-19 02:26:10,423 - orchestrator - INFO - Sent start notification for session c1a68853
+2026-04-19 02:26:10,424 - orchestrator - INFO - Status found for session_id c1a68853: CLASSIFYING
+2026-04-19 02:26:10,434 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:10,434 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpb08nzokr\test_workflows.db
+2026-04-19 02:26:10,443 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:10,443 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpn4tu8zfr\test_workflows.db
+2026-04-19 02:26:10,452 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:10,453 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp07qk50xg\test_workflows.db
+2026-04-19 02:26:10,453 - orchestrator - WARNING - Invalid session_id format: invalid
+2026-04-19 02:26:10,461 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:10,461 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpu0fp0qlj\test_workflows.db
+2026-04-19 02:26:10,462 - orchestrator - INFO - Transitioning session abcd1234 to COMMITTING state
+2026-04-19 02:26:10,462 - orchestrator - ERROR - Workflow not found for session_id: abcd1234
+2026-04-19 02:26:10,470 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:10,470 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp2gakxeav\test_workflows.db
+2026-04-19 02:26:10,470 - orchestrator - INFO - Task classified as: test (confidence: 0.8)
+2026-04-19 02:26:10,471 - orchestrator - INFO - Creating workflow with session_id: f78f5ebb, task_type: test
+2026-04-19 02:26:12,989 - orchestrator - INFO - Sent start notification for session f78f5ebb
+2026-04-19 02:26:12,990 - orchestrator - INFO - Transitioning session f78f5ebb to COMMITTING state
+2026-04-19 02:26:12,992 - orchestrator - WARNING - Cannot transition from CLASSIFYING to COMMITTING
+2026-04-19 02:26:13,010 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:13,012 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp74llk330\test_workflows.db
+2026-04-19 02:26:13,012 - orchestrator - WARNING - Invalid session_id format: invalid
+2026-04-19 02:26:13,032 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:13,032 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpi8m65gge\test_workflows.db
+2026-04-19 02:26:13,033 - orchestrator - INFO - Transitioning session abcd1234 to TESTING state
+2026-04-19 02:26:13,034 - orchestrator - ERROR - Workflow not found for session_id: abcd1234
+2026-04-19 02:26:13,052 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:26:13,053 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpb20nctyv\test_workflows.db
+2026-04-19 02:26:13,053 - orchestrator - INFO - Task classified as: test (confidence: 0.8)
+2026-04-19 02:26:13,053 - orchestrator - INFO - Creating workflow with session_id: e135fd36, task_type: test
+2026-04-19 02:26:16,767 - orchestrator - INFO - Sent start notification for session e135fd36
+2026-04-19 02:26:16,768 - orchestrator - INFO - Transitioning session e135fd36 to TESTING state
+2026-04-19 02:26:16,769 - orchestrator - WARNING - Cannot transition from CLASSIFYING to TESTING
+2026-04-19 02:32:04,309 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:32:04,310 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp_k8zbkx9\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmp_k8zbkx9
+2026-04-19 02:32:04,315 - orchestrator - INFO - Task classified as: refactor (confidence: 0.7)
+2026-04-19 02:32:04,315 - orchestrator - INFO - Creating workflow with session_id: 1084df79, task_type: refactor
+2026-04-19 02:32:07,053 - orchestrator - INFO - Sent start notification for session 1084df79
+2026-04-19 02:32:07,053 - orchestrator - INFO - Transitioning session 1084df79 to EXECUTING state
+2026-04-19 02:32:07,054 - orchestrator - INFO - Checking environment dependencies for session 1084df79
+2026-04-19 02:32:13,021 - orchestrator - ERROR - Environment not ready for session 1084df79
+2026-04-19 02:32:13,040 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:32:13,041 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpi_gpc26b\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmpi_gpc26b
+2026-04-19 02:32:13,041 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:32:13,041 - orchestrator - INFO - Creating workflow with session_id: 73821154, task_type: bug
+2026-04-19 02:32:14,791 - orchestrator - INFO - Sent start notification for session 73821154
+2026-04-19 02:32:14,791 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:32:14,791 - orchestrator - INFO - Creating workflow with session_id: 78eb2d51, task_type: bug
+2026-04-19 02:32:17,007 - orchestrator - INFO - Sent start notification for session 78eb2d51
+2026-04-19 02:32:17,008 - orchestrator - INFO - Transitioning session 73821154 to EXECUTING state
+2026-04-19 02:32:17,009 - orchestrator - INFO - Checking environment dependencies for session 73821154
+2026-04-19 02:32:17,009 - orchestrator - INFO - Environment ready for session 73821154
+2026-04-19 02:32:17,017 - orchestrator - INFO - State updated to EXECUTING for session 73821154
+2026-04-19 02:33:36,244 - orchestrator - INFO - Agent spawn result: running
+2026-04-19 02:33:36,245 - orchestrator - INFO - Transitioning session 78eb2d51 to EXECUTING state
+2026-04-19 02:33:36,267 - orchestrator - INFO - Checking environment dependencies for session 78eb2d51
+2026-04-19 02:33:36,268 - orchestrator - INFO - Environment ready for session 78eb2d51
+2026-04-19 02:33:36,278 - orchestrator - INFO - State updated to EXECUTING for session 78eb2d51
+2026-04-19 02:35:02,749 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:35:02,751 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmplq632k52\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmplq632k52
+2026-04-19 02:35:02,759 - orchestrator - INFO - Task classified as: refactor (confidence: 0.7)
+2026-04-19 02:35:02,760 - orchestrator - INFO - Creating workflow with session_id: f50d2120, task_type: refactor
+2026-04-19 02:35:08,333 - orchestrator - INFO - Sent start notification for session f50d2120
+2026-04-19 02:35:08,334 - orchestrator - INFO - Transitioning session f50d2120 to EXECUTING state
+2026-04-19 02:35:08,337 - orchestrator - INFO - Checking environment dependencies for session f50d2120
+2026-04-19 02:35:29,364 - orchestrator - ERROR - Environment not ready for session f50d2120
+2026-04-19 02:35:29,433 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:35:29,434 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp8x8pnrgy\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmp8x8pnrgy
+2026-04-19 02:35:29,435 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:35:29,435 - orchestrator - INFO - Creating workflow with session_id: 54da4528, task_type: bug
+2026-04-19 02:35:34,741 - orchestrator - INFO - Sent start notification for session 54da4528
+2026-04-19 02:35:34,742 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:35:34,742 - orchestrator - INFO - Creating workflow with session_id: 68e80de3, task_type: bug
+2026-04-19 02:35:39,966 - orchestrator - INFO - Sent start notification for session 68e80de3
+2026-04-19 02:35:39,968 - orchestrator - INFO - Transitioning session 54da4528 to EXECUTING state
+2026-04-19 02:35:39,998 - orchestrator - INFO - Checking environment dependencies for session 54da4528
+2026-04-19 02:35:39,999 - orchestrator - INFO - Environment ready for session 54da4528
+2026-04-19 02:35:40,009 - orchestrator - INFO - State updated to EXECUTING for session 54da4528
+2026-04-19 02:35:40,010 - orchestrator - INFO - Agent spawn result: mocked
+2026-04-19 02:35:40,010 - orchestrator - INFO - Transitioning session 68e80de3 to EXECUTING state
+2026-04-19 02:35:40,013 - orchestrator - INFO - Checking environment dependencies for session 68e80de3
+2026-04-19 02:35:40,014 - orchestrator - INFO - Environment ready for session 68e80de3
+2026-04-19 02:35:40,025 - orchestrator - INFO - State updated to EXECUTING for session 68e80de3
+2026-04-19 02:35:40,025 - orchestrator - INFO - Agent spawn result: mocked
+2026-04-19 02:35:40,045 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:35:40,047 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpojsv9k7v\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmpojsv9k7v
+2026-04-19 02:35:40,066 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:35:40,067 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp7opq2_7g\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmp7opq2_7g
+2026-04-19 02:35:40,068 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:35:40,068 - orchestrator - INFO - Creating workflow with session_id: 0f7911cc, task_type: bug
+2026-04-19 02:35:45,253 - orchestrator - INFO - Sent start notification for session 0f7911cc
+2026-04-19 02:35:45,253 - orchestrator - INFO - Transitioning session 0f7911cc to EXECUTING state
+2026-04-19 02:35:45,256 - orchestrator - INFO - Checking environment dependencies for session 0f7911cc
+2026-04-19 02:35:45,257 - orchestrator - INFO - Environment ready for session 0f7911cc
+2026-04-19 02:35:45,269 - orchestrator - INFO - State updated to EXECUTING for session 0f7911cc
+2026-04-19 02:35:45,269 - orchestrator - INFO - Agent spawn result: mocked
+2026-04-19 02:35:45,290 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:35:45,291 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp7td5ubco\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmp7td5ubco
+2026-04-19 02:35:45,297 - orchestrator - INFO - Task classified as: feature (confidence: 0.8)
+2026-04-19 02:35:45,298 - orchestrator - INFO - Creating workflow with session_id: 192b41a4, task_type: feature
+2026-04-19 02:35:50,419 - orchestrator - INFO - Sent start notification for session 192b41a4
+2026-04-19 02:35:50,420 - orchestrator - INFO - Transitioning session 192b41a4 to EXECUTING state
+2026-04-19 02:35:50,422 - orchestrator - INFO - Checking environment dependencies for session 192b41a4
+2026-04-19 02:35:50,424 - orchestrator - INFO - Environment ready for session 192b41a4
+2026-04-19 02:35:50,436 - orchestrator - INFO - State updated to EXECUTING for session 192b41a4
+2026-04-19 02:35:50,437 - orchestrator - INFO - Agent spawn result: mocked
+2026-04-19 02:35:50,458 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:35:50,459 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp86mxzwye\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmp86mxzwye
+2026-04-19 02:35:50,461 - orchestrator - INFO - Task classified as: feature (confidence: 0.8)
+2026-04-19 02:35:50,462 - orchestrator - INFO - Creating workflow with session_id: 674022c6, task_type: feature
+2026-04-19 02:35:55,581 - orchestrator - INFO - Sent start notification for session 674022c6
+2026-04-19 02:35:55,582 - orchestrator - INFO - Transitioning session 674022c6 to EXECUTING state
+2026-04-19 02:35:55,584 - orchestrator - INFO - Checking environment dependencies for session 674022c6
+2026-04-19 02:35:55,601 - orchestrator - ERROR - Environment not ready for session 674022c6
+2026-04-19 02:35:55,624 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:35:55,625 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp8ag3y4jj\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmp8ag3y4jj
+2026-04-19 02:35:55,626 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:35:55,626 - orchestrator - INFO - Creating workflow with session_id: 8adfacfe, task_type: bug
+2026-04-19 02:36:00,728 - orchestrator - INFO - Sent start notification for session 8adfacfe
+2026-04-19 02:36:00,733 - orchestrator - INFO - Status found for session_id 8adfacfe: CLASSIFYING
+2026-04-19 02:36:00,733 - orchestrator - INFO - Transitioning session 8adfacfe to EXECUTING state
+2026-04-19 02:36:00,736 - orchestrator - INFO - Checking environment dependencies for session 8adfacfe
+2026-04-19 02:36:00,737 - orchestrator - INFO - Environment ready for session 8adfacfe
+2026-04-19 02:36:00,749 - orchestrator - INFO - State updated to EXECUTING for session 8adfacfe
+2026-04-19 02:37:19,043 - orchestrator - INFO - Agent spawn result: running
+2026-04-19 02:37:19,159 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:37:19,160 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmpr6tlolvg\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmpr6tlolvg
+2026-04-19 02:37:19,180 - orchestrator - INFO - Database initialized successfully
+2026-04-19 02:37:19,181 - orchestrator - INFO - WorkflowOrchestrator initialized with db_path: C:\Users\FUJITSU\AppData\Local\Temp\tmp1i3fw2m7\test_workflows.db, cwd: C:\Users\FUJITSU\AppData\Local\Temp\tmp1i3fw2m7
+2026-04-19 02:37:19,186 - orchestrator - INFO - Task classified as: bug (confidence: 0.8)
+2026-04-19 02:37:19,186 - orchestrator - INFO - Creating workflow with session_id: 4e6cac79, task_type: bug
+2026-04-19 02:37:24,327 - orchestrator - INFO - Sent start notification for session 4e6cac79
+2026-04-19 02:37:24,328 - orchestrator - INFO - Transitioning session 4e6cac79 to EXECUTING state
+2026-04-19 02:37:24,330 - orchestrator - INFO - Checking environment dependencies for session 4e6cac79
+2026-04-19 02:37:24,331 - orchestrator - INFO - Environment ready for session 4e6cac79
+2026-04-19 02:37:24,341 - orchestrator - INFO - State updated to EXECUTING for session 4e6cac79

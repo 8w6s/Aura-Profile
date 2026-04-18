@@ -1,0 +1,37 @@
+{
+    "hooks":  {
+                  "SessionStart":  [
+                                       {
+                                           "hooks":  [
+                                                         {
+                                                             "command":  "powershell -NoProfile -File \"C:/Users/FUJITSU/Documents/PROJECTS/8w6s_profile/.dual-graph/.dual-graph/prime.ps1\"",
+                                                             "type":  "command"
+                                                         }
+                                                     ],
+                                           "matcher":  ""
+                                       }
+                                   ],
+                  "Stop":  [
+                               {
+                                   "hooks":  [
+                                                 {
+                                                     "command":  "powershell -NoProfile -File \"C:/Users/FUJITSU/Documents/PROJECTS/8w6s_profile/.dual-graph/.dual-graph/stop_hook.ps1\"",
+                                                     "type":  "command"
+                                                 }
+                                             ],
+                                   "matcher":  ""
+                               }
+                           ],
+                  "PreCompact":  [
+                                     {
+                                         "hooks":  [
+                                                       {
+                                                           "command":  "powershell -NoProfile -File \"C:/Users/FUJITSU/Documents/PROJECTS/8w6s_profile/.dual-graph/.dual-graph/prime.ps1\"",
+                                                           "type":  "command"
+                                                       }
+                                                   ],
+                                         "matcher":  ""
+                                     }
+                                 ]
+              }
+}

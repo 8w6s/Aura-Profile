@@ -1,0 +1,89 @@
+2026-04-19 02:21:19,051 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=test456
+2026-04-19 02:21:19,051 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=test456
+2026-04-19 02:21:19,051 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=test456
+2026-04-19 02:21:19,051 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=test456
+2026-04-19 02:21:19,051 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=test456
+2026-04-19 02:21:19,051 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=test456
+2026-04-19 02:21:19,052 - agent_spawner - INFO - Agent spawned: status=failed, returncode=1
+2026-04-19 02:21:19,052 - agent_spawner - INFO - Agent spawned: status=failed, returncode=1
+2026-04-19 02:21:19,052 - agent_spawner - INFO - Agent spawned: status=failed, returncode=1
+2026-04-19 02:21:19,052 - agent_spawner - INFO - Agent spawned: status=failed, returncode=1
+2026-04-19 02:21:19,052 - agent_spawner - INFO - Agent spawned: status=failed, returncode=1
+2026-04-19 02:21:19,052 - agent_spawner - INFO - Agent spawned: status=failed, returncode=1
+2026-04-19 02:21:19,054 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=test123
+2026-04-19 02:21:19,054 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=test123
+2026-04-19 02:21:19,054 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=test123
+2026-04-19 02:21:19,054 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=test123
+2026-04-19 02:21:19,054 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=test123
+2026-04-19 02:21:19,054 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=test123
+2026-04-19 02:21:19,054 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=test123
+2026-04-19 02:21:19,055 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:19,055 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:19,055 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:19,055 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:19,055 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:19,055 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:19,055 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:19,056 - agent_spawner - INFO - Spawning agent for task_type=refactor, session_id=test789
+2026-04-19 02:21:19,056 - agent_spawner - INFO - Spawning agent for task_type=refactor, session_id=test789
+2026-04-19 02:21:19,056 - agent_spawner - INFO - Spawning agent for task_type=refactor, session_id=test789
+2026-04-19 02:21:19,056 - agent_spawner - INFO - Spawning agent for task_type=refactor, session_id=test789
+2026-04-19 02:21:19,056 - agent_spawner - INFO - Spawning agent for task_type=refactor, session_id=test789
+2026-04-19 02:21:19,056 - agent_spawner - INFO - Spawning agent for task_type=refactor, session_id=test789
+2026-04-19 02:21:19,056 - agent_spawner - INFO - Spawning agent for task_type=refactor, session_id=test789
+2026-04-19 02:21:19,056 - agent_spawner - INFO - Spawning agent for task_type=refactor, session_id=test789
+2026-04-19 02:21:19,056 - agent_spawner - ERROR - Agent timeout for session test789
+2026-04-19 02:21:19,056 - agent_spawner - ERROR - Agent timeout for session test789
+2026-04-19 02:21:19,056 - agent_spawner - ERROR - Agent timeout for session test789
+2026-04-19 02:21:19,056 - agent_spawner - ERROR - Agent timeout for session test789
+2026-04-19 02:21:19,056 - agent_spawner - ERROR - Agent timeout for session test789
+2026-04-19 02:21:19,056 - agent_spawner - ERROR - Agent timeout for session test789
+2026-04-19 02:21:19,056 - agent_spawner - ERROR - Agent timeout for session test789
+2026-04-19 02:21:19,056 - agent_spawner - ERROR - Agent timeout for session test789
+2026-04-19 02:21:42,034 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=52a7f3da
+2026-04-19 02:21:42,034 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:45,196 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=290737be
+2026-04-19 02:21:45,196 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=290737be
+2026-04-19 02:21:45,196 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=290737be
+2026-04-19 02:21:45,196 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=290737be
+2026-04-19 02:21:45,196 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=290737be
+2026-04-19 02:21:45,196 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=290737be
+2026-04-19 02:21:45,197 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:45,197 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:45,197 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:45,197 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:45,197 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:21:45,197 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:22:05,446 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=d9b68437
+2026-04-19 02:22:05,446 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=c2bc8542
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=c2bc8542
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=c2bc8542
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=c2bc8542
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=c2bc8542
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Spawning agent for task_type=feature, session_id=c2bc8542
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:22:09,193 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:32:17,017 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=73821154
+2026-04-19 02:32:17,017 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=73821154
+2026-04-19 02:33:36,242 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:33:36,242 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:33:36,279 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=78eb2d51
+2026-04-19 02:33:36,279 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=78eb2d51
+2026-04-19 02:36:00,749 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=8adfacfe
+2026-04-19 02:36:00,749 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=8adfacfe
+2026-04-19 02:36:00,749 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=8adfacfe
+2026-04-19 02:36:00,749 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=8adfacfe
+2026-04-19 02:36:00,749 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=8adfacfe
+2026-04-19 02:36:00,749 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=8adfacfe
+2026-04-19 02:36:00,749 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=8adfacfe
+2026-04-19 02:37:19,040 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:37:19,040 - agent_spawner - INFO - Agent spawned: status=running, returncode=0
+2026-04-19 02:37:24,342 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=4e6cac79
+2026-04-19 02:37:24,342 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=4e6cac79
+2026-04-19 02:37:24,342 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=4e6cac79
+2026-04-19 02:37:24,342 - agent_spawner - INFO - Spawning agent for task_type=bug, session_id=4e6cac79

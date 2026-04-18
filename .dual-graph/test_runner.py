@@ -42,6 +42,24 @@ class TestRunner:
         if cwd is None:
             cwd = os.getcwd()
 
+        # Check if Playwright is installed
+        check_result = subprocess.run(
+            ['npx', 'playwright', '--version'],
+            capture_output=True,
+            text=True,
+            cwd=cwd
+        )
+
+        if check_result.returncode != 0:
+            logger.error(f"Playwright not found for session {session_id}")
+            return {
+                'session_id': session_id,
+                'passed': False,
+                'output': 'Playwright not installed. Run: npm install -D @playwright/test',
+                'returncode': -1,
+                'timestamp': datetime.now().isoformat()
+            }
+
         try:
             result = subprocess.run(
                 ['npx', 'playwright', 'test'],
@@ -107,6 +125,18 @@ class TestRunner:
 
         if cwd is None:
             cwd = os.getcwd()
+
+        # Check if package.json exists
+        package_json = os.path.join(cwd, 'package.json')
+        if not os.path.exists(package_json):
+            logger.error(f"package.json not found for session {session_id}")
+            return {
+                'session_id': session_id,
+                'passed': False,
+                'output': 'package.json not found in project directory',
+                'returncode': -1,
+                'timestamp': datetime.now().isoformat()
+            }
 
         try:
             result = subprocess.run(

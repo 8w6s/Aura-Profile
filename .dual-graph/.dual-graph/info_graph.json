@@ -1,0 +1,1559 @@
+{
+  "root": "C:\\Users\\FUJITSU\\Documents\\PROJECTS\\8w6s_profile\\.dual-graph",
+  "node_count": 43,
+  "edge_count": 163,
+  "file_count": 22,
+  "symbol_count": 21,
+  "nodes": [
+    {
+      "id": "agent_spawner.py",
+      "kind": "file",
+      "path": "agent_spawner.py",
+      "ext": ".py",
+      "size": 4647,
+      "keywords": [
+        "agentspawner",
+        "agent",
+        "spawner"
+      ],
+      "content": "# .dual-graph/agent_spawner.py\nimport subprocess\nimport json\nimport logging\nimport os\nfrom typing import Dict, Any\nfrom datetime import datetime\n\nlogger = logging.getLogger(__name__)\n\nclass AgentSpawner:\n    \"\"\"Spawns Claude agents for different task types\"\"\"\n\n    def __init__(self):\n        self.log_dir = os.path.dirname(os.path.abspath(__file__))\n        self.agent_log_file = os.path.join(self.log_dir, 'agent_spawner.log')\n        self._setup_logging()\n\n    def _setup_logging(self):\n        \"\"\"Configure logging for agent spawner\"\"\"\n        handler = logging.FileHandler(self.agent_log_file)\n        handler.setLevel(logging.INFO)\n        handler.setFormatter(logging.Formatter(\n            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'\n        ))\n        logger.addHandler(handler)\n        logger.setLevel(logging.INFO)\n\n    def spawn_agent(self, task_type: str, prompt: str, session_id: str) -> Dict[str, Any]:\n        \"\"\"\n        Spawn a Claude agent to handle a specific task\n\n        Args:\n            task_type: Type of task (bug, feature, refactor, test)\n            prompt: Original user prompt\n            session_id: Unique session identifier\n\n        Returns:\n            Dict containing agent_id, status, and output\n        \"\"\"\n        logger.info(f\"Spawning agent for task_type={task_type}, session_id={session_id}\")\n\n        agent_prompt = self._build_agent_prompt(task_type, prompt)\n\n        try:\n            # Check if claude command exists\n            check_result = subprocess.run(\n                ['which', 'claude'],\n                capture_output=True,\n                text=True\n            )\n\n            if check_result.returncode != 0:\n                logger.warning(f\"Claude CLI not found, simulating agent spawn for session {session_id}\")\n                return {\n                    'agent_id': session_id,\n                    'status': 'running',\n                    'output': f'Simulated agent spawn for {task_type} task',\n                    'returncode': 0,\n                    'timestamp': datetime.now().isoformat()\n                }\n\n            result = subprocess.run(\n                ['claude', 'code', '--prompt', agent_prompt],\n                capture_output=True,\n                timeout=300,\n                text=True\n            )\n\n            status = 'running' if result.returncode == 0 else 'failed'\n            output = result.stdout if result.returncode == 0 else result.stderr\n\n            logger.info(f\"Agent spawned: status={status}, returncode={result.returncode}\")\n\n            return {\n                'agent_id': session_id,\n                'status': status,\n                'output': output,\n                'returncode': result.returncode,\n                'timestamp': datetime.now().isoformat()\n            }\n\n        except subprocess.TimeoutExpired:\n            logger.error(f\"Agent timeout for session {session_id}\")\n            return {\n                'agent_id': session_id,\n                'status': 'timeout',\n                'output': 'Agent execution timed out after 300 seconds',\n                'returncode': -1,\n                'timestamp': datetime.now().isoformat()\n            }\n        except FileNotFoundError:\n            logger.warning(f\"Claude CLI not found, simulating agent spawn for session {session_id}\")\n            return {\n                'agent_id': session_id,\n                'status': 'running',\n                'output': f'Simulated agent spawn for {task_type} task',\n                'returncode': 0,\n                'timestamp': datetime.now().isoformat()\n            }\n        except Exception as e:\n            logger.error(f\"Agent spawn failed: {e}\")\n            return {\n                'agent_id': session_id,\n                'status': 'error',\n                'output': str(e),\n                'returncode': -1,\n                'timestamp': datetime.now().isoformat()\n            }\n\n    def _build_agent_prompt(self, task_type: str, prompt: str) -> str:\n        \"\"\"\n        Build specialized prompt based on task type\n\n        Args:\n            task_type: Type of task\n            prompt: Original user prompt\n\n        Returns:\n            Formatted prompt for the agent\n        \"\"\"\n        prompt_templates = {\n            'bug': f\"Debug v\u00e0 fix bug: {prompt}\",\n            'feature': f\"Implement feature: {prompt}\",\n            'refactor': f\"Refactor code: {prompt}\",\n            'test': f\"Write tests: {prompt}\",\n            'unknown': prompt\n        }\n\n        agent_prompt = prompt_templates.get(task_type, prompt)\n        logger.debug(f\"Built agent prompt for {task_type}: {agent_prompt[:100]}...\")\n\n        return agent_prompt\n",
+      "summary": ".dual-graph/agent_spawner.py. Contains 1 function: AgentSpawner.",
+      "file_hash": "c0ea2e69"
+    },
+    {
+      "id": "agent_spawner.py::AgentSpawner",
+      "kind": "symbol",
+      "path": "agent_spawner.py",
+      "ext": ".py",
+      "size": 123,
+      "keywords": [
+        "agentspawner",
+        "agent",
+        "spawner"
+      ],
+      "symbol_type": "model",
+      "name": "AgentSpawner",
+      "line_start": 10,
+      "line_end": 132,
+      "body_hash": "7fb5c82c",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "chat_action_graph.json",
+      "kind": "file",
+      "path": "chat_action_graph.json",
+      "ext": ".json",
+      "size": 17447,
+      "keywords": [],
+      "content": "{\n  \"nodes\": [\n    {\n      \"id\": \"query:review project structure features functionality tech stack evaluate\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"review project structure features functionality tech stack to evaluate monetization strategy\"\n      }\n    },\n    {\n      \"id\": \"app\\\\context\\\\ProfileContext.tsx::Project\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"app\\\\api\\\\download\\\\route.ts::GET\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"app\\\\api\\\\hoyoverse\\\\route.ts::GET\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"app\\\\api\\\\leetcode\\\\route.ts::GET\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"app\\\\api\\\\like\\\\route.ts::POST\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:understand main features functionality\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"understand main features and functionality\"\n      }\n    },\n    {\n      \"id\": \"app/context/ProfileContext.tsx\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:tech stack dependencies\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"tech stack dependencies\"\n      }\n    },\n    {\n      \"id\": \"package.json\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:profile data structure\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"profile data structure\"\n      }\n    },\n    {\n      \"id\": \"data/profile.json\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:admin panel features structure\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"admin panel features and structure\"\n      }\n    },\n    {\n      \"id\": \"app/admin/page.tsx\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:music player features\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"music player features\"\n      }\n    },\n    {\n      \"id\": \"components/MusicPlayer.tsx\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:find all bugs potential errors issues areas improvement\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"find all bugs potential errors issues and areas for improvement in the codebase\"\n      }\n    },\n    {\n      \"id\": \"app\\\\context\\\\ProfileContext.tsx::SocialLink\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"app\\\\api\\\\profile\\\\route.ts::GET\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:(empty)\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"\"\n      }\n    },\n    {\n      \"id\": \"app\\\\context\\\\ProfileContext.tsx\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"app\\\\api\\\\download\\\\route.ts\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"app\\\\api\\\\leetcode\\\\route.ts\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:profile api implementation error handling\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"profile API implementation error handling\"\n      }\n    },\n    {\n      \"id\": \"app\\\\api\\\\profile\\\\route.ts\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:like api implementation\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"like API implementation\"\n      }\n    },\n    {\n      \"id\": \"app\\\\api\\\\like\\\\route.ts\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:views tracking implementation\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"views tracking implementation\"\n      }\n    },\n    {\n      \"id\": \"app\\\\api\\\\views\\\\route.ts\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:music player implementation\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"music player implementation\"\n      }\n    },\n    {\n      \"id\": \"components\\\\MusicPlayer.tsx\",\n      \"type\": \"file\"\n    },\n    {\n      \"id\": \"query:admin panel security authentication\",\n      \"type\": \"query\",\n      \"meta\": {\n        \"text\": \"admin panel security authentication\"\n      }\n    },\n    {\n      \"id\": \"app\\\\admin\\\\page.tsx\",\n      \"type\": \"file\"\n    }\n  ],\n  \"edges\": [\n    {\n      \"from\": \"query:review project structure features functionality tech stack evaluate\",\n      \"to\": \"app\\\\context\\\\ProfileContext.tsx::Project\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776352029\n    },\n    {\n      \"from\": \"query:review project structure features functionality tech stack evaluate\",\n      \"to\": \"app\\\\api\\\\download\\\\route.ts::GET\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776352029\n    },\n    {\n      \"from\": \"query:review project structure features functionality tech stack evaluate\",\n      \"to\": \"app\\\\api\\\\hoyoverse\\\\route.ts::GET\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776352029\n    },\n    {\n      \"from\": \"query:review project structure features functionality tech stack evaluate\",\n      \"to\": \"app\\\\api\\\\leetcode\\\\route.ts::GET\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776352029\n    },\n    {\n      \"from\": \"query:review project structure features functionality tech stack evaluate\",\n      \"to\": \"app\\\\api\\\\like\\\\route.ts::POST\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776352029\n    },\n    {\n      \"from\": \"query:understand main features functionality\",\n      \"to\": \"app/context/ProfileContext.tsx\",\n      \"rel\": \"read\",\n      \"ts\": 1776352061,\n      \"meta\": {\n        \"mode\": \"full\"\n      }\n    },\n    {\n      \"from\": \"query:tech stack dependencies\",\n      \"to\": \"package.json\",\n      \"rel\": \"read\",\n      \"ts\": 1776352061,\n      \"meta\": {\n        \"mode\": \"full\"\n      }\n    },\n    {\n      \"from\": \"query:profile data structure\",\n      \"to\": \"data/profile.json\",\n      \"rel\": \"read\",\n      \"ts\": 1776352061,\n      \"meta\": {\n        \"mode\": \"query_excerpt\"\n      }\n    },\n    {\n      \"from\": \"query:admin panel features structure\",\n      \"to\": \"app/admin/page.tsx\",\n      \"rel\": \"read\",\n      \"ts\": 1776352113,\n      \"meta\": {\n        \"mode\": \"query_excerpt\"\n      }\n    },\n    {\n      \"from\": \"query:music player features\",\n      \"to\": \"components/MusicPlayer.tsx\",\n      \"rel\": \"read\",\n      \"ts\": 1776352423,\n      \"meta\": {\n        \"mode\": \"query_excerpt\"\n      }\n    },\n    {\n      \"from\": \"query:find all bugs potential errors issues areas improvement\",\n      \"to\": \"app\\\\context\\\\ProfileContext.tsx::SocialLink\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776380398\n    },\n    {\n      \"from\": \"query:find all bugs potential errors issues areas improvement\",\n      \"to\": \"app\\\\api\\\\download\\\\route.ts::GET\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776380398\n    },\n    {\n      \"from\": \"query:find all bugs potential errors issues areas improvement\",\n      \"to\": \"app\\\\api\\\\leetcode\\\\route.ts::GET\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776380398\n    },\n    {\n      \"from\": \"query:find all bugs potential errors issues areas improvement\",\n      \"to\": \"app\\\\api\\\\like\\\\route.ts::POST\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776380398\n    },\n    {\n      \"from\": \"query:find all bugs potential errors issues areas improvement\",\n      \"to\": \"app\\\\api\\\\profile\\\\route.ts::GET\",\n      \"rel\": \"retrieved\",\n      \"ts\": 1776380398\n    },\n    {\n      \"from\": \"query:(empty)\",\n      \"to\": \"app\\\\context\\\\ProfileContext.tsx\",\n      \"rel\": \"read\",\n      \"ts\": 1776380430,\n      \"meta\": {\n        \"mode\": \"anchor_excerpt\"\n      }\n    },\n    {\n      \"from\": \"query:(empty)\",\n      \"to\": \"app\\\\api\\\\download\\\\route.ts\",\n      \"rel\": \"read\",\n      \"ts\": 1776380430,\n      \"meta\": {\n        \"mode\": \"anchor_excerpt\"\n      }\n    },\n    {\n      \"from\": \"query:(empty)\",\n      \"to\": \"app\\\\api\\\\leetcode\\\\route.ts\",\n      \"rel\": \"read\",\n      \"ts\": 1776380430,\n      \"meta\": {\n        \"mode\": \"anchor_excerpt\"\n      }\n    },\n    {\n      \"from\": \"query:profile api implementation error handling\",\n      \"to\": \"app\\\\api\\\\profile\\\\route.ts\",\n      \"rel\": \"read\",\n      \"ts\": 1776380447,\n      \"meta\": {\n        \"mode\": \"full\"\n      }\n    },\n    {\n      \"from\": \"query:like api implementation\",\n      \"to\": \"app\\\\api\\\\like\\\\route.ts\",\n      \"rel\": \"read\",\n      \"ts\": 1776380448,\n      \"meta\": {\n        \"mode\": \"full\"\n      }\n    },\n    {\n      \"from\": \"query:views tracking implementation\",\n      \"to\": \"app\\\\api\\\\views\\\\route.ts\",\n      \"rel\": \"read\",\n      \"ts\": 1776380448,\n      \"meta\": {\n        \"mode\": \"full\"\n      }\n    },\n    {\n      \"from\": \"query:music player implementation\",\n      \"to\": \"components\\\\MusicPlayer.tsx\",\n      \"rel\": \"read\",\n      \"ts\": 1776380449,\n      \"meta\": {\n        \"mode\": \"full\"\n      }\n    },\n    {\n      \"from\": \"query:admin panel security authentication\",\n      \"to\": \"app\\\\admin\\\\page.tsx\",\n      \"rel\": \"read\",\n      \"ts\": 1776380449,\n      \"meta\": {\n        \"mode\": \"query_excerpt\"\n      }\n    }\n  ],\n  \"files\": {\n    \"app/context/ProfileContext.tsx\": {\n      \"query_terms\": [\n        \"understand\",\n        \"main\",\n        \"features\",\n        \"functionality\"\n      ],\n      \"cached_content\": \"'use client';\\n\\nimport React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';\\n\\nexport type SocialPlatform = string;\\n\\nexport interface Comment {\\n  id: string;\\n  author: string;\\n  content: string;\\n  date: string;\\n  replies?: Comment[];\\n}\\n\\nexport interface Social\",\n      \"cached_chars\": 10634,\n      \"cached_tokens_est\": 2658,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776352061\n    },\n    \"package.json\": {\n      \"query_terms\": [\n        \"tech\",\n        \"stack\",\n        \"dependencies\"\n      ],\n      \"cached_content\": \"{\\n  \\\"name\\\": \\\"aura-profile\\\",\\n  \\\"version\\\": \\\"0.1.0-beta\\\",\\n  \\\"description\\\": \\\"Aura Profile: A stunning, highly customizable biolink & portfolio built with Next.js & Tailwind. Features Admin Panel, Dual Upload, and Rich Integrations.\\\",\\n  \\\"private\\\": true,\\n  \\\"scripts\\\": {\\n    \\\"dev\\\": \\\"echo \\\\\\\"Starting Aura Pro\",\n      \"cached_chars\": 1059,\n      \"cached_tokens_est\": 264,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776352061\n    },\n    \"data/profile.json\": {\n      \"query_terms\": [\n        \"profile\",\n        \"data\",\n        \"structure\"\n      ],\n      \"cached_content\": \"    \\\"showComments\\\": true,\\n    \\\"showViews\\\": true,\\n    \\\"allowComments\\\": true,\\n    \\\"allowLikes\\\": true,\\n    \\\"enableEnterScreen\\\": true\\n  },\\n  \\\"textEffects\\\": {\\n    \\\"name\\\": \\\"glow\\\",\\n    \\\"role\\\": \\\"typewriter\\\",\\n    \\\"bio\\\": \\\"none\\\"\\n  },\\n  \\\"projects\\\": [],\\n  \\\"metadata\\\": {\\n    \\\"title\\\": \\\"8w6s\\\",\\n    \\\"description\\\": \\\"Pe\",\n      \"cached_chars\": 20000,\n      \"cached_tokens_est\": 5000,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776352061\n    },\n    \"app/admin/page.tsx\": {\n      \"query_terms\": [\n        \"admin\",\n        \"panel\",\n        \"features\",\n        \"structure\"\n      ],\n      \"cached_content\": \"        return (\\n            <>\\n                {parts.map((part, i) =>\\n                    regex.test(part) ? <span key={i} className=\\\"bg-indigo-500/30 text-indigo-200 font-bold px-0.5 rounded\\\">{part}</span> : part\\n                )}\\n            </>\\n        );\\n    } catch (e) {\\n        return <>{te\",\n      \"cached_chars\": 20000,\n      \"cached_tokens_est\": 5000,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776352113\n    },\n    \"components/MusicPlayer.tsx\": {\n      \"query_terms\": [\n        \"music\",\n        \"player\",\n        \"features\"\n      ],\n      \"cached_content\": \"'use client';\\n\\nimport React, { useState, useRef, useEffect } from 'react';\\nimport { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, ListMusic, Minimize2, Maximize2 } from 'lucide-react';\\nimport { motion, AnimatePresence } from 'framer-motion';\\nimport { useProfile, MusicTrack }\",\n      \"cached_chars\": 8307,\n      \"cached_tokens_est\": 2076,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776352423\n    },\n    \"app\\\\context\\\\ProfileContext.tsx\": {\n      \"query_terms\": [],\n      \"cached_content\": \"'use client';\\n\\nimport React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';\\n\\nexport type SocialPlatform = string;\\n\\nexport interface Comment {\\n  id: string;\\n  author: string;\\n  content: string;\\n  date: string;\\n  replies?: Comment[];\\n}\\n\\nexport interface Social\",\n      \"cached_chars\": 9962,\n      \"cached_tokens_est\": 2490,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776380430\n    },\n    \"app\\\\api\\\\download\\\\route.ts\": {\n      \"query_terms\": [],\n      \"cached_content\": \"import { NextResponse } from 'next/server';\\nimport { getSupabaseClient } from '@/utils/supabase';\\n\\ntype StoredFile = {\\n  id: string;\\n  name: string;\\n  url: string;\\n  downloadCount?: number;\\n};\\n\\ntype ProfileStore = {\\n  files?: StoredFile[];\\n};\\n\\nconst toAbsoluteFileUrl = (requestUrl: string, fileUrl: \",\n      \"cached_chars\": 2749,\n      \"cached_tokens_est\": 687,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776380430\n    },\n    \"app\\\\api\\\\leetcode\\\\route.ts\": {\n      \"query_terms\": [],\n      \"cached_content\": \"import { NextResponse } from 'next/server';\\n\\nconst isDev = process.env.NODE_ENV !== 'production';\\n\\nconst reportServerError = (...args: unknown[]) => {\\n  if (isDev) {\\n    console.error(...args);\\n  }\\n};\\n\\nexport async function GET(request: Request) {\\n  const { searchParams } = new URL(request.url);\\n  c\",\n      \"cached_chars\": 1046,\n      \"cached_tokens_est\": 261,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776380430\n    },\n    \"app\\\\api\\\\profile\\\\route.ts\": {\n      \"query_terms\": [\n        \"profile\",\n        \"api\",\n        \"implementation\",\n        \"error\",\n        \"handling\"\n      ],\n      \"cached_content\": \"import { NextResponse } from 'next/server';\\nimport { getSupabaseClient } from '@/utils/supabase';\\n\\ntype LooseProfile = Record<string, unknown>;\\n\\ntype Revision = {\\n  id: string;\\n  createdAt: string;\\n  type: 'publish' | 'rollback';\\n  snapshot: LooseProfile;\\n};\\n\\ntype WorkflowMeta = {\\n  draft?: LoosePro\",\n      \"cached_chars\": 12037,\n      \"cached_tokens_est\": 3009,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776380447\n    },\n    \"app\\\\api\\\\like\\\\route.ts\": {\n      \"query_terms\": [\n        \"like\",\n        \"api\",\n        \"implementation\"\n      ],\n      \"cached_content\": \"import { NextResponse } from 'next/server';\\nimport { headers } from 'next/headers';\\nimport { getSupabaseClient } from '@/utils/supabase';\\n\\nconst isDev = process.env.NODE_ENV !== 'production';\\n\\ntype ProfilePost = {\\n  id: string;\\n  likes?: number;\\n  likedIps?: string[];\\n};\\n\\ntype ProfileData = {\\n  post\",\n      \"cached_chars\": 2594,\n      \"cached_tokens_est\": 648,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776380448\n    },\n    \"app\\\\api\\\\views\\\\route.ts\": {\n      \"query_terms\": [\n        \"views\",\n        \"tracking\",\n        \"implementation\"\n      ],\n      \"cached_content\": \"import { NextResponse } from 'next/server';\\nimport { headers } from 'next/headers';\\nimport { getSupabaseClient } from '@/utils/supabase';\\n\\nconst isDev = process.env.NODE_ENV !== 'production';\\n\\ntype ProfilePost = {\\n  id: string;\\n  views?: number;\\n  viewedIps?: string[];\\n};\\n\\ntype ProfileData = {\\n  pos\",\n      \"cached_chars\": 3046,\n      \"cached_tokens_est\": 761,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776380448\n    },\n    \"components\\\\MusicPlayer.tsx\": {\n      \"query_terms\": [\n        \"music\",\n        \"player\",\n        \"implementation\"\n      ],\n      \"cached_content\": \"'use client';\\n\\nimport React, { useState, useRef, useEffect } from 'react';\\nimport { Play, Pause, SkipForward, SkipBack, Shuffle, Repeat, Volume2, VolumeX, ListMusic, Minimize2, Maximize2 } from 'lucide-react';\\nimport { motion, AnimatePresence } from 'framer-motion';\\nimport { useProfile, MusicTrack }\",\n      \"cached_chars\": 13023,\n      \"cached_tokens_est\": 3255,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776380449\n    },\n    \"app\\\\admin\\\\page.tsx\": {\n      \"query_terms\": [\n        \"admin\",\n        \"panel\",\n        \"security\",\n        \"authentication\"\n      ],\n      \"cached_content\": \"            accentColor: '#fbbf24',\\n            textColor: '#fff1f2',\\n            backgroundColor: '#4c0519',\\n            cardColor: '#881337',\\n            componentColor: 'rgba(244, 63, 94, 0.1)',\\n            buttonColor: '#f43f5e',\\n            socialButtonStyle: 'solid',\\n            avatarGlow: fa\",\n      \"cached_chars\": 15543,\n      \"cached_tokens_est\": 3885,\n      \"last_action\": \"read\",\n      \"last_ts\": 1776380449\n    }\n  },\n  \"actions\": [\n    {\n      \"ts\": 1776352028,\n      \"kind\": \"retrieve\",\n      \"payload\": {\n        \"kind\": \"retrieve\",\n        \"query\": \"review project structure features functionality tech stack to evaluate monetization strategy\"\n      }\n    },\n    {\n      \"ts\": 1776352029,\n      \"kind\": \"continue_retrieve\",\n      \"payload\": {\n        \"kind\": \"continue_retrieve\",\n        \"query\": \"review project structure features functionality tech stack to evaluate monetization strategy\"\n      }\n    },\n    {\n      \"ts\": 1776380398,\n      \"kind\": \"retrieve\",\n      \"payload\": {\n        \"kind\": \"retrieve\",\n        \"query\": \"find all bugs potential errors issues and areas for improvement in the codebase\"\n      }\n    },\n    {\n      \"ts\": 1776380398,\n      \"kind\": \"continue_retrieve\",\n      \"payload\": {\n        \"kind\": \"continue_retrieve\",\n        \"query\": \"find all bugs potential errors issues and areas for improvement in the codebase\"\n      }\n    }\n  ]\n}",
+      "summary": "\"nodes\": [.",
+      "file_hash": "a69dc251"
+    },
+    {
+      "id": "CLAUDE.md",
+      "kind": "file",
+      "path": "CLAUDE.md",
+      "ext": ".md",
+      "size": 4065,
+      "keywords": [],
+      "content": "\ufeff<!-- dgc-policy-v11 -->\n# Dual-Graph Context Policy\n\nThis project uses a local dual-graph MCP server for efficient context retrieval.\n\n## MANDATORY: Adaptive graph_continue rule\n\n**Call `graph_continue` ONLY when you do NOT already know the relevant files.**\n\n### Call `graph_continue` when:\n- This is the first message of a new task / conversation\n- The task shifts to a completely different area of the codebase\n- You need files you haven't read yet in this session\n\n### SKIP `graph_continue` when:\n- You already identified the relevant files earlier in this conversation\n- You are doing follow-up work on files already read (verify, refactor, test, docs, cleanup, commit)\n- The task is pure text (writing a commit message, summarising, explaining)\n\n**If skipping, go directly to `graph_read` on the already-known `file::symbol`.**\n\n## When you DO call graph_continue\n\n1. **If `graph_continue` returns `needs_project=true`**: call `graph_scan` with `pwd`. Do NOT ask the user.\n\n2. **If `graph_continue` returns `skip=true`**: fewer than 5 files  -  read only specifically named files.\n\n3. **Read `recommended_files`** using `graph_read`.\n   - Always use `file::symbol` notation (e.g. `src/auth.ts::handleLogin`)  -  never read whole files.\n   - `recommended_files` entries that already contain `::` must be passed verbatim.\n\n4. **Obey confidence caps:**\n   - `confidence=high` -> Stop. Do NOT grep or explore further.\n   - `confidence=medium` -> `fallback_rg` at most `max_supplementary_greps` times, then `graph_read` at most `max_supplementary_files` more symbols. Stop.\n   - `confidence=low` -> same as medium. Stop.\n\n## Session State (compact, update after every turn)\n\nMaintain a short JSON block in your working memory. Update it after each turn:\n\n```json\n{\n  \"files_identified\": [\"path/to/file.py\"],\n  \"symbols_changed\": [\"module::function\"],\n  \"fix_applied\": true,\n  \"features_added\": [\"description\"],\n  \"open_issues\": [\"one-line note\"]\n}\n```\n\nUse this state  -  not prose summaries  -  to remember what's been done across turns.\n\n## Token Usage\n\nA `token-counter` MCP is available for tracking live token usage.\n\n- Before reading a large file: `count_tokens({text: \"<content>\"})` to check cost first.\n- To show running session cost: `get_session_stats()`\n- To log completed task: `log_usage({input_tokens: N, output_tokens: N, description: \"task\"})`\n\n## Rules\n\n- Do NOT use `rg`, `grep`, or bash file exploration before calling `graph_continue` (when required).\n- Do NOT do broad/recursive exploration at any confidence level.\n- `max_supplementary_greps` and `max_supplementary_files` are hard caps  -  never exceed them.\n- Do NOT call `graph_continue` more than once per turn.\n- Always use `file::symbol` notation with `graph_read`  -  never bare filenames.\n- After edits, call `graph_register_edit` with changed files using `file::symbol` notation.\n\n## Context Store\n\nWhenever you make a decision, identify a task, note a next step, fact, or blocker during a conversation, append it to `.dual-graph/context-store.json`.\n\n**Entry format:**\n```json\n{\"type\": \"decision|task|next|fact|blocker\", \"content\": \"one sentence max 15 words\", \"tags\": [\"topic\"], \"files\": [\"relevant/file.ts\"], \"date\": \"YYYY-MM-DD\"}\n```\n\n**To append:** Read the file -> add the new entry to the array -> Write it back -> call `graph_register_edit` on `.dual-graph/context-store.json`.\n\n**Rules:**\n- Only log things worth remembering across sessions (not every minor detail)\n- `content` must be under 15 words\n- `files` lists the files this decision/task relates to (can be empty)\n- Log immediately when the item arises  -  not at session end\n\n## Session End\n\nWhen the user signals they are done (e.g. \"bye\", \"done\", \"wrap up\", \"end session\"), proactively update `CONTEXT.md` in the project root with:\n- **Current Task**: one sentence on what was being worked on\n- **Key Decisions**: bullet list, max 3 items\n- **Next Steps**: bullet list, max 3 items\n\nKeep `CONTEXT.md` under 20 lines total. Do NOT summarize the full conversation  -  only what's needed to resume next session.\n",
+      "summary": "\ufeff<!-- dgc-policy-v11 -->.",
+      "file_hash": "f21ce30b"
+    },
+    {
+      "id": "context-store.json",
+      "kind": "file",
+      "path": "context-store.json",
+      "ext": ".json",
+      "size": 3862,
+      "keywords": [],
+      "content": "[\n  {\n    \"type\": \"decision\",\n    \"content\": \"Removed conflicting useEffect syncing profile to formData every 10s\",\n    \"tags\": [\"admin\", \"theme-presets\", \"rollback-fix\"],\n    \"files\": [\"app/admin/page.tsx\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"decision\",\n    \"content\": \"Translated all Vietnamese UI text to English for global audience\",\n    \"tags\": [\"i18n\", \"admin\", \"localization\"],\n    \"files\": [\"app/admin/page.tsx\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"decision\",\n    \"content\": \"Removed unused functions handleSave handlePublish handleRollback\",\n    \"tags\": [\"eslint\", \"cleanup\", \"dead-code\"],\n    \"files\": [\"app/admin/page.tsx\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"decision\",\n    \"content\": \"Fixed all any types with proper TypeScript types\",\n    \"tags\": [\"typescript\", \"type-safety\", \"eslint\"],\n    \"files\": [\"app/admin/page.tsx\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"decision\",\n    \"content\": \"Fixed JSX in try catch by extracting elements before return\",\n    \"tags\": [\"react\", \"error-boundaries\", \"eslint\"],\n    \"files\": [\"app/admin/page.tsx\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"fact\",\n    \"content\": \"TypewriterBio component works correctly confirmed via browser test\",\n    \"tags\": [\"typewriter\", \"animation\", \"testing\"],\n    \"files\": [\"components/TypewriterBio.tsx\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"fact\",\n    \"content\": \"Production build passes successfully after ESLint fixes\",\n    \"tags\": [\"build\", \"production\", \"eslint\"],\n    \"files\": [\"app/admin/page.tsx\", \"app/page.tsx\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"next\",\n    \"content\": \"Add comprehensive error handling to API routes\",\n    \"tags\": [\"api\", \"error-handling\", \"validation\"],\n    \"files\": [\"app/api/profile/route.ts\", \"app/api/like/route.ts\", \"app/api/views/route.ts\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"next\",\n    \"content\": \"Add input validation to all API endpoints\",\n    \"tags\": [\"api\", \"validation\", \"security\"],\n    \"files\": [\"app/api/*/route.ts\"],\n    \"date\": \"2026-04-18\"\n  },\n  {\n    \"type\": \"decision\",\n    \"content\": \"Implemented AgentSpawner module with orchestrator integration\",\n    \"tags\": [\"phase2\", \"automation\", \"agent-spawning\"],\n    \"files\": [\".dual-graph/agent_spawner.py\", \".dual-graph/orchestrator.py\"],\n    \"date\": \"2026-04-19\"\n  },\n  {\n    \"type\": \"fact\",\n    \"content\": \"AgentSpawner builds specialized prompts per task type\",\n    \"tags\": [\"phase2\", \"agent-spawning\", \"prompts\"],\n    \"files\": [\".dual-graph/agent_spawner.py\"],\n    \"date\": \"2026-04-19\"\n  },\n  {\n    \"type\": \"fact\",\n    \"content\": \"All agent spawner tests pass 14/14 unit and integration\",\n    \"tags\": [\"phase2\", \"testing\", \"agent-spawning\"],\n    \"files\": [\".dual-graph/test_agent_spawner.py\", \".dual-graph/test_orchestrator_agent_integration.py\"],\n    \"date\": \"2026-04-19\"\n  },\n  {\n    \"type\": \"decision\",\n    \"content\": \"Implemented TestRunner module with Playwright and unit test support\",\n    \"tags\": [\"phase2\", \"testing\", \"playwright\"],\n    \"files\": [\".dual-graph/test_runner.py\"],\n    \"date\": \"2026-04-19\"\n  },\n  {\n    \"type\": \"decision\",\n    \"content\": \"Implemented GitAutomation module with smart commit message generation\",\n    \"tags\": [\"phase2\", \"git\", \"automation\"],\n    \"files\": [\".dual-graph/git_automation.py\"],\n    \"date\": \"2026-04-19\"\n  },\n  {\n    \"type\": \"fact\",\n    \"content\": \"Phase 2 Tasks 2 and 3 complete with 20/21 tests passing\",\n    \"tags\": [\"phase2\", \"testing\", \"milestone\"],\n    \"files\": [\".dual-graph/test_runner.py\", \".dual-graph/git_automation.py\", \".dual-graph/orchestrator.py\"],\n    \"date\": \"2026-04-19\"\n  },\n  {\n    \"type\": \"fact\",\n    \"content\": \"Orchestrator now supports full workflow CLASSIFYING to COMMITTING transitions\",\n    \"tags\": [\"phase2\", \"orchestrator\", \"state-machine\"],\n    \"files\": [\".dual-graph/orchestrator.py\"],\n    \"date\": \"2026-04-19\"\n  }\n]\n",
+      "summary": "\"type\": \"decision\",.",
+      "file_hash": "c2c372f4"
+    },
+    {
+      "id": "env_manager.py",
+      "kind": "file",
+      "path": "env_manager.py",
+      "ext": ".py",
+      "size": 11007,
+      "keywords": [
+        "environmentmanager",
+        "environment",
+        "manager"
+      ],
+      "content": "# .dual-graph/env_manager.py\nimport subprocess\nimport json\nimport os\nimport logging\nfrom typing import Dict, List, Any, Optional\n\nlogger = logging.getLogger(__name__)\n\nclass EnvironmentManager:\n    \"\"\"\n    Qu\u1ea3n l\u00fd dependencies v\u00e0 environment cho workflow automation.\n    Auto-detect missing packages v\u00e0 install ch\u00fang tr\u01b0\u1edbc khi spawn agent.\n    \"\"\"\n\n    def __init__(self, cwd: str = None):\n        self.cwd = cwd or os.getcwd()\n        logger.info(f\"EnvironmentManager initialized with cwd: {self.cwd}\")\n\n    def check_dependencies(self) -> Dict[str, Any]:\n        \"\"\"\n        Ki\u1ec3m tra dependencies trong project v\u00e0 detect missing packages.\n\n        Returns:\n            Dict ch\u1ee9a th\u00f4ng tin v\u1ec1 dependencies:\n            {\n                'npm': {'missing': [...], 'installed': [...]},\n                'pip': {'missing': [...], 'installed': [...]},\n                'has_missing': bool\n            }\n        \"\"\"\n        logger.info(\"Checking project dependencies...\")\n\n        result = {\n            'npm': {'missing': [], 'installed': []},\n            'pip': {'missing': [], 'installed': []},\n            'has_missing': False\n        }\n\n        # Check npm dependencies\n        npm_result = self._check_npm_dependencies()\n        result['npm'] = npm_result\n\n        # Check pip dependencies\n        pip_result = self._check_pip_dependencies()\n        result['pip'] = pip_result\n\n        # Determine if there are any missing dependencies\n        result['has_missing'] = (\n            len(npm_result['missing']) > 0 or\n            len(pip_result['missing']) > 0\n        )\n\n        logger.info(f\"Dependency check complete. Missing: {result['has_missing']}\")\n        return result\n\n    def _check_npm_dependencies(self) -> Dict[str, List[str]]:\n        \"\"\"Ki\u1ec3m tra npm dependencies t\u1eeb package.json\"\"\"\n        package_json_path = os.path.join(self.cwd, 'package.json')\n\n        if not os.path.exists(package_json_path):\n            logger.debug(\"No package.json found, skipping npm check\")\n            return {'missing': [], 'installed': []}\n\n        try:\n            with open(package_json_path, 'r', encoding='utf-8') as f:\n                package_data = json.load(f)\n\n            # Get all dependencies\n            all_deps = {}\n            all_deps.update(package_data.get('dependencies', {}))\n            all_deps.update(package_data.get('devDependencies', {}))\n\n            if not all_deps:\n                logger.debug(\"No npm dependencies declared\")\n                return {'missing': [], 'installed': []}\n\n            # Check node_modules\n            node_modules_path = os.path.join(self.cwd, 'node_modules')\n\n            missing = []\n            installed = []\n\n            for pkg_name in all_deps.keys():\n                pkg_path = os.path.join(node_modules_path, pkg_name)\n                if os.path.exists(pkg_path):\n                    installed.append(pkg_name)\n                else:\n                    missing.append(pkg_name)\n\n            logger.info(f\"NPM: {len(installed)} installed, {len(missing)} missing\")\n            return {'missing': missing, 'installed': installed}\n\n        except Exception as e:\n            logger.error(f\"Error checking npm dependencies: {e}\")\n            return {'missing': [], 'installed': []}\n\n    def _check_pip_dependencies(self) -> Dict[str, List[str]]:\n        \"\"\"Ki\u1ec3m tra pip dependencies t\u1eeb requirements.txt\"\"\"\n        requirements_path = os.path.join(self.cwd, 'requirements.txt')\n\n        if not os.path.exists(requirements_path):\n            logger.debug(\"No requirements.txt found, skipping pip check\")\n            return {'missing': [], 'installed': []}\n\n        try:\n            # Read requirements.txt\n            with open(requirements_path, 'r', encoding='utf-8') as f:\n                requirements = [\n                    line.strip().split('==')[0].split('>=')[0].split('<=')[0]\n                    for line in f\n                    if line.strip() and not line.startswith('#')\n                ]\n\n            if not requirements:\n                logger.debug(\"No pip dependencies declared\")\n                return {'missing': [], 'installed': []}\n\n            # Get installed packages\n            result = subprocess.run(\n                ['pip', 'list', '--format=json'],\n                capture_output=True,\n                text=True,\n                cwd=self.cwd\n            )\n\n            if result.returncode != 0:\n                logger.error(f\"Failed to list pip packages: {result.stderr}\")\n                return {'missing': [], 'installed': []}\n\n            installed_packages = {\n                pkg['name'].lower()\n                for pkg in json.loads(result.stdout)\n            }\n\n            missing = []\n            installed = []\n\n            for pkg in requirements:\n                pkg_lower = pkg.lower()\n                if pkg_lower in installed_packages:\n                    installed.append(pkg)\n                else:\n                    missing.append(pkg)\n\n            logger.info(f\"PIP: {len(installed)} installed, {len(missing)} missing\")\n            return {'missing': missing, 'installed': installed}\n\n        except Exception as e:\n            logger.error(f\"Error checking pip dependencies: {e}\")\n            return {'missing': [], 'installed': []}\n\n    def auto_install(self, dep_check: Dict[str, Any]) -> Dict[str, Any]:\n        \"\"\"\n        T\u1ef1 \u0111\u1ed9ng install missing dependencies.\n\n        Args:\n            dep_check: Result t\u1eeb check_dependencies()\n\n        Returns:\n            Dict ch\u1ee9a k\u1ebft qu\u1ea3 installation:\n            {\n                'npm': {'success': bool, 'installed': [...], 'failed': [...]},\n                'pip': {'success': bool, 'installed': [...], 'failed': [...]},\n                'overall_success': bool\n            }\n        \"\"\"\n        logger.info(\"Starting auto-install of missing dependencies...\")\n\n        result = {\n            'npm': {'success': True, 'installed': [], 'failed': []},\n            'pip': {'success': True, 'installed': [], 'failed': []},\n            'overall_success': True\n        }\n\n        # Install npm packages\n        if dep_check['npm']['missing']:\n            npm_result = self._install_npm_packages(dep_check['npm']['missing'])\n            result['npm'] = npm_result\n            if not npm_result['success']:\n                result['overall_success'] = False\n\n        # Install pip packages\n        if dep_check['pip']['missing']:\n            pip_result = self._install_pip_packages(dep_check['pip']['missing'])\n            result['pip'] = pip_result\n            if not pip_result['success']:\n                result['overall_success'] = False\n\n        logger.info(f\"Auto-install complete. Success: {result['overall_success']}\")\n        return result\n\n    def _install_npm_packages(self, packages: List[str]) -> Dict[str, Any]:\n        \"\"\"Install npm packages\"\"\"\n        logger.info(f\"Installing {len(packages)} npm packages...\")\n\n        try:\n            # Use npm install to install all missing packages\n            result = subprocess.run(\n                ['npm', 'install'],\n                capture_output=True,\n                text=True,\n                cwd=self.cwd,\n                timeout=180  # 3 minutes timeout\n            )\n\n            if result.returncode == 0:\n                logger.info(f\"Successfully installed npm packages\")\n                return {\n                    'success': True,\n                    'installed': packages,\n                    'failed': []\n                }\n            else:\n                logger.error(f\"npm install failed: {result.stderr}\")\n                return {\n                    'success': False,\n                    'installed': [],\n                    'failed': packages,\n                    'error': result.stderr\n                }\n\n        except subprocess.TimeoutExpired:\n            logger.error(\"npm install timed out after 3 minutes\")\n            return {\n                'success': False,\n                'installed': [],\n                'failed': packages,\n                'error': 'Installation timed out'\n            }\n        except FileNotFoundError:\n            logger.error(\"npm command not found\")\n            return {\n                'success': False,\n                'installed': [],\n                'failed': packages,\n                'error': 'npm not installed'\n            }\n        except Exception as e:\n            logger.error(f\"Error installing npm packages: {e}\")\n            return {\n                'success': False,\n                'installed': [],\n                'failed': packages,\n                'error': str(e)\n            }\n\n    def _install_pip_packages(self, packages: List[str]) -> Dict[str, Any]:\n        \"\"\"Install pip packages\"\"\"\n        logger.info(f\"Installing {len(packages)} pip packages...\")\n\n        installed = []\n        failed = []\n\n        for pkg in packages:\n            try:\n                result = subprocess.run(\n                    ['pip', 'install', pkg],\n                    capture_output=True,\n                    text=True,\n                    cwd=self.cwd,\n                    timeout=90  # 90 seconds per package\n                )\n\n                if result.returncode == 0:\n                    logger.info(f\"Successfully installed {pkg}\")\n                    installed.append(pkg)\n                else:\n                    logger.error(f\"Failed to install {pkg}: {result.stderr}\")\n                    failed.append(pkg)\n\n            except subprocess.TimeoutExpired:\n                logger.error(f\"Installation of {pkg} timed out\")\n                failed.append(pkg)\n            except Exception as e:\n                logger.error(f\"Error installing {pkg}: {e}\")\n                failed.append(pkg)\n\n        success = len(failed) == 0\n        logger.info(f\"Pip install complete: {len(installed)} success, {len(failed)} failed\")\n\n        return {\n            'success': success,\n            'installed': installed,\n            'failed': failed\n        }\n\n    def ensure_environment(self) -> Dict[str, Any]:\n        \"\"\"\n        \u0110\u1ea3m b\u1ea3o environment s\u1eb5n s\u00e0ng b\u1eb1ng c\u00e1ch check v\u00e0 install dependencies.\n\n        Returns:\n            Dict ch\u1ee9a k\u1ebft qu\u1ea3:\n            {\n                'ready': bool,\n                'dep_check': {...},\n                'install_result': {...} (n\u1ebfu c\u00f3 install)\n            }\n        \"\"\"\n        logger.info(\"Ensuring environment is ready...\")\n\n        # Check dependencies\n        dep_check = self.check_dependencies()\n\n        result = {\n            'ready': True,\n            'dep_check': dep_check\n        }\n\n        # If there are missing dependencies, install them\n        if dep_check['has_missing']:\n            logger.info(\"Missing dependencies detected, starting auto-install...\")\n            install_result = self.auto_install(dep_check)\n            result['install_result'] = install_result\n            result['ready'] = install_result['overall_success']\n        else:\n            logger.info(\"All dependencies are installed\")\n\n        return result\n",
+      "summary": ".dual-graph/env_manager.py. Contains 1 function: EnvironmentManager.",
+      "file_hash": "16ea8b23"
+    },
+    {
+      "id": "env_manager.py::EnvironmentManager",
+      "kind": "symbol",
+      "path": "env_manager.py",
+      "ext": ".py",
+      "size": 310,
+      "keywords": [
+        "environmentmanager",
+        "environment",
+        "manager"
+      ],
+      "symbol_type": "model",
+      "name": "EnvironmentManager",
+      "line_start": 9,
+      "line_end": 318,
+      "body_hash": "a2b0f123",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "git_automation.py",
+      "kind": "file",
+      "path": "git_automation.py",
+      "ext": ".py",
+      "size": 8310,
+      "keywords": [
+        "gitautomation",
+        "git",
+        "automation"
+      ],
+      "content": "# .dual-graph/git_automation.py\nimport subprocess\nimport logging\nimport os\nfrom typing import Dict, Any, Optional\nfrom datetime import datetime\n\nlogger = logging.getLogger(__name__)\n\nclass GitAutomation:\n    \"\"\"Automates git operations: commit, push, branch management\"\"\"\n\n    def __init__(self):\n        self.log_dir = os.path.dirname(os.path.abspath(__file__))\n        self.git_log_file = os.path.join(self.log_dir, 'git_automation.log')\n        self._setup_logging()\n\n    def _setup_logging(self):\n        \"\"\"Configure logging for git automation\"\"\"\n        handler = logging.FileHandler(self.git_log_file)\n        handler.setLevel(logging.INFO)\n        handler.setFormatter(logging.Formatter(\n            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'\n        ))\n        logger.addHandler(handler)\n        logger.setLevel(logging.INFO)\n\n    def get_git_status(self, cwd: str = None) -> Dict[str, Any]:\n        \"\"\"\n        Get current git status\n\n        Args:\n            cwd: Working directory\n\n        Returns:\n            Dict containing git status info\n        \"\"\"\n        if cwd is None:\n            cwd = os.getcwd()\n\n        try:\n            result = subprocess.run(\n                ['git', 'status', '--porcelain'],\n                capture_output=True,\n                text=True,\n                cwd=cwd\n            )\n\n            has_changes = len(result.stdout.strip()) > 0\n\n            return {\n                'has_changes': has_changes,\n                'output': result.stdout,\n                'success': True\n            }\n\n        except Exception as e:\n            logger.error(f\"Failed to get git status: {e}\")\n            return {\n                'has_changes': False,\n                'output': str(e),\n                'success': False\n            }\n\n    def auto_commit(self, session_id: str, message: str, cwd: str = None) -> Dict[str, Any]:\n        \"\"\"\n        Auto commit changes\n\n        Args:\n            session_id: Unique session identifier\n            message: Commit message\n            cwd: Working directory\n\n        Returns:\n            Dict containing commit result\n        \"\"\"\n        logger.info(f\"Auto committing for session {session_id}\")\n\n        if cwd is None:\n            cwd = os.getcwd()\n\n        try:\n            # Check if there are changes to commit\n            status = self.get_git_status(cwd)\n            if not status['has_changes']:\n                logger.info(f\"No changes to commit for session {session_id}\")\n                return {\n                    'session_id': session_id,\n                    'success': True,\n                    'message': 'No changes to commit',\n                    'timestamp': datetime.now().isoformat()\n                }\n\n            # Add all changes\n            add_result = subprocess.run(\n                ['git', 'add', '.'],\n                capture_output=True,\n                text=True,\n                cwd=cwd\n            )\n\n            if add_result.returncode != 0:\n                logger.error(f\"Git add failed: {add_result.stderr}\")\n                return {\n                    'session_id': session_id,\n                    'success': False,\n                    'message': f'Git add failed: {add_result.stderr}',\n                    'timestamp': datetime.now().isoformat()\n                }\n\n            # Commit changes\n            commit_result = subprocess.run(\n                ['git', 'commit', '-m', message],\n                capture_output=True,\n                text=True,\n                cwd=cwd\n            )\n\n            if commit_result.returncode != 0:\n                logger.error(f\"Git commit failed: {commit_result.stderr}\")\n                return {\n                    'session_id': session_id,\n                    'success': False,\n                    'message': f'Git commit failed: {commit_result.stderr}',\n                    'timestamp': datetime.now().isoformat()\n                }\n\n            logger.info(f\"Successfully committed for session {session_id}\")\n\n            return {\n                'session_id': session_id,\n                'success': True,\n                'message': f'Committed: {message}',\n                'output': commit_result.stdout,\n                'timestamp': datetime.now().isoformat()\n            }\n\n        except Exception as e:\n            logger.error(f\"Auto commit failed: {e}\")\n            return {\n                'session_id': session_id,\n                'success': False,\n                'message': str(e),\n                'timestamp': datetime.now().isoformat()\n            }\n\n    def auto_push(self, session_id: str, branch: str = 'main', cwd: str = None) -> Dict[str, Any]:\n        \"\"\"\n        Auto push to remote\n\n        Args:\n            session_id: Unique session identifier\n            branch: Branch name to push\n            cwd: Working directory\n\n        Returns:\n            Dict containing push result\n        \"\"\"\n        logger.info(f\"Auto pushing to {branch} for session {session_id}\")\n\n        if cwd is None:\n            cwd = os.getcwd()\n\n        try:\n            result = subprocess.run(\n                ['git', 'push', 'origin', branch],\n                capture_output=True,\n                text=True,\n                timeout=60,\n                cwd=cwd\n            )\n\n            if result.returncode != 0:\n                logger.error(f\"Git push failed: {result.stderr}\")\n                return {\n                    'session_id': session_id,\n                    'success': False,\n                    'message': f'Git push failed: {result.stderr}',\n                    'timestamp': datetime.now().isoformat()\n                }\n\n            logger.info(f\"Successfully pushed to {branch} for session {session_id}\")\n\n            return {\n                'session_id': session_id,\n                'success': True,\n                'message': f'Pushed to {branch}',\n                'output': result.stdout,\n                'timestamp': datetime.now().isoformat()\n            }\n\n        except subprocess.TimeoutExpired:\n            logger.error(f\"Git push timeout for session {session_id}\")\n            return {\n                'session_id': session_id,\n                'success': False,\n                'message': 'Git push timed out after 60 seconds',\n                'timestamp': datetime.now().isoformat()\n            }\n        except Exception as e:\n            logger.error(f\"Auto push failed: {e}\")\n            return {\n                'session_id': session_id,\n                'success': False,\n                'message': str(e),\n                'timestamp': datetime.now().isoformat()\n            }\n\n    def generate_commit_message(self, session_id: str, task_type: str, cwd: str = None) -> str:\n        \"\"\"\n        Generate smart commit message based on git diff\n\n        Args:\n            session_id: Unique session identifier\n            task_type: Type of task (bug, feature, refactor, test)\n            cwd: Working directory\n\n        Returns:\n            Generated commit message\n        \"\"\"\n        if cwd is None:\n            cwd = os.getcwd()\n\n        try:\n            # Get git diff\n            result = subprocess.run(\n                ['git', 'diff', '--cached', '--stat'],\n                capture_output=True,\n                text=True,\n                cwd=cwd\n            )\n\n            diff_stat = result.stdout.strip()\n\n            # Generate message based on task type\n            prefix_map = {\n                'bug': 'fix',\n                'feature': 'feat',\n                'refactor': 'refactor',\n                'test': 'test',\n                'unknown': 'chore'\n            }\n\n            prefix = prefix_map.get(task_type, 'chore')\n\n            if diff_stat:\n                # Extract file names from diff stat\n                files = [line.split('|')[0].strip() for line in diff_stat.split('\\n') if '|' in line]\n                if files:\n                    first_file = files[0]\n                    scope = first_file.split('/')[0] if '/' in first_file else 'core'\n                    return f\"{prefix}({scope}): auto commit for session {session_id[:8]}\"\n\n            return f\"{prefix}: auto commit for session {session_id[:8]}\"\n\n        except Exception as e:\n            logger.error(f\"Failed to generate commit message: {e}\")\n            return f\"chore: auto commit for session {session_id[:8]}\"\n",
+      "summary": ".dual-graph/git_automation.py. Contains 1 function: GitAutomation.",
+      "file_hash": "f28289ef"
+    },
+    {
+      "id": "git_automation.py::GitAutomation",
+      "kind": "symbol",
+      "path": "git_automation.py",
+      "ext": ".py",
+      "size": 249,
+      "keywords": [
+        "gitautomation",
+        "git",
+        "automation"
+      ],
+      "symbol_type": "model",
+      "name": "GitAutomation",
+      "line_start": 9,
+      "line_end": 257,
+      "body_hash": "c28d8016",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "notifier.py",
+      "kind": "file",
+      "path": "notifier.py",
+      "ext": ".py",
+      "size": 1674,
+      "keywords": [
+        "send_notification",
+        "send",
+        "notification"
+      ],
+      "content": "# .dual-graph/notifier.py\nimport subprocess\nimport platform\nimport logging\nimport html\n\nlogger = logging.getLogger(__name__)\n\n\ndef send_notification(title: str, message: str):\n    \"\"\"\n    G\u1eedi desktop notification.\n\n    Args:\n        title: Ti\u00eau \u0111\u1ec1 notification\n        message: N\u1ed9i dung notification\n    \"\"\"\n    try:\n        if platform.system() == 'Windows':\n            # Escape XML special characters \u0111\u1ec3 tr\u00e1nh XML injection\n            title_escaped = html.escape(title)\n            message_escaped = html.escape(message)\n\n            # PowerShell toast notification\n            ps_script = f\"\"\"\n$null = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]\n$null = [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]\n$xml = [Windows.Data.Xml.Dom.XmlDocument]::new()\n$xml.LoadXml(@\"\n<toast>\n    <visual>\n        <binding template='ToastText02'>\n            <text id='1'>{title_escaped}</text>\n            <text id='2'>{message_escaped}</text>\n        </binding>\n    </visual>\n</toast>\n\"@)\n$toast = [Windows.UI.Notifications.ToastNotification]::new($xml)\n[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Code').Show($toast)\n\"\"\"\n            subprocess.run(\n                ['powershell', '-Command', ps_script],\n                capture_output=True,\n                timeout=5\n            )\n            logger.info(f\"Notification sent: {title}\")\n    except Exception as e:\n        # Kh\u00f4ng crash n\u1ebfu notification fail\n        logger.warning(f\"Failed to send notification: {e}\")\n",
+      "summary": ".dual-graph/notifier.py. Contains 1 function: send_notification.",
+      "file_hash": "31a0030d"
+    },
+    {
+      "id": "notifier.py::send_notification",
+      "kind": "symbol",
+      "path": "notifier.py",
+      "ext": ".py",
+      "size": 41,
+      "keywords": [
+        "send_notification",
+        "send",
+        "notification"
+      ],
+      "symbol_type": "use_case",
+      "name": "send_notification",
+      "line_start": 9,
+      "line_end": 49,
+      "body_hash": "500f6e18",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "orchestrator.py",
+      "kind": "file",
+      "path": "orchestrator.py",
+      "ext": ".py",
+      "size": 14027,
+      "keywords": [
+        "workfloworchestrator",
+        "workflow",
+        "orchestrator"
+      ],
+      "content": "# .dual-graph/orchestrator.py\nimport json\nimport sqlite3\nimport logging\nimport re\nimport os\nfrom datetime import datetime\nfrom typing import Dict, Any, Optional\nfrom contextlib import contextmanager\nfrom notifier import send_notification\nfrom agent_spawner import AgentSpawner\nfrom test_runner import TestRunner\nfrom git_automation import GitAutomation\nfrom env_manager import EnvironmentManager\n\n# Configure logging\nlog_dir = os.path.dirname(os.path.abspath(__file__))\nlog_file = os.path.join(log_dir, 'orchestrator.log')\n\nlogger = logging.getLogger(__name__)\nlogger.setLevel(logging.INFO)\n\n# Add file handler\nfile_handler = logging.FileHandler(log_file)\nfile_handler.setLevel(logging.INFO)\nfile_handler.setFormatter(logging.Formatter(\n    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'\n))\n\n# Add console handler\nconsole_handler = logging.StreamHandler()\nconsole_handler.setLevel(logging.INFO)\nconsole_handler.setFormatter(logging.Formatter(\n    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'\n))\n\nlogger.addHandler(file_handler)\nlogger.addHandler(console_handler)\n\nclass WorkflowOrchestrator:\n    def __init__(self, db_path: str, cwd: str = None):\n        self.db_path = db_path\n        self.cwd = cwd or os.getcwd()\n        self.agent_spawner = AgentSpawner()\n        self.test_runner = TestRunner()\n        self.git_automation = GitAutomation()\n        self.env_manager = EnvironmentManager(self.cwd)\n        self._init_db()\n        logger.info(f\"WorkflowOrchestrator initialized with db_path: {db_path}, cwd: {self.cwd}\")\n\n    @contextmanager\n    def _get_connection(self):\n        \"\"\"Context manager for database connections to ensure proper cleanup\"\"\"\n        conn = sqlite3.connect(self.db_path)\n        try:\n            yield conn\n            conn.commit()\n        except Exception as e:\n            conn.rollback()\n            logger.error(f\"Database error: {e}\")\n            raise\n        finally:\n            conn.close()\n\n    def _init_db(self):\n        with self._get_connection() as conn:\n            conn.execute(\"\"\"\n                CREATE TABLE IF NOT EXISTS workflows (\n                    session_id TEXT PRIMARY KEY,\n                    state TEXT NOT NULL,\n                    task_type TEXT,\n                    prompt TEXT,\n                    created_at TEXT,\n                    updated_at TEXT\n                )\n            \"\"\")\n            logger.info(\"Database initialized successfully\")\n\n    def _validate_session_id(self, session_id: str) -> bool:\n        \"\"\"Validate session_id format (8 hex characters) to prevent SQL injection\"\"\"\n        if not session_id or not isinstance(session_id, str):\n            return False\n        return bool(re.match(r'^[0-9a-f]{8}$', session_id))\n\n    def classify_task(self, prompt: str) -> Dict[str, Any]:\n        # Simple keyword-based classification\n        logger.debug(f\"Classifying task with prompt length: {len(prompt)}\")\n        prompt_lower = prompt.lower()\n        if any(kw in prompt_lower for kw in ['bug', 'fix', 'error', 'broken']):\n            result = {'type': 'bug', 'confidence': 0.8}\n        elif any(kw in prompt_lower for kw in ['add', 'create', 'new', 'feature']):\n            result = {'type': 'feature', 'confidence': 0.8}\n        elif any(kw in prompt_lower for kw in ['refactor', 'clean', 'improve']):\n            result = {'type': 'refactor', 'confidence': 0.7}\n        elif any(kw in prompt_lower for kw in ['test', 'spec']):\n            result = {'type': 'test', 'confidence': 0.8}\n        else:\n            result = {'type': 'unknown', 'confidence': 0.5}\n\n        logger.info(f\"Task classified as: {result['type']} (confidence: {result['confidence']})\")\n        return result\n\n    def notify_workflow_start(self, session_id: str, task_type: str):\n        \"\"\"G\u1eedi notification khi workflow b\u1eaft \u0111\u1ea7u\"\"\"\n        try:\n            send_notification(\n                \"Automation Started\",\n                f\"\u0110ang x\u1eed l\u00fd: {task_type} (Session: {session_id})\"\n            )\n            logger.info(f\"Sent start notification for session {session_id}\")\n        except Exception as e:\n            logger.warning(f\"Failed to send start notification: {e}\")\n\n    def notify_workflow_done(self, session_id: str, duration: str):\n        \"\"\"G\u1eedi notification khi workflow ho\u00e0n th\u00e0nh\"\"\"\n        try:\n            send_notification(\n                \"Automation Complete\",\n                f\"Ho\u00e0n th\u00e0nh trong {duration} (Session: {session_id})\"\n            )\n            logger.info(f\"Sent completion notification for session {session_id}\")\n        except Exception as e:\n            logger.warning(f\"Failed to send completion notification: {e}\")\n\n    def create_workflow(self, prompt: str, cwd: str) -> str:\n        import uuid\n        session_id = str(uuid.uuid4())[:8]\n        classification = self.classify_task(prompt)\n\n        logger.info(f\"Creating workflow with session_id: {session_id}, task_type: {classification['type']}\")\n\n        with self._get_connection() as conn:\n            conn.execute(\"\"\"\n                INSERT INTO workflows (session_id, state, task_type, prompt, created_at, updated_at)\n                VALUES (?, ?, ?, ?, ?, ?)\n            \"\"\", (session_id, 'CLASSIFYING', classification['type'], prompt,\n                  datetime.now().isoformat(), datetime.now().isoformat()))\n\n        # G\u1eedi notification khi workflow b\u1eaft \u0111\u1ea7u\n        self.notify_workflow_start(session_id, classification['type'])\n\n        return session_id\n\n    def get_status(self, session_id: str) -> Optional[Dict[str, Any]]:\n        # C1 Fix: Validate session_id format to prevent SQL injection\n        if not self._validate_session_id(session_id):\n            logger.warning(f\"Invalid session_id format: {session_id}\")\n            return None\n\n        logger.debug(f\"Fetching status for session_id: {session_id}\")\n\n        with self._get_connection() as conn:\n            cursor = conn.execute(\n                \"SELECT state, task_type, created_at FROM workflows WHERE session_id = ?\",\n                (session_id,)\n            )\n            row = cursor.fetchone()\n\n        if row:\n            result = {'state': row[0], 'task_type': row[1], 'created_at': row[2]}\n            logger.info(f\"Status found for session_id {session_id}: {result['state']}\")\n            return result\n\n        logger.warning(f\"No workflow found for session_id: {session_id}\")\n        return None\n\n    def transition_to_executing(self, session_id: str) -> Dict[str, Any]:\n        \"\"\"\n        Transition workflow from CLASSIFYING to EXECUTING state and spawn agent\n\n        Args:\n            session_id: Unique session identifier\n\n        Returns:\n            Dict containing transition status and agent spawn result\n        \"\"\"\n        if not self._validate_session_id(session_id):\n            logger.warning(f\"Invalid session_id format: {session_id}\")\n            return {'success': False, 'error': 'Invalid session_id format'}\n\n        logger.info(f\"Transitioning session {session_id} to EXECUTING state\")\n\n        # Get current workflow state\n        with self._get_connection() as conn:\n            cursor = conn.execute(\n                \"SELECT state, task_type, prompt FROM workflows WHERE session_id = ?\",\n                (session_id,)\n            )\n            row = cursor.fetchone()\n\n        if not row:\n            logger.error(f\"Workflow not found for session_id: {session_id}\")\n            return {'success': False, 'error': 'Workflow not found'}\n\n        current_state, task_type, prompt = row\n\n        if current_state != 'CLASSIFYING':\n            logger.warning(f\"Cannot transition from {current_state} to EXECUTING\")\n            return {'success': False, 'error': f'Invalid state transition from {current_state}'}\n\n        # Check and install dependencies before spawning agent\n        logger.info(f\"Checking environment dependencies for session {session_id}\")\n        env_result = self.env_manager.ensure_environment()\n\n        if not env_result['ready']:\n            logger.error(f\"Environment not ready for session {session_id}\")\n            return {\n                'success': False,\n                'error': 'Failed to prepare environment',\n                'env_result': env_result\n            }\n\n        logger.info(f\"Environment ready for session {session_id}\")\n\n        # Update state to EXECUTING\n        with self._get_connection() as conn:\n            conn.execute(\n                \"UPDATE workflows SET state = ?, updated_at = ? WHERE session_id = ?\",\n                ('EXECUTING', datetime.now().isoformat(), session_id)\n            )\n\n        logger.info(f\"State updated to EXECUTING for session {session_id}\")\n\n        # Spawn agent\n        agent_result = self.agent_spawner.spawn_agent(task_type, prompt, session_id)\n\n        logger.info(f\"Agent spawn result: {agent_result['status']}\")\n\n        return {\n            'success': True,\n            'session_id': session_id,\n            'previous_state': current_state,\n            'new_state': 'EXECUTING',\n            'env_result': env_result,\n            'agent_result': agent_result\n        }\n\n    def transition_to_testing(self, session_id: str, cwd: str = None) -> Dict[str, Any]:\n        \"\"\"\n        Transition workflow from EXECUTING to TESTING state and run tests\n\n        Args:\n            session_id: Unique session identifier\n            cwd: Working directory\n\n        Returns:\n            Dict containing transition status and test results\n        \"\"\"\n        if not self._validate_session_id(session_id):\n            logger.warning(f\"Invalid session_id format: {session_id}\")\n            return {'success': False, 'error': 'Invalid session_id format'}\n\n        logger.info(f\"Transitioning session {session_id} to TESTING state\")\n\n        # Get current workflow state\n        with self._get_connection() as conn:\n            cursor = conn.execute(\n                \"SELECT state FROM workflows WHERE session_id = ?\",\n                (session_id,)\n            )\n            row = cursor.fetchone()\n\n        if not row:\n            logger.error(f\"Workflow not found for session_id: {session_id}\")\n            return {'success': False, 'error': 'Workflow not found'}\n\n        current_state = row[0]\n\n        # Valid transitions: EXECUTING -> TESTING\n        if current_state not in ['EXECUTING']:\n            logger.warning(f\"Cannot transition from {current_state} to TESTING. Must be in EXECUTING state.\")\n            return {'success': False, 'error': f'Invalid state transition from {current_state} to TESTING'}\n\n        # Update state to TESTING\n        with self._get_connection() as conn:\n            conn.execute(\n                \"UPDATE workflows SET state = ?, updated_at = ? WHERE session_id = ?\",\n                ('TESTING', datetime.now().isoformat(), session_id)\n            )\n\n        logger.info(f\"State updated to TESTING for session {session_id}\")\n\n        # Run tests\n        test_result = self.test_runner.run_playwright_tests(session_id, cwd)\n\n        logger.info(f\"Test result: {'passed' if test_result['passed'] else 'failed'}\")\n\n        return {\n            'success': True,\n            'session_id': session_id,\n            'previous_state': current_state,\n            'new_state': 'TESTING',\n            'test_result': test_result\n        }\n\n    def transition_to_committing(self, session_id: str, cwd: str = None) -> Dict[str, Any]:\n        \"\"\"\n        Transition workflow from TESTING to COMMITTING state and auto commit\n\n        Args:\n            session_id: Unique session identifier\n            cwd: Working directory\n\n        Returns:\n            Dict containing transition status and commit result\n        \"\"\"\n        if not self._validate_session_id(session_id):\n            logger.warning(f\"Invalid session_id format: {session_id}\")\n            return {'success': False, 'error': 'Invalid session_id format'}\n\n        logger.info(f\"Transitioning session {session_id} to COMMITTING state\")\n\n        # Get current workflow state\n        with self._get_connection() as conn:\n            cursor = conn.execute(\n                \"SELECT state, task_type FROM workflows WHERE session_id = ?\",\n                (session_id,)\n            )\n            row = cursor.fetchone()\n\n        if not row:\n            logger.error(f\"Workflow not found for session_id: {session_id}\")\n            return {'success': False, 'error': 'Workflow not found'}\n\n        current_state, task_type = row\n\n        # Valid transitions: TESTING -> COMMITTING or EXECUTING -> COMMITTING (skip testing)\n        if current_state not in ['TESTING', 'EXECUTING']:\n            logger.warning(f\"Cannot transition from {current_state} to COMMITTING. Must be in TESTING or EXECUTING state.\")\n            return {'success': False, 'error': f'Invalid state transition from {current_state} to COMMITTING'}\n\n        # Update state to COMMITTING\n        with self._get_connection() as conn:\n            conn.execute(\n                \"UPDATE workflows SET state = ?, updated_at = ? WHERE session_id = ?\",\n                ('COMMITTING', datetime.now().isoformat(), session_id)\n            )\n\n        logger.info(f\"State updated to COMMITTING for session {session_id}\")\n\n        # Generate commit message and commit\n        commit_message = self.git_automation.generate_commit_message(session_id, task_type, cwd)\n        commit_result = self.git_automation.auto_commit(session_id, commit_message, cwd)\n\n        logger.info(f\"Commit result: {'success' if commit_result['success'] else 'failed'}\")\n\n        return {\n            'success': True,\n            'session_id': session_id,\n            'previous_state': current_state,\n            'new_state': 'COMMITTING',\n            'commit_result': commit_result\n        }\n",
+      "summary": ".dual-graph/orchestrator.py. Contains 1 function: WorkflowOrchestrator.",
+      "file_hash": "ad1e0bc7"
+    },
+    {
+      "id": "orchestrator.py::WorkflowOrchestrator",
+      "kind": "symbol",
+      "path": "orchestrator.py",
+      "ext": ".py",
+      "size": 314,
+      "keywords": [
+        "workfloworchestrator",
+        "workflow",
+        "orchestrator"
+      ],
+      "symbol_type": "model",
+      "name": "WorkflowOrchestrator",
+      "line_start": 39,
+      "line_end": 352,
+      "body_hash": "244a7121",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "orchestrator_server.py",
+      "kind": "file",
+      "path": "orchestrator_server.py",
+      "ext": ".py",
+      "size": 5804,
+      "keywords": [
+        "validate_prompt",
+        "validate",
+        "prompt",
+        "validate_cwd",
+        "cwd",
+        "orchestrationhandler",
+        "orchestration",
+        "handler",
+        "main"
+      ],
+      "content": "#!/usr/bin/env python3\n# .dual-graph/orchestrator_server.py\n\"\"\"\nHTTP server for workflow orchestration endpoints.\nRuns on port 8081 alongside the main MCP server.\n\"\"\"\n\nfrom http.server import HTTPServer, BaseHTTPRequestHandler\nfrom orchestrator import WorkflowOrchestrator\nimport json\nimport os\nimport sys\nimport logging\nfrom pathlib import Path\n\n# Configure logging with file rotation\nfrom logging.handlers import RotatingFileHandler\n\nlog_dir = os.path.dirname(os.path.abspath(__file__))\nlog_file = os.path.join(log_dir, 'orchestrator_server.log')\n\nlogger = logging.getLogger(__name__)\nlogger.setLevel(logging.INFO)\n\n# File handler with rotation (10MB max, keep 5 backups)\nfile_handler = RotatingFileHandler(\n    log_file,\n    maxBytes=10*1024*1024,  # 10MB\n    backupCount=5\n)\nfile_handler.setFormatter(logging.Formatter(\n    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'\n))\n\n# Console handler\nconsole_handler = logging.StreamHandler(sys.stderr)\nconsole_handler.setFormatter(logging.Formatter(\n    '[orchestrator] %(levelname)s - %(message)s'\n))\n\nlogger.addHandler(file_handler)\nlogger.addHandler(console_handler)\n\n# Determine data directory\nDATA_DIR = os.path.dirname(os.path.abspath(__file__))\nDB_PATH = os.path.join(DATA_DIR, 'workflows.db')\n\n# Initialize orchestrator\norch = WorkflowOrchestrator(DB_PATH)\nlogger.info(f\"Orchestrator initialized with DB: {DB_PATH}\")\n\n# Validation constants\nMAX_PROMPT_LENGTH = 10000\n\ndef validate_prompt(prompt: str) -> tuple[bool, str]:\n    \"\"\"I1 Fix: Validate prompt input\"\"\"\n    if not prompt:\n        return False, \"Prompt cannot be empty\"\n    if not isinstance(prompt, str):\n        return False, \"Prompt must be a string\"\n    if len(prompt) > MAX_PROMPT_LENGTH:\n        return False, f\"Prompt exceeds maximum length of {MAX_PROMPT_LENGTH} characters\"\n    return True, \"\"\n\ndef validate_cwd(cwd: str) -> tuple[bool, str]:\n    \"\"\"I1 Fix: Validate cwd is an absolute path\"\"\"\n    if not cwd:\n        return True, \"\"  # cwd is optional\n    if not isinstance(cwd, str):\n        return False, \"cwd must be a string\"\n    if not os.path.isabs(cwd):\n        return False, \"cwd must be an absolute path\"\n    return True, \"\"\n\nclass OrchestrationHandler(BaseHTTPRequestHandler):\n    def log_message(self, format, *args):\n        \"\"\"Override to log to stderr and file\"\"\"\n        logger.info(format % args)\n\n    def send_json_response(self, status_code, data):\n        \"\"\"Helper to send JSON response\"\"\"\n        self.send_response(status_code)\n        self.send_header('Content-Type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(data).encode())\n\n    def do_POST(self):\n        \"\"\"Handle POST requests\"\"\"\n        if self.path == '/orchestrate':\n            try:\n                length = int(self.headers.get('Content-Length', 0))\n                body = json.loads(self.rfile.read(length).decode())\n\n                prompt = body.get('prompt')\n                cwd = body.get('cwd', '')\n\n                # I1 Fix: Validate prompt\n                valid_prompt, prompt_error = validate_prompt(prompt)\n                if not valid_prompt:\n                    logger.warning(f\"Invalid prompt: {prompt_error}\")\n                    self.send_json_response(400, {'error': prompt_error})\n                    return\n\n                # I1 Fix: Validate cwd\n                valid_cwd, cwd_error = validate_cwd(cwd)\n                if not valid_cwd:\n                    logger.warning(f\"Invalid cwd: {cwd_error}\")\n                    self.send_json_response(400, {'error': cwd_error})\n                    return\n\n                logger.info(f\"Creating workflow for prompt (length: {len(prompt)})\")\n                session_id = orch.create_workflow(prompt, cwd)\n                logger.info(f\"Workflow created with session_id: {session_id}\")\n                self.send_json_response(200, {'session_id': session_id})\n\n            except json.JSONDecodeError as e:\n                logger.error(f\"JSON decode error: {e}\")\n                self.send_json_response(400, {'error': 'Invalid JSON'})\n            except Exception as e:\n                logger.error(f\"Unexpected error in /orchestrate: {e}\", exc_info=True)\n                self.send_json_response(500, {'error': str(e)})\n        else:\n            self.send_json_response(404, {'error': 'Not found'})\n\n    def do_GET(self):\n        \"\"\"Handle GET requests\"\"\"\n        if self.path.startswith('/status/'):\n            try:\n                session_id = self.path.split('/')[-1]\n                logger.info(f\"Status request for session_id: {session_id}\")\n                status = orch.get_status(session_id)\n\n                if status:\n                    self.send_json_response(200, status)\n                else:\n                    logger.warning(f\"Session not found: {session_id}\")\n                    self.send_json_response(404, {'error': 'Session not found'})\n\n            except Exception as e:\n                logger.error(f\"Unexpected error in /status: {e}\", exc_info=True)\n                self.send_json_response(500, {'error': str(e)})\n        elif self.path == '/health':\n            self.send_json_response(200, {'status': 'ok'})\n        else:\n            self.send_json_response(404, {'error': 'Not found'})\n\ndef main():\n    port = 8081\n    server = HTTPServer(('127.0.0.1', port), OrchestrationHandler)\n    logger.info(f\"Starting HTTP server on port {port}\")\n    logger.info(f\"Database: {DB_PATH}\")\n    logger.info(f\"Log file: {log_file}\")\n\n    try:\n        server.serve_forever()\n    except KeyboardInterrupt:\n        logger.info(\"Shutting down server\")\n        server.shutdown()\n\nif __name__ == '__main__':\n    main()\n",
+      "summary": "!/usr/bin/env python3. Contains 4 functions/classes: validate_prompt, validate_cwd, OrchestrationHandler, main.",
+      "file_hash": "03b3efb7"
+    },
+    {
+      "id": "orchestrator_server.py::validate_prompt",
+      "kind": "symbol",
+      "path": "orchestrator_server.py",
+      "ext": ".py",
+      "size": 9,
+      "keywords": [
+        "validate_prompt",
+        "validate",
+        "prompt"
+      ],
+      "symbol_type": "use_case",
+      "name": "validate_prompt",
+      "line_start": 54,
+      "line_end": 62,
+      "body_hash": "5b2917cb",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "orchestrator_server.py::validate_cwd",
+      "kind": "symbol",
+      "path": "orchestrator_server.py",
+      "ext": ".py",
+      "size": 9,
+      "keywords": [
+        "validate_cwd",
+        "validate",
+        "cwd"
+      ],
+      "symbol_type": "use_case",
+      "name": "validate_cwd",
+      "line_start": 64,
+      "line_end": 72,
+      "body_hash": "d4e44ea7",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "orchestrator_server.py::main",
+      "kind": "symbol",
+      "path": "orchestrator_server.py",
+      "ext": ".py",
+      "size": 15,
+      "keywords": [
+        "main"
+      ],
+      "symbol_type": "use_case",
+      "name": "main",
+      "line_start": 146,
+      "line_end": 160,
+      "body_hash": "f38c01e1",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "orchestrator_server.py::OrchestrationHandler",
+      "kind": "symbol",
+      "path": "orchestrator_server.py",
+      "ext": ".py",
+      "size": 71,
+      "keywords": [
+        "orchestrationhandler",
+        "orchestration",
+        "handler"
+      ],
+      "symbol_type": "model",
+      "name": "OrchestrationHandler",
+      "line_start": 74,
+      "line_end": 144,
+      "body_hash": "25592428",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "retrieval_cache.json",
+      "kind": "file",
+      "path": "retrieval_cache.json",
+      "ext": ".json",
+      "size": 6171,
+      "keywords": [],
+      "content": "{\n  \"entries\": {\n    \"find all bugs potential errors issues areas improvement|tf=5|te=12\": {\n      \"created_epoch\": 1776380398,\n      \"files\": [\n        \"app\\\\context\\\\ProfileContext.tsx::SocialLink\",\n        \"app\\\\api\\\\download\\\\route.ts::GET\",\n        \"app\\\\api\\\\leetcode\\\\route.ts::GET\",\n        \"app\\\\api\\\\like\\\\route.ts::POST\",\n        \"app\\\\api\\\\profile\\\\route.ts::GET\"\n      ],\n      \"mtimes_ns\": {\n        \"app\\\\context\\\\ProfileContext.tsx::SocialLink\": 1776375015872336800,\n        \"app\\\\api\\\\download\\\\route.ts::GET\": 1776372348911636000,\n        \"app\\\\api\\\\leetcode\\\\route.ts::GET\": 1776343277254136000,\n        \"app\\\\api\\\\like\\\\route.ts::POST\": 1776372342175288700,\n        \"app\\\\api\\\\profile\\\\route.ts::GET\": 1776372324522654100\n      },\n      \"result\": {\n        \"ok\": true,\n        \"query\": \"find all bugs potential errors issues and areas for improvement in the codebase\",\n        \"graph_files\": [\n          {\n            \"id\": \"app\\\\context\\\\ProfileContext.tsx::SocialLink\",\n            \"kind\": \"symbol\",\n            \"path\": \"app\\\\context\\\\ProfileContext.tsx\",\n            \"ext\": \".tsx\",\n            \"size\": 6,\n            \"keywords\": [\n              \"sociallink\",\n              \"social\",\n              \"link\"\n            ],\n            \"symbol_type\": \"model\",\n            \"name\": \"SocialLink\",\n            \"line_start\": 14,\n            \"line_end\": 19,\n            \"body_hash\": \"f5fe93bb\",\n            \"confidence\": \"high\",\n            \"exported\": true,\n            \"_score\": 16,\n            \"_role\": \"code\",\n            \"_intent\": \"debug\"\n          },\n          {\n            \"id\": \"app\\\\api\\\\download\\\\route.ts::GET\",\n            \"kind\": \"symbol\",\n            \"path\": \"app\\\\api\\\\download\\\\route.ts\",\n            \"ext\": \".ts\",\n            \"size\": 67,\n            \"keywords\": [\n              \"get\"\n            ],\n            \"symbol_type\": \"api_route\",\n            \"name\": \"GET\",\n            \"line_start\": 23,\n            \"line_end\": 89,\n            \"body_hash\": \"9f0f1fd2\",\n            \"confidence\": \"high\",\n            \"exported\": true,\n            \"_score\": 11,\n            \"_role\": \"code\",\n            \"_intent\": \"debug\"\n          },\n          {\n            \"id\": \"app\\\\api\\\\leetcode\\\\route.ts::GET\",\n            \"kind\": \"symbol\",\n            \"path\": \"app\\\\api\\\\leetcode\\\\route.ts\",\n            \"ext\": \".ts\",\n            \"size\": 27,\n            \"keywords\": [\n              \"get\"\n            ],\n            \"symbol_type\": \"api_route\",\n            \"name\": \"GET\",\n            \"line_start\": 10,\n            \"line_end\": 36,\n            \"body_hash\": \"e03c9264\",\n            \"confidence\": \"high\",\n            \"exported\": true,\n            \"_score\": 11,\n            \"_role\": \"code\",\n            \"_intent\": \"debug\"\n          },\n          {\n            \"id\": \"app\\\\api\\\\like\\\\route.ts::POST\",\n            \"kind\": \"symbol\",\n            \"path\": \"app\\\\api\\\\like\\\\route.ts\",\n            \"ext\": \".ts\",\n            \"size\": 59,\n            \"keywords\": [\n              \"post\"\n            ],\n            \"symbol_type\": \"api_route\",\n            \"name\": \"POST\",\n            \"line_start\": 22,\n            \"line_end\": 80,\n            \"body_hash\": \"36c89252\",\n            \"confidence\": \"high\",\n            \"exported\": true,\n            \"_score\": 11,\n            \"_role\": \"code\",\n            \"_intent\": \"debug\"\n          },\n          {\n            \"id\": \"app\\\\api\\\\profile\\\\route.ts::GET\",\n            \"kind\": \"symbol\",\n            \"path\": \"app\\\\api\\\\profile\\\\route.ts\",\n            \"ext\": \".ts\",\n            \"size\": 39,\n            \"keywords\": [\n              \"get\"\n            ],\n            \"symbol_type\": \"api_route\",\n            \"name\": \"GET\",\n            \"line_start\": 176,\n            \"line_end\": 214,\n            \"body_hash\": \"ac131362\",\n            \"confidence\": \"high\",\n            \"exported\": true,\n            \"_score\": 11,\n            \"_role\": \"code\",\n            \"_intent\": \"debug\"\n          }\n        ],\n        \"graph_edges\": [\n          {\n            \"from\": \"app\\\\context\\\\ProfileContext.tsx\",\n            \"to\": \"app\\\\context\\\\ProfileContext.tsx::SocialLink\",\n            \"rel\": \"contains\"\n          },\n          {\n            \"from\": \"app\\\\api\\\\download\\\\route.ts\",\n            \"to\": \"app\\\\api\\\\download\\\\route.ts::GET\",\n            \"rel\": \"contains\"\n          },\n          {\n            \"from\": \"app\\\\api\\\\leetcode\\\\route.ts\",\n            \"to\": \"app\\\\api\\\\leetcode\\\\route.ts::GET\",\n            \"rel\": \"contains\"\n          },\n          {\n            \"from\": \"app\\\\api\\\\like\\\\route.ts\",\n            \"to\": \"app\\\\api\\\\like\\\\route.ts::POST\",\n            \"rel\": \"contains\"\n          },\n          {\n            \"from\": \"app\\\\api\\\\profile\\\\route.ts\",\n            \"to\": \"app\\\\api\\\\profile\\\\route.ts::GET\",\n            \"rel\": \"contains\"\n          },\n          {\n            \"from\": \"app\\\\admin\\\\page.tsx\",\n            \"to\": \"@/app/context/ProfileContext\",\n            \"rel\": \"imports\"\n          },\n          {\n            \"from\": \"app\\\\admin\\\\page.tsx\",\n            \"to\": \"@/app/context/ToastContext\",\n            \"rel\": \"imports\"\n          },\n          {\n            \"from\": \"app\\\\admin\\\\page.tsx\",\n            \"to\": \"@/components/ColorPicker\",\n            \"rel\": \"imports\"\n          },\n          {\n            \"from\": \"app\\\\admin\\\\page.tsx\",\n            \"to\": \"@/components/ConfirmModal\",\n            \"rel\": \"imports\"\n          },\n          {\n            \"from\": \"app\\\\admin\\\\page.tsx\",\n            \"to\": \"@/components/ContentEnhancements\",\n            \"rel\": \"imports\"\n          },\n          {\n            \"from\": \"app\\\\admin\\\\page.tsx\",\n            \"to\": \"@/components/CustomRange\",\n            \"rel\": \"imports\"\n          },\n          {\n            \"from\": \"app\\\\admin\\\\page.tsx\",\n            \"to\": \"@/components/CustomSelect\",\n            \"rel\": \"imports\"\n          }\n        ],\n        \"grep_hits\": [],\n        \"reuse_candidates\": [],\n        \"read_budget\": {\n          \"remaining_chars\": 60000,\n          \"reuse_gate_candidates\": []\n        }\n      }\n    }\n  }\n}",
+      "summary": "\"entries\": {.",
+      "file_hash": "20e5109d"
+    },
+    {
+      "id": "symbol_index.json",
+      "kind": "file",
+      "path": "symbol_index.json",
+      "ext": ".json",
+      "size": 17420,
+      "keywords": [],
+      "content": "{\"middleware.ts::middleware\": {\"line_start\": 3, \"line_end\": 12, \"body_hash\": \"8cac3254\", \"confidence\": \"high\", \"path\": \"middleware.ts\"}, \"app\\\\layout.tsx::RootLayout\": {\"line_start\": 33, \"line_end\": 71, \"body_hash\": \"3dd4a504\", \"confidence\": \"medium\", \"path\": \"app\\\\layout.tsx\"}, \"app\\\\page.tsx::Home\": {\"line_start\": 55, \"line_end\": 155, \"body_hash\": \"f8b1873d\", \"confidence\": \"medium\", \"path\": \"app\\\\page.tsx\"}, \"app\\\\page.tsx::IntegrationState\": {\"line_start\": 45, \"line_end\": 53, \"body_hash\": \"830ec35a\", \"confidence\": \"high\", \"path\": \"app\\\\page.tsx\"}, \"app\\\\admin\\\\page.tsx::AdminPage\": {\"line_start\": 95, \"line_end\": 195, \"body_hash\": \"eb6068d2\", \"confidence\": \"medium\", \"path\": \"app\\\\admin\\\\page.tsx\"}, \"app\\\\api\\\\download\\\\route.ts::GET\": {\"line_start\": 23, \"line_end\": 89, \"body_hash\": \"9f0f1fd2\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\download\\\\route.ts\"}, \"app\\\\api\\\\download\\\\route.ts::StoredFile\": {\"line_start\": 3, \"line_end\": 8, \"body_hash\": \"ba55dddd\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\download\\\\route.ts\"}, \"app\\\\api\\\\download\\\\route.ts::ProfileStore\": {\"line_start\": 10, \"line_end\": 12, \"body_hash\": \"47c5ef48\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\download\\\\route.ts\"}, \"app\\\\api\\\\leetcode\\\\route.ts::GET\": {\"line_start\": 10, \"line_end\": 36, \"body_hash\": \"e03c9264\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\leetcode\\\\route.ts\"}, \"app\\\\api\\\\like\\\\route.ts::POST\": {\"line_start\": 22, \"line_end\": 80, \"body_hash\": \"36c89252\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\like\\\\route.ts\"}, \"app\\\\api\\\\like\\\\route.ts::ProfilePost\": {\"line_start\": 6, \"line_end\": 10, \"body_hash\": \"bd9a564d\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\like\\\\route.ts\"}, \"app\\\\api\\\\like\\\\route.ts::ProfileData\": {\"line_start\": 12, \"line_end\": 14, \"body_hash\": \"1252b2db\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\like\\\\route.ts\"}, \"app\\\\api\\\\profile\\\\route.ts::GET\": {\"line_start\": 176, \"line_end\": 214, \"body_hash\": \"ac131362\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\profile\\\\route.ts\"}, \"app\\\\api\\\\profile\\\\route.ts::POST\": {\"line_start\": 216, \"line_end\": 370, \"body_hash\": \"11627cac\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\profile\\\\route.ts\"}, \"app\\\\api\\\\profile\\\\route.ts::LooseProfile\": {\"line_start\": 3, \"line_end\": 10, \"body_hash\": \"a398a15e\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\profile\\\\route.ts\"}, \"app\\\\api\\\\profile\\\\route.ts::Revision\": {\"line_start\": 5, \"line_end\": 10, \"body_hash\": \"d15815a9\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\profile\\\\route.ts\"}, \"app\\\\api\\\\profile\\\\route.ts::WorkflowMeta\": {\"line_start\": 12, \"line_end\": 17, \"body_hash\": \"9488467e\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\profile\\\\route.ts\"}, \"app\\\\api\\\\profile\\\\route.ts::ProfileStore\": {\"line_start\": 19, \"line_end\": 21, \"body_hash\": \"15bead90\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\profile\\\\route.ts\"}, \"app\\\\api\\\\profile\\\\route.ts::ProfileAction\": {\"line_start\": 23, \"line_end\": 48, \"body_hash\": \"386b121a\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\profile\\\\route.ts\"}, \"app\\\\api\\\\setup\\\\route.ts::POST\": {\"line_start\": 4, \"line_end\": 85, \"body_hash\": \"3e43d6b5\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\setup\\\\route.ts\"}, \"app\\\\api\\\\upload\\\\catbox\\\\route.ts::POST\": {\"line_start\": 10, \"line_end\": 43, \"body_hash\": \"b290dc39\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\upload\\\\catbox\\\\route.ts\"}, \"app\\\\api\\\\upload\\\\local\\\\route.ts::POST\": {\"line_start\": 12, \"line_end\": 46, \"body_hash\": \"3100e000\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\upload\\\\local\\\\route.ts\"}, \"app\\\\api\\\\views\\\\route.ts::POST\": {\"line_start\": 26, \"line_end\": 94, \"body_hash\": \"05f0401b\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\views\\\\route.ts\"}, \"app\\\\api\\\\views\\\\route.ts::ProfilePost\": {\"line_start\": 6, \"line_end\": 10, \"body_hash\": \"93efb9ac\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\views\\\\route.ts\"}, \"app\\\\api\\\\views\\\\route.ts::ProfileData\": {\"line_start\": 12, \"line_end\": 18, \"body_hash\": \"e1829571\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\views\\\\route.ts\"}, \"app\\\\api\\\\wakatime\\\\route.ts::GET\": {\"line_start\": 10, \"line_end\": 31, \"body_hash\": \"dde6d0f4\", \"confidence\": \"high\", \"path\": \"app\\\\api\\\\wakatime\\\\route.ts\"}, \"app\\\\context\\\\ProfileContext.tsx::ProfileProvider\": {\"line_start\": 277, \"line_end\": 411, \"body_hash\": \"670f76e4\", \"confidence\": \"medium\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::useProfile\": {\"line_start\": 413, \"line_end\": 419, \"body_hash\": \"5e4ea33a\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::SocialPlatform\": {\"line_start\": 4, \"line_end\": 12, \"body_hash\": \"f3fc80c8\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::Comment\": {\"line_start\": 6, \"line_end\": 12, \"body_hash\": \"826bdf2b\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::SocialLink\": {\"line_start\": 14, \"line_end\": 19, \"body_hash\": \"f5fe93bb\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::DirectLink\": {\"line_start\": 21, \"line_end\": 26, \"body_hash\": \"4c60fd9c\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::MusicTrack\": {\"line_start\": 28, \"line_end\": 34, \"body_hash\": \"c9319879\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::MusicConfig\": {\"line_start\": 36, \"line_end\": 40, \"body_hash\": \"20e6afbd\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::Post\": {\"line_start\": 42, \"line_end\": 58, \"body_hash\": \"ce34516f\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::ThemeConfig\": {\"line_start\": 60, \"line_end\": 87, \"body_hash\": \"c6cc28db\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::FeatureConfig\": {\"line_start\": 89, \"line_end\": 97, \"body_hash\": \"27c4cb69\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::EnterScreenConfig\": {\"line_start\": 99, \"line_end\": 104, \"body_hash\": \"67611532\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::TypewriterBioLine\": {\"line_start\": 106, \"line_end\": 111, \"body_hash\": \"7c0fee0c\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::TypewriterBioConfig\": {\"line_start\": 113, \"line_end\": 117, \"body_hash\": \"cc216eb8\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::CursorConfig\": {\"line_start\": 119, \"line_end\": 123, \"body_hash\": \"8f54425b\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::TextEffects\": {\"line_start\": 125, \"line_end\": 129, \"body_hash\": \"a7309005\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::Skill\": {\"line_start\": 131, \"line_end\": 136, \"body_hash\": \"2e2c7cc2\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::Project\": {\"line_start\": 138, \"line_end\": 149, \"body_hash\": \"d1f9faa5\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::LayoutSectionId\": {\"line_start\": 151, \"line_end\": 161, \"body_hash\": \"d68d0b65\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::SectionWidthPreset\": {\"line_start\": 153, \"line_end\": 161, \"body_hash\": \"1bdc4838\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::LayoutConfig\": {\"line_start\": 155, \"line_end\": 161, \"body_hash\": \"c2699954\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::BlogConfig\": {\"line_start\": 163, \"line_end\": 167, \"body_hash\": \"83b8f749\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::SiteMetadata\": {\"line_start\": 169, \"line_end\": 175, \"body_hash\": \"eee98364\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::GithubConfig\": {\"line_start\": 177, \"line_end\": 182, \"body_hash\": \"814869b3\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::IntegrationsConfig\": {\"line_start\": 184, \"line_end\": 191, \"body_hash\": \"db91e2d1\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::FileData\": {\"line_start\": 193, \"line_end\": 199, \"body_hash\": \"bbbe12a9\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::ProfileData\": {\"line_start\": 201, \"line_end\": 245, \"body_hash\": \"3106b6f6\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::ProfileRevisionMeta\": {\"line_start\": 247, \"line_end\": 251, \"body_hash\": \"d854bf6a\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::ProfileWorkflowMeta\": {\"line_start\": 253, \"line_end\": 257, \"body_hash\": \"0f6feb5e\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ProfileContext.tsx::ProfileContextType\": {\"line_start\": 263, \"line_end\": 273, \"body_hash\": \"d748f816\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ProfileContext.tsx\"}, \"app\\\\context\\\\ToastContext.tsx::ToastProvider\": {\"line_start\": 19, \"line_end\": 52, \"body_hash\": \"bd89abe2\", \"confidence\": \"medium\", \"path\": \"app\\\\context\\\\ToastContext.tsx\"}, \"app\\\\context\\\\ToastContext.tsx::useToast\": {\"line_start\": 54, \"line_end\": 60, \"body_hash\": \"f8eae0e4\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ToastContext.tsx\"}, \"app\\\\context\\\\ToastContext.tsx::ToastItem\": {\"line_start\": 6, \"line_end\": 11, \"body_hash\": \"2c6da412\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ToastContext.tsx\"}, \"app\\\\context\\\\ToastContext.tsx::ToastContextType\": {\"line_start\": 13, \"line_end\": 15, \"body_hash\": \"4b9e9ac2\", \"confidence\": \"high\", \"path\": \"app\\\\context\\\\ToastContext.tsx\"}, \"app\\\\post\\\\[id]\\\\page.tsx::PostPage\": {\"line_start\": 12, \"line_end\": 369, \"body_hash\": \"6d642a50\", \"confidence\": \"medium\", \"path\": \"app\\\\post\\\\[id]\\\\page.tsx\"}, \"app\\\\setup\\\\page.tsx::SetupPage\": {\"line_start\": 6, \"line_end\": 115, \"body_hash\": \"517fe4ef\", \"confidence\": \"medium\", \"path\": \"app\\\\setup\\\\page.tsx\"}, \"components\\\\BackgroundEffects.tsx::BackgroundEffects\": {\"line_start\": 6, \"line_end\": 116, \"body_hash\": \"960613cd\", \"confidence\": \"medium\", \"path\": \"components\\\\BackgroundEffects.tsx\"}, \"components\\\\ClickSparkle.tsx::SparkleAnimationParams\": {\"line_start\": 5, \"line_end\": 13, \"body_hash\": \"4e4a0029\", \"confidence\": \"high\", \"path\": \"components\\\\ClickSparkle.tsx\"}, \"components\\\\ClickSparkle.tsx::SparkleAnimator\": {\"line_start\": 15, \"line_end\": 82, \"body_hash\": \"762d0256\", \"confidence\": \"high\", \"path\": \"components\\\\ClickSparkle.tsx\"}, \"components\\\\Clock.tsx::ClockProps\": {\"line_start\": 4, \"line_end\": 7, \"body_hash\": \"e917dddc\", \"confidence\": \"high\", \"path\": \"components\\\\Clock.tsx\"}, \"components\\\\ColorPicker.tsx::ColorPicker\": {\"line_start\": 13, \"line_end\": 107, \"body_hash\": \"10efccd8\", \"confidence\": \"medium\", \"path\": \"components\\\\ColorPicker.tsx\"}, \"components\\\\ColorPicker.tsx::ColorPickerProps\": {\"line_start\": 7, \"line_end\": 11, \"body_hash\": \"0a30da5f\", \"confidence\": \"high\", \"path\": \"components\\\\ColorPicker.tsx\"}, \"components\\\\ConfirmModal.tsx::ConfirmModal\": {\"line_start\": 17, \"line_end\": 71, \"body_hash\": \"d68da0ca\", \"confidence\": \"medium\", \"path\": \"components\\\\ConfirmModal.tsx\"}, \"components\\\\ConfirmModal.tsx::ConfirmModalProps\": {\"line_start\": 6, \"line_end\": 15, \"body_hash\": \"ed7ed0fd\", \"confidence\": \"high\", \"path\": \"components\\\\ConfirmModal.tsx\"}, \"components\\\\ContentEnhancements.tsx::CustomCssInjection\": {\"line_start\": 88, \"line_end\": 92, \"body_hash\": \"3d42867a\", \"confidence\": \"medium\", \"path\": \"components\\\\ContentEnhancements.tsx\"}, \"components\\\\ContentEnhancements.tsx::MarkdownContent\": {\"line_start\": 93, \"line_end\": 158, \"body_hash\": \"b1c45d71\", \"confidence\": \"medium\", \"path\": \"components\\\\ContentEnhancements.tsx\"}, \"components\\\\ContentEnhancements.tsx::estimateReadingTime\": {\"line_start\": 49, \"line_end\": 52, \"body_hash\": \"db3b3079\", \"confidence\": \"high\", \"path\": \"components\\\\ContentEnhancements.tsx\"}, \"components\\\\ContentEnhancements.tsx::getRelatedPosts\": {\"line_start\": 68, \"line_end\": 83, \"body_hash\": \"1a245299\", \"confidence\": \"high\", \"path\": \"components\\\\ContentEnhancements.tsx\"}, \"components\\\\ContentEnhancements.tsx::sanitizeCustomCss\": {\"line_start\": 84, \"line_end\": 87, \"body_hash\": \"40e3a2a6\", \"confidence\": \"high\", \"path\": \"components\\\\ContentEnhancements.tsx\"}, \"components\\\\ContentEnhancements.tsx::MarkdownHeading\": {\"line_start\": 4, \"line_end\": 4, \"body_hash\": \"4964e08c\", \"confidence\": \"high\", \"path\": \"components\\\\ContentEnhancements.tsx\"}, \"components\\\\CustomCursor.tsx::CustomCursor\": {\"line_start\": 6, \"line_end\": 107, \"body_hash\": \"5111b639\", \"confidence\": \"medium\", \"path\": \"components\\\\CustomCursor.tsx\"}, \"components\\\\CustomRange.tsx::CustomRangeProps\": {\"line_start\": 2, \"line_end\": 9, \"body_hash\": \"fddfb199\", \"confidence\": \"high\", \"path\": \"components\\\\CustomRange.tsx\"}, \"components\\\\CustomSelect.tsx::Option\": {\"line_start\": 5, \"line_end\": 8, \"body_hash\": \"54c4139f\", \"confidence\": \"high\", \"path\": \"components\\\\CustomSelect.tsx\"}, \"components\\\\CustomSelect.tsx::CustomSelectProps\": {\"line_start\": 10, \"line_end\": 16, \"body_hash\": \"3022e7ca\", \"confidence\": \"high\", \"path\": \"components\\\\CustomSelect.tsx\"}, \"components\\\\DownloadPopup.tsx::DownloadPopupProps\": {\"line_start\": 7, \"line_end\": 11, \"body_hash\": \"8174fef4\", \"confidence\": \"high\", \"path\": \"components\\\\DownloadPopup.tsx\"}, \"components\\\\EnterScreen.tsx::EnterScreen\": {\"line_start\": 12, \"line_end\": 73, \"body_hash\": \"01d80e28\", \"confidence\": \"medium\", \"path\": \"components\\\\EnterScreen.tsx\"}, \"components\\\\EnterScreen.tsx::EnterScreenProps\": {\"line_start\": 5, \"line_end\": 10, \"body_hash\": \"cfa41e9a\", \"confidence\": \"high\", \"path\": \"components\\\\EnterScreen.tsx\"}, \"components\\\\FileUploader.tsx::FileUploaderProps\": {\"line_start\": 7, \"line_end\": 11, \"body_hash\": \"3f0ee88d\", \"confidence\": \"high\", \"path\": \"components\\\\FileUploader.tsx\"}, \"components\\\\IconPicker.tsx::IconPickerProps\": {\"line_start\": 8, \"line_end\": 11, \"body_hash\": \"da7dfce7\", \"confidence\": \"high\", \"path\": \"components\\\\IconPicker.tsx\"}, \"components\\\\MusicPlayer.tsx::MusicPlayer\": {\"line_start\": 8, \"line_end\": 309, \"body_hash\": \"c35a61a0\", \"confidence\": \"medium\", \"path\": \"components\\\\MusicPlayer.tsx\"}, \"components\\\\PostAttachments.tsx::PostAttachmentsProps\": {\"line_start\": 8, \"line_end\": 11, \"body_hash\": \"e4059cbf\", \"confidence\": \"high\", \"path\": \"components\\\\PostAttachments.tsx\"}, \"components\\\\PostDownloadButton.tsx::PostDownloadButtonProps\": {\"line_start\": 5, \"line_end\": 8, \"body_hash\": \"34786ac6\", \"confidence\": \"high\", \"path\": \"components\\\\PostDownloadButton.tsx\"}, \"components\\\\RichPresence.tsx::RichPresence\": {\"line_start\": 10, \"line_end\": 105, \"body_hash\": \"ed9aa7bb\", \"confidence\": \"medium\", \"path\": \"components\\\\RichPresence.tsx\"}, \"components\\\\RichPresence.tsx::RichPresenceProps\": {\"line_start\": 4, \"line_end\": 8, \"body_hash\": \"a80fc496\", \"confidence\": \"high\", \"path\": \"components\\\\RichPresence.tsx\"}, \"components\\\\Toast.tsx::Toast\": {\"line_start\": 28, \"line_end\": 57, \"body_hash\": \"8b122525\", \"confidence\": \"medium\", \"path\": \"components\\\\Toast.tsx\"}, \"components\\\\Toast.tsx::ToastType\": {\"line_start\": 6, \"line_end\": 14, \"body_hash\": \"d7d31bed\", \"confidence\": \"high\", \"path\": \"components\\\\Toast.tsx\"}, \"components\\\\Toast.tsx::ToastProps\": {\"line_start\": 8, \"line_end\": 14, \"body_hash\": \"87d6c2da\", \"confidence\": \"high\", \"path\": \"components\\\\Toast.tsx\"}, \"components\\\\TypewriterBio.tsx::TypewriterBioProps\": {\"line_start\": 5, \"line_end\": 8, \"body_hash\": \"a83b7523\", \"confidence\": \"high\", \"path\": \"components\\\\TypewriterBio.tsx\"}, \"hooks\\\\useLanyard.ts::useLanyard\": {\"line_start\": 76, \"line_end\": 163, \"body_hash\": \"2053c4b5\", \"confidence\": \"high\", \"path\": \"hooks\\\\useLanyard.ts\"}, \"hooks\\\\useLanyard.ts::LanyardData\": {\"line_start\": 16, \"line_end\": 68, \"body_hash\": \"dc74786a\", \"confidence\": \"high\", \"path\": \"hooks\\\\useLanyard.ts\"}, \"hooks\\\\useLanyard.ts::LanyardMessage\": {\"line_start\": 70, \"line_end\": 74, \"body_hash\": \"9b6f68dc\", \"confidence\": \"high\", \"path\": \"hooks\\\\useLanyard.ts\"}, \"hooks\\\\usePerformanceMode.ts::usePerformanceMode\": {\"line_start\": 32, \"line_end\": 59, \"body_hash\": \"c3ab49c6\", \"confidence\": \"high\", \"path\": \"hooks\\\\usePerformanceMode.ts\"}, \"hooks\\\\usePerformanceMode.ts::PerformanceMode\": {\"line_start\": 4, \"line_end\": 30, \"body_hash\": \"7a36df03\", \"confidence\": \"high\", \"path\": \"hooks\\\\usePerformanceMode.ts\"}, \"utils\\\\config.ts::getConfigPath\": {\"line_start\": 4, \"line_end\": 11, \"body_hash\": \"b41a49fc\", \"confidence\": \"high\", \"path\": \"utils\\\\config.ts\"}, \"utils\\\\config.ts::getConfig\": {\"line_start\": 13, \"line_end\": 24, \"body_hash\": \"5628808d\", \"confidence\": \"high\", \"path\": \"utils\\\\config.ts\"}, \"utils\\\\config.ts::saveConfig\": {\"line_start\": 26, \"line_end\": 33, \"body_hash\": \"65021232\", \"confidence\": \"high\", \"path\": \"utils\\\\config.ts\"}, \"utils\\\\supabase.ts::getSupabaseClient\": {\"line_start\": 3, \"line_end\": 10, \"body_hash\": \"139882bd\", \"confidence\": \"high\", \"path\": \"utils\\\\supabase.ts\"}}",
+      "summary": "{\"middleware.ts::middleware\": {\"line_start\": 3, \"line_end\": 12, \"body_hash\": \"8cac3254\", \"confidence\": \"high\", \"path\": \".",
+      "file_hash": "b10252f5"
+    },
+    {
+      "id": "test_agent_spawner.py",
+      "kind": "file",
+      "path": "test_agent_spawner.py",
+      "ext": ".py",
+      "size": 3328,
+      "keywords": [
+        "testagentspawner",
+        "test",
+        "agent",
+        "spawner"
+      ],
+      "content": "# .dual-graph/test_agent_spawner.py\nimport unittest\nimport os\nimport sys\nfrom unittest.mock import patch, MagicMock\nfrom datetime import datetime\n\n# Add parent directory to path\nsys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n\nfrom agent_spawner import AgentSpawner\n\nclass TestAgentSpawner(unittest.TestCase):\n    def setUp(self):\n        self.spawner = AgentSpawner()\n\n    def test_build_agent_prompt_bug(self):\n        \"\"\"Test bug task prompt building\"\"\"\n        prompt = self.spawner._build_agent_prompt('bug', 'Fix login error')\n        self.assertEqual(prompt, 'Debug v\u00e0 fix bug: Fix login error')\n\n    def test_build_agent_prompt_feature(self):\n        \"\"\"Test feature task prompt building\"\"\"\n        prompt = self.spawner._build_agent_prompt('feature', 'Add dark mode')\n        self.assertEqual(prompt, 'Implement feature: Add dark mode')\n\n    def test_build_agent_prompt_refactor(self):\n        \"\"\"Test refactor task prompt building\"\"\"\n        prompt = self.spawner._build_agent_prompt('refactor', 'Clean up auth code')\n        self.assertEqual(prompt, 'Refactor code: Clean up auth code')\n\n    def test_build_agent_prompt_test(self):\n        \"\"\"Test test task prompt building\"\"\"\n        prompt = self.spawner._build_agent_prompt('test', 'Add unit tests')\n        self.assertEqual(prompt, 'Write tests: Add unit tests')\n\n    def test_build_agent_prompt_unknown(self):\n        \"\"\"Test unknown task type uses original prompt\"\"\"\n        prompt = self.spawner._build_agent_prompt('unknown', 'Do something')\n        self.assertEqual(prompt, 'Do something')\n\n    @patch('subprocess.run')\n    def test_spawn_agent_success(self, mock_run):\n        \"\"\"Test successful agent spawn\"\"\"\n        mock_run.return_value = MagicMock(\n            returncode=0,\n            stdout='Agent completed successfully',\n            stderr=''\n        )\n\n        result = self.spawner.spawn_agent('bug', 'Fix error', 'test123')\n\n        self.assertEqual(result['agent_id'], 'test123')\n        self.assertEqual(result['status'], 'running')\n        self.assertEqual(result['output'], 'Agent completed successfully')\n        self.assertEqual(result['returncode'], 0)\n        self.assertIn('timestamp', result)\n\n    @patch('subprocess.run')\n    def test_spawn_agent_failure(self, mock_run):\n        \"\"\"Test failed agent spawn\"\"\"\n        mock_run.return_value = MagicMock(\n            returncode=1,\n            stdout='',\n            stderr='Agent failed'\n        )\n\n        result = self.spawner.spawn_agent('feature', 'Add feature', 'test456')\n\n        self.assertEqual(result['agent_id'], 'test456')\n        self.assertEqual(result['status'], 'failed')\n        self.assertEqual(result['output'], 'Agent failed')\n        self.assertEqual(result['returncode'], 1)\n\n    @patch('subprocess.run')\n    def test_spawn_agent_timeout(self, mock_run):\n        \"\"\"Test agent spawn timeout\"\"\"\n        from subprocess import TimeoutExpired\n        mock_run.side_effect = TimeoutExpired('claude', 300)\n\n        result = self.spawner.spawn_agent('refactor', 'Refactor code', 'test789')\n\n        self.assertEqual(result['agent_id'], 'test789')\n        self.assertEqual(result['status'], 'timeout')\n        self.assertIn('timed out', result['output'])\n        self.assertEqual(result['returncode'], -1)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "summary": ".dual-graph/test_agent_spawner.py. Contains 1 function: TestAgentSpawner.",
+      "file_hash": "5c838b77"
+    },
+    {
+      "id": "test_agent_spawner.py::TestAgentSpawner",
+      "kind": "symbol",
+      "path": "test_agent_spawner.py",
+      "ext": ".py",
+      "size": 77,
+      "keywords": [
+        "testagentspawner",
+        "test",
+        "agent",
+        "spawner"
+      ],
+      "symbol_type": "model",
+      "name": "TestAgentSpawner",
+      "line_start": 12,
+      "line_end": 88,
+      "body_hash": "bcb262a9",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_env_manager.py",
+      "kind": "file",
+      "path": "test_env_manager.py",
+      "ext": ".py",
+      "size": 7179,
+      "keywords": [
+        "testenvironmentmanager",
+        "test",
+        "environment",
+        "manager",
+        "run_tests",
+        "run",
+        "tests"
+      ],
+      "content": "# .dual-graph/test_env_manager.py\nimport unittest\nimport os\nimport json\nimport tempfile\nimport shutil\nfrom env_manager import EnvironmentManager\n\nclass TestEnvironmentManager(unittest.TestCase):\n    \"\"\"Test suite cho EnvironmentManager\"\"\"\n\n    def setUp(self):\n        \"\"\"T\u1ea1o temporary directory cho m\u1ed7i test\"\"\"\n        self.test_dir = tempfile.mkdtemp()\n        self.env_manager = EnvironmentManager(self.test_dir)\n\n    def tearDown(self):\n        \"\"\"Cleanup temporary directory\"\"\"\n        if os.path.exists(self.test_dir):\n            shutil.rmtree(self.test_dir)\n\n    def test_no_dependencies(self):\n        \"\"\"Test khi kh\u00f4ng c\u00f3 package.json ho\u1eb7c requirements.txt\"\"\"\n        result = self.env_manager.check_dependencies()\n\n        self.assertFalse(result['has_missing'])\n        self.assertEqual(len(result['npm']['missing']), 0)\n        self.assertEqual(len(result['pip']['missing']), 0)\n\n    def test_npm_all_installed(self):\n        \"\"\"Test khi t\u1ea5t c\u1ea3 npm packages \u0111\u00e3 \u0111\u01b0\u1ee3c install\"\"\"\n        # T\u1ea1o package.json\n        package_json = {\n            'dependencies': {\n                'react': '^18.0.0',\n                'next': '^14.0.0'\n            }\n        }\n        with open(os.path.join(self.test_dir, 'package.json'), 'w') as f:\n            json.dump(package_json, f)\n\n        # T\u1ea1o node_modules v\u1edbi c\u00e1c packages\n        node_modules = os.path.join(self.test_dir, 'node_modules')\n        os.makedirs(node_modules)\n        os.makedirs(os.path.join(node_modules, 'react'))\n        os.makedirs(os.path.join(node_modules, 'next'))\n\n        result = self.env_manager.check_dependencies()\n\n        self.assertFalse(result['has_missing'])\n        self.assertEqual(len(result['npm']['missing']), 0)\n        self.assertEqual(len(result['npm']['installed']), 2)\n        self.assertIn('react', result['npm']['installed'])\n        self.assertIn('next', result['npm']['installed'])\n\n    def test_npm_missing_packages(self):\n        \"\"\"Test khi c\u00f3 npm packages b\u1ecb thi\u1ebfu\"\"\"\n        # T\u1ea1o package.json\n        package_json = {\n            'dependencies': {\n                'react': '^18.0.0',\n                'next': '^14.0.0',\n                'typescript': '^5.0.0'\n            }\n        }\n        with open(os.path.join(self.test_dir, 'package.json'), 'w') as f:\n            json.dump(package_json, f)\n\n        # Ch\u1ec9 t\u1ea1o node_modules v\u1edbi 1 package\n        node_modules = os.path.join(self.test_dir, 'node_modules')\n        os.makedirs(node_modules)\n        os.makedirs(os.path.join(node_modules, 'react'))\n\n        result = self.env_manager.check_dependencies()\n\n        self.assertTrue(result['has_missing'])\n        self.assertEqual(len(result['npm']['missing']), 2)\n        self.assertEqual(len(result['npm']['installed']), 1)\n        self.assertIn('next', result['npm']['missing'])\n        self.assertIn('typescript', result['npm']['missing'])\n        self.assertIn('react', result['npm']['installed'])\n\n    def test_pip_all_installed(self):\n        \"\"\"Test khi t\u1ea5t c\u1ea3 pip packages \u0111\u00e3 \u0111\u01b0\u1ee3c install\"\"\"\n        # T\u1ea1o requirements.txt v\u1edbi packages \u0111\u00e3 install trong system\n        requirements = \"pip\\nsetuptools\\n\"\n        with open(os.path.join(self.test_dir, 'requirements.txt'), 'w') as f:\n            f.write(requirements)\n\n        result = self.env_manager.check_dependencies()\n\n        # pip v\u00e0 setuptools th\u01b0\u1eddng \u0111\u00e3 c\u00f3 s\u1eb5n\n        self.assertFalse(result['has_missing'])\n        self.assertGreaterEqual(len(result['pip']['installed']), 1)\n\n    def test_pip_missing_packages(self):\n        \"\"\"Test khi c\u00f3 pip packages b\u1ecb thi\u1ebfu\"\"\"\n        # T\u1ea1o requirements.txt v\u1edbi package kh\u00f4ng t\u1ed3n t\u1ea1i\n        requirements = \"pip\\nnonexistent-package-xyz-123\\n\"\n        with open(os.path.join(self.test_dir, 'requirements.txt'), 'w') as f:\n            f.write(requirements)\n\n        result = self.env_manager.check_dependencies()\n\n        self.assertTrue(result['has_missing'])\n        self.assertIn('nonexistent-package-xyz-123', result['pip']['missing'])\n\n    def test_ensure_environment_no_missing(self):\n        \"\"\"Test ensure_environment khi kh\u00f4ng c\u00f3 missing packages\"\"\"\n        result = self.env_manager.ensure_environment()\n\n        self.assertTrue(result['ready'])\n        self.assertFalse(result['dep_check']['has_missing'])\n        self.assertNotIn('install_result', result)\n\n    def test_ensure_environment_with_missing(self):\n        \"\"\"Test ensure_environment khi c\u00f3 missing packages\"\"\"\n        # T\u1ea1o package.json v\u1edbi missing packages\n        package_json = {\n            'dependencies': {\n                'react': '^18.0.0'\n            }\n        }\n        with open(os.path.join(self.test_dir, 'package.json'), 'w') as f:\n            json.dump(package_json, f)\n\n        # Kh\u00f4ng t\u1ea1o node_modules -> packages s\u1ebd missing\n        result = self.env_manager.ensure_environment()\n\n        self.assertTrue(result['dep_check']['has_missing'])\n        self.assertIn('install_result', result)\n\n    def test_npm_with_dev_dependencies(self):\n        \"\"\"Test npm check v\u1edbi c\u1ea3 dependencies v\u00e0 devDependencies\"\"\"\n        package_json = {\n            'dependencies': {\n                'react': '^18.0.0'\n            },\n            'devDependencies': {\n                'typescript': '^5.0.0',\n                'eslint': '^8.0.0'\n            }\n        }\n        with open(os.path.join(self.test_dir, 'package.json'), 'w') as f:\n            json.dump(package_json, f)\n\n        result = self.env_manager.check_dependencies()\n\n        # T\u1ea5t c\u1ea3 3 packages \u0111\u1ec1u missing\n        self.assertTrue(result['has_missing'])\n        self.assertEqual(len(result['npm']['missing']), 3)\n\n    def test_pip_requirements_with_versions(self):\n        \"\"\"Test pip check v\u1edbi version specifiers\"\"\"\n        requirements = \"nonexistent-pkg-a==1.0.0\\nnonexistent-pkg-b>=2.0.0\\nnonexistent-pkg-c<=3.0.0\\n\"\n        with open(os.path.join(self.test_dir, 'requirements.txt'), 'w') as f:\n            f.write(requirements)\n\n        result = self.env_manager.check_dependencies()\n\n        # Packages s\u1ebd missing v\u00ec kh\u00f4ng t\u1ed3n t\u1ea1i\n        self.assertTrue(result['has_missing'])\n        self.assertIn('nonexistent-pkg-a', result['pip']['missing'])\n        self.assertIn('nonexistent-pkg-b', result['pip']['missing'])\n        self.assertIn('nonexistent-pkg-c', result['pip']['missing'])\n\n    def test_pip_requirements_with_comments(self):\n        \"\"\"Test pip check v\u1edbi comments trong requirements.txt\"\"\"\n        requirements = \"# This is a comment\\npip\\n# Another comment\\nsetuptools\\n\\n\"\n        with open(os.path.join(self.test_dir, 'requirements.txt'), 'w') as f:\n            f.write(requirements)\n\n        result = self.env_manager.check_dependencies()\n\n        # Comments kh\u00f4ng \u0111\u01b0\u1ee3c parse\n        self.assertEqual(len(result['pip']['installed']) + len(result['pip']['missing']), 2)\n\ndef run_tests():\n    \"\"\"Ch\u1ea1y t\u1ea5t c\u1ea3 tests\"\"\"\n    suite = unittest.TestLoader().loadTestsFromTestCase(TestEnvironmentManager)\n    runner = unittest.TextTestRunner(verbosity=2)\n    result = runner.run(suite)\n    return result.wasSuccessful()\n\nif __name__ == '__main__':\n    success = run_tests()\n    exit(0 if success else 1)\n",
+      "summary": ".dual-graph/test_env_manager.py. Contains 2 functions/classes: TestEnvironmentManager, run_tests.",
+      "file_hash": "741b35e0"
+    },
+    {
+      "id": "test_env_manager.py::run_tests",
+      "kind": "symbol",
+      "path": "test_env_manager.py",
+      "ext": ".py",
+      "size": 10,
+      "keywords": [
+        "run_tests",
+        "run",
+        "tests"
+      ],
+      "symbol_type": "use_case",
+      "name": "run_tests",
+      "line_start": 177,
+      "line_end": 186,
+      "body_hash": "ee30cd5a",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_env_manager.py::TestEnvironmentManager",
+      "kind": "symbol",
+      "path": "test_env_manager.py",
+      "ext": ".py",
+      "size": 168,
+      "keywords": [
+        "testenvironmentmanager",
+        "test",
+        "environment",
+        "manager"
+      ],
+      "symbol_type": "model",
+      "name": "TestEnvironmentManager",
+      "line_start": 8,
+      "line_end": 175,
+      "body_hash": "82f476a1",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_git_automation.py",
+      "kind": "file",
+      "path": "test_git_automation.py",
+      "ext": ".py",
+      "size": 3295,
+      "keywords": [
+        "testgitautomation",
+        "test",
+        "git",
+        "automation"
+      ],
+      "content": "# .dual-graph/test_git_automation.py\nimport unittest\nimport os\nimport tempfile\nimport shutil\nimport subprocess\nfrom git_automation import GitAutomation\n\nclass TestGitAutomation(unittest.TestCase):\n    def setUp(self):\n        self.git = GitAutomation()\n        self.session_id = 'test5678'\n        self.test_dir = tempfile.mkdtemp()\n\n        # Initialize git repo\n        subprocess.run(['git', 'init'], cwd=self.test_dir, capture_output=True)\n        subprocess.run(['git', 'config', 'user.name', 'Test User'], cwd=self.test_dir, capture_output=True)\n        subprocess.run(['git', 'config', 'user.email', 'test@example.com'], cwd=self.test_dir, capture_output=True)\n\n    def tearDown(self):\n        if os.path.exists(self.test_dir):\n            shutil.rmtree(self.test_dir)\n\n    def test_git_initialization(self):\n        \"\"\"Test GitAutomation initializes correctly\"\"\"\n        self.assertIsNotNone(self.git)\n        self.assertTrue(os.path.exists(self.git.git_log_file))\n\n    def test_get_git_status_no_changes(self):\n        \"\"\"Test git status with no changes\"\"\"\n        result = self.git.get_git_status(self.test_dir)\n\n        self.assertTrue(result['success'])\n        self.assertFalse(result['has_changes'])\n\n    def test_get_git_status_with_changes(self):\n        \"\"\"Test git status with changes\"\"\"\n        # Create a test file\n        test_file = os.path.join(self.test_dir, 'test.txt')\n        with open(test_file, 'w') as f:\n            f.write('test content')\n\n        result = self.git.get_git_status(self.test_dir)\n\n        self.assertTrue(result['success'])\n        self.assertTrue(result['has_changes'])\n\n    def test_auto_commit_no_changes(self):\n        \"\"\"Test auto commit with no changes\"\"\"\n        result = self.git.auto_commit(self.session_id, 'test commit', self.test_dir)\n\n        self.assertTrue(result['success'])\n        self.assertIn('No changes to commit', result['message'])\n\n    def test_auto_commit_with_changes(self):\n        \"\"\"Test auto commit with changes\"\"\"\n        # Create and add a test file\n        test_file = os.path.join(self.test_dir, 'test.txt')\n        with open(test_file, 'w') as f:\n            f.write('test content')\n\n        result = self.git.auto_commit(self.session_id, 'test commit', self.test_dir)\n\n        self.assertTrue(result['success'])\n        self.assertIn('Committed', result['message'])\n\n    def test_generate_commit_message(self):\n        \"\"\"Test commit message generation\"\"\"\n        message = self.git.generate_commit_message(self.session_id, 'feature', self.test_dir)\n\n        self.assertIsInstance(message, str)\n        self.assertIn('feat', message)\n        self.assertIn(self.session_id[:8], message)\n\n    def test_generate_commit_message_bug(self):\n        \"\"\"Test commit message generation for bug fix\"\"\"\n        message = self.git.generate_commit_message(self.session_id, 'bug', self.test_dir)\n\n        self.assertIn('fix', message)\n\n    def test_result_structure(self):\n        \"\"\"Test that results have correct structure\"\"\"\n        result = self.git.auto_commit(self.session_id, 'test', self.test_dir)\n\n        self.assertIn('session_id', result)\n        self.assertIn('success', result)\n        self.assertIn('message', result)\n        self.assertIn('timestamp', result)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "summary": ".dual-graph/test_git_automation.py. Contains 1 function: TestGitAutomation.",
+      "file_hash": "835651a5"
+    },
+    {
+      "id": "test_git_automation.py::TestGitAutomation",
+      "kind": "symbol",
+      "path": "test_git_automation.py",
+      "ext": ".py",
+      "size": 83,
+      "keywords": [
+        "testgitautomation",
+        "test",
+        "git",
+        "automation"
+      ],
+      "symbol_type": "model",
+      "name": "TestGitAutomation",
+      "line_start": 8,
+      "line_end": 90,
+      "body_hash": "bc2a882e",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_notifier.py",
+      "kind": "file",
+      "path": "test_notifier.py",
+      "ext": ".py",
+      "size": 3429,
+      "keywords": [
+        "testnotifier",
+        "test",
+        "notifier"
+      ],
+      "content": "# .dual-graph/test_notifier.py\nimport unittest\nfrom unittest.mock import patch, MagicMock\nimport platform\nfrom notifier import send_notification\n\n\nclass TestNotifier(unittest.TestCase):\n\n    @patch('notifier.platform.system')\n    @patch('notifier.subprocess.run')\n    def test_send_notification_windows(self, mock_run, mock_platform):\n        \"\"\"Test notification g\u1eedi th\u00e0nh c\u00f4ng tr\u00ean Windows\"\"\"\n        mock_platform.return_value = 'Windows'\n        mock_run.return_value = MagicMock(returncode=0)\n\n        send_notification(\"Test Title\", \"Test Message\")\n\n        # Verify subprocess.run \u0111\u01b0\u1ee3c g\u1ecdi v\u1edbi PowerShell\n        mock_run.assert_called_once()\n        call_args = mock_run.call_args\n        self.assertEqual(call_args[0][0][0], 'powershell')\n        self.assertEqual(call_args[0][0][1], '-Command')\n        self.assertIn('Test Title', call_args[0][0][2])\n        self.assertIn('Test Message', call_args[0][0][2])\n\n    @patch('notifier.platform.system')\n    @patch('notifier.subprocess.run')\n    def test_send_notification_timeout(self, mock_run, mock_platform):\n        \"\"\"Test notification c\u00f3 timeout \u0111\u1ec3 tr\u00e1nh block\"\"\"\n        mock_platform.return_value = 'Windows'\n\n        send_notification(\"Title\", \"Message\")\n\n        # Verify timeout \u0111\u01b0\u1ee3c set\n        call_kwargs = mock_run.call_args[1]\n        self.assertEqual(call_kwargs['timeout'], 5)\n        self.assertTrue(call_kwargs['capture_output'])\n\n    @patch('notifier.platform.system')\n    @patch('notifier.subprocess.run')\n    def test_send_notification_handles_error(self, mock_run, mock_platform):\n        \"\"\"Test notification kh\u00f4ng crash khi c\u00f3 l\u1ed7i\"\"\"\n        mock_platform.return_value = 'Windows'\n        mock_run.side_effect = Exception(\"PowerShell error\")\n\n        # Kh\u00f4ng n\u00ean raise exception\n        try:\n            send_notification(\"Title\", \"Message\")\n        except Exception:\n            self.fail(\"send_notification should not raise exception\")\n\n    @patch('notifier.platform.system')\n    @patch('notifier.subprocess.run')\n    def test_xml_injection_prevention(self, mock_run, mock_platform):\n        \"\"\"Test XML special characters \u0111\u01b0\u1ee3c escape \u0111\u00fang\"\"\"\n        mock_platform.return_value = 'Windows'\n        mock_run.return_value = MagicMock(returncode=0)\n\n        # Test v\u1edbi XML special characters\n        send_notification(\"Title <tag>\", \"Message & <xml>\")\n\n        # Verify escaped characters trong PowerShell script\n        call_args = mock_run.call_args[0][0][2]\n        self.assertIn('&lt;tag&gt;', call_args)  # < v\u00e0 > \u0111\u01b0\u1ee3c escape\n        self.assertIn('&amp;', call_args)  # & \u0111\u01b0\u1ee3c escape\n        self.assertNotIn('<tag>', call_args)  # Raw tags kh\u00f4ng c\u00f3\n        self.assertNotIn('& <xml>', call_args)  # Raw & kh\u00f4ng c\u00f3\n\n    @patch('notifier.platform.system')\n    @patch('notifier.subprocess.run')\n    def test_xml_injection_quotes(self, mock_run, mock_platform):\n        \"\"\"Test quotes \u0111\u01b0\u1ee3c escape \u0111\u00fang\"\"\"\n        mock_platform.return_value = 'Windows'\n        mock_run.return_value = MagicMock(returncode=0)\n\n        send_notification(\"Title 'single'\", 'Message \"double\"')\n\n        call_args = mock_run.call_args[0][0][2]\n        self.assertIn('&#x27;', call_args)  # Single quote escaped\n        self.assertIn('&quot;', call_args)  # Double quote escaped\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "summary": ".dual-graph/test_notifier.py. Contains 1 function: TestNotifier.",
+      "file_hash": "5a6352ad"
+    },
+    {
+      "id": "test_notifier.py::TestNotifier",
+      "kind": "symbol",
+      "path": "test_notifier.py",
+      "ext": ".py",
+      "size": 78,
+      "keywords": [
+        "testnotifier",
+        "test",
+        "notifier"
+      ],
+      "symbol_type": "model",
+      "name": "TestNotifier",
+      "line_start": 7,
+      "line_end": 84,
+      "body_hash": "7f3b435c",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_orchestrator_agent_integration.py",
+      "kind": "file",
+      "path": "test_orchestrator_agent_integration.py",
+      "ext": ".py",
+      "size": 4816,
+      "keywords": [
+        "testorchestratoragentintegration",
+        "test",
+        "orchestrator",
+        "agent",
+        "integration"
+      ],
+      "content": "# .dual-graph/test_orchestrator_agent_integration.py\nimport unittest\nimport os\nimport sys\nimport tempfile\nfrom unittest.mock import patch, MagicMock\n\n# Add parent directory to path\nsys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n\nfrom orchestrator import WorkflowOrchestrator\n\nclass TestOrchestratorAgentIntegration(unittest.TestCase):\n    def setUp(self):\n        # Create temporary database for testing\n        self.temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')\n        self.temp_db.close()\n        self.orchestrator = WorkflowOrchestrator(self.temp_db.name)\n\n    def tearDown(self):\n        # Clean up temporary database\n        if os.path.exists(self.temp_db.name):\n            os.unlink(self.temp_db.name)\n\n    def test_orchestrator_has_agent_spawner(self):\n        \"\"\"Test that orchestrator initializes with agent spawner\"\"\"\n        self.assertIsNotNone(self.orchestrator.agent_spawner)\n        self.assertEqual(self.orchestrator.agent_spawner.__class__.__name__, 'AgentSpawner')\n\n    @patch('notifier.send_notification')\n    def test_create_workflow_initializes_classifying_state(self, mock_notify):\n        \"\"\"Test workflow creation starts in CLASSIFYING state\"\"\"\n        session_id = self.orchestrator.create_workflow('Fix bug in login', os.getcwd())\n\n        status = self.orchestrator.get_status(session_id)\n        self.assertIsNotNone(status)\n        self.assertEqual(status['state'], 'CLASSIFYING')\n        self.assertEqual(status['task_type'], 'bug')\n\n    @patch('notifier.send_notification')\n    @patch('subprocess.run')\n    def test_transition_to_executing_success(self, mock_run, mock_notify):\n        \"\"\"Test successful transition from CLASSIFYING to EXECUTING\"\"\"\n        # Mock successful agent spawn\n        mock_run.return_value = MagicMock(\n            returncode=0,\n            stdout='Agent started successfully',\n            stderr=''\n        )\n\n        # Create workflow\n        session_id = self.orchestrator.create_workflow('Add new feature', os.getcwd())\n\n        # Verify initial state\n        status = self.orchestrator.get_status(session_id)\n        self.assertEqual(status['state'], 'CLASSIFYING')\n\n        # Transition to EXECUTING\n        result = self.orchestrator.transition_to_executing(session_id)\n\n        # Verify transition result\n        self.assertTrue(result['success'])\n        self.assertEqual(result['session_id'], session_id)\n        self.assertEqual(result['previous_state'], 'CLASSIFYING')\n        self.assertEqual(result['new_state'], 'EXECUTING')\n        self.assertEqual(result['agent_result']['status'], 'running')\n\n        # Verify state updated in database\n        status = self.orchestrator.get_status(session_id)\n        self.assertEqual(status['state'], 'EXECUTING')\n\n    @patch('notifier.send_notification')\n    def test_transition_invalid_session(self, mock_notify):\n        \"\"\"Test transition with invalid session_id\"\"\"\n        result = self.orchestrator.transition_to_executing('invalid123')\n\n        self.assertFalse(result['success'])\n        self.assertIn('error', result)\n\n    @patch('notifier.send_notification')\n    def test_transition_nonexistent_session(self, mock_notify):\n        \"\"\"Test transition with non-existent session\"\"\"\n        result = self.orchestrator.transition_to_executing('abcd1234')\n\n        self.assertFalse(result['success'])\n        self.assertEqual(result['error'], 'Workflow not found')\n\n    @patch('notifier.send_notification')\n    @patch('subprocess.run')\n    def test_agent_receives_correct_prompt(self, mock_run, mock_notify):\n        \"\"\"Test that agent receives correctly formatted prompt\"\"\"\n        mock_run.return_value = MagicMock(returncode=0, stdout='OK', stderr='')\n\n        # Create bug workflow\n        session_id = self.orchestrator.create_workflow('Fix authentication error', os.getcwd())\n\n        # Transition to executing\n        self.orchestrator.transition_to_executing(session_id)\n\n        # Verify subprocess was called (may be called multiple times due to notifications)\n        # Find the call with claude agent\n        claude_calls = [call for call in mock_run.call_args_list\n                       if len(call[0]) > 0 and isinstance(call[0][0], list)\n                       and 'claude' in call[0][0]]\n\n        self.assertEqual(len(claude_calls), 1, \"Should have exactly one claude agent call\")\n\n        call_args = claude_calls[0][0][0]\n        self.assertIn('claude', call_args)\n        self.assertIn('--agent', call_args)\n        self.assertIn('--prompt', call_args)\n\n        # Find the prompt argument\n        prompt_index = call_args.index('--prompt') + 1\n        prompt = call_args[prompt_index]\n        self.assertIn('Debug v\u00e0 fix bug:', prompt)\n        self.assertIn('Fix authentication error', prompt)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "summary": ".dual-graph/test_orchestrator_agent_integration.py. Contains 1 function: TestOrchestratorAgentIntegration.",
+      "file_hash": "38ffcb25"
+    },
+    {
+      "id": "test_orchestrator_agent_integration.py::TestOrchestratorAgentIntegration",
+      "kind": "symbol",
+      "path": "test_orchestrator_agent_integration.py",
+      "ext": ".py",
+      "size": 108,
+      "keywords": [
+        "testorchestratoragentintegration",
+        "test",
+        "orchestrator",
+        "agent",
+        "integration"
+      ],
+      "symbol_type": "model",
+      "name": "TestOrchestratorAgentIntegration",
+      "line_start": 12,
+      "line_end": 119,
+      "body_hash": "bfa06f50",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_orchestrator_env_integration.py",
+      "kind": "file",
+      "path": "test_orchestrator_env_integration.py",
+      "ext": ".py",
+      "size": 7564,
+      "keywords": [
+        "testorchestratorenvintegration",
+        "test",
+        "orchestrator",
+        "env",
+        "integration",
+        "run_tests",
+        "run",
+        "tests"
+      ],
+      "content": "# .dual-graph/test_orchestrator_env_integration.py\nimport unittest\nimport os\nimport json\nimport tempfile\nimport shutil\nimport sqlite3\nfrom orchestrator import WorkflowOrchestrator\n\nclass TestOrchestratorEnvIntegration(unittest.TestCase):\n    \"\"\"Test suite cho integration gi\u1eefa Orchestrator v\u00e0 EnvironmentManager\"\"\"\n\n    def setUp(self):\n        \"\"\"Setup test environment\"\"\"\n        self.test_dir = tempfile.mkdtemp()\n        self.db_path = os.path.join(self.test_dir, 'test_workflows.db')\n        self.orchestrator = WorkflowOrchestrator(self.db_path, self.test_dir)\n\n    def tearDown(self):\n        \"\"\"Cleanup test environment\"\"\"\n        if os.path.exists(self.test_dir):\n            shutil.rmtree(self.test_dir)\n\n    def test_transition_to_executing_no_dependencies(self):\n        \"\"\"Test transition khi kh\u00f4ng c\u00f3 dependencies\"\"\"\n        # Create workflow\n        session_id = self.orchestrator.create_workflow(\n            \"Fix bug in authentication\",\n            self.test_dir\n        )\n\n        # Mock agent_spawner \u0111\u1ec3 kh\u00f4ng spawn th\u1eadt\n        original_spawn = self.orchestrator.agent_spawner.spawn_agent\n        self.orchestrator.agent_spawner.spawn_agent = lambda *args, **kwargs: {\n            'status': 'mocked',\n            'session_id': args[2] if len(args) > 2 else 'test'\n        }\n\n        # Transition to executing\n        result = self.orchestrator.transition_to_executing(session_id)\n\n        # Restore original\n        self.orchestrator.agent_spawner.spawn_agent = original_spawn\n\n        # Verify success\n        self.assertTrue(result['success'])\n        self.assertEqual(result['new_state'], 'EXECUTING')\n        self.assertIn('env_result', result)\n        self.assertTrue(result['env_result']['ready'])\n        self.assertFalse(result['env_result']['dep_check']['has_missing'])\n\n    def test_transition_to_executing_with_installed_dependencies(self):\n        \"\"\"Test transition khi c\u00f3 dependencies nh\u01b0ng \u0111\u00e3 install\"\"\"\n        # Create package.json v\u1edbi installed packages\n        package_json = {\n            'dependencies': {\n                'react': '^18.0.0'\n            }\n        }\n        with open(os.path.join(self.test_dir, 'package.json'), 'w') as f:\n            json.dump(package_json, f)\n\n        # Create node_modules\n        node_modules = os.path.join(self.test_dir, 'node_modules')\n        os.makedirs(node_modules)\n        os.makedirs(os.path.join(node_modules, 'react'))\n\n        # Create workflow\n        session_id = self.orchestrator.create_workflow(\n            \"Add new feature\",\n            self.test_dir\n        )\n\n        # Mock agent_spawner\n        self.orchestrator.agent_spawner.spawn_agent = lambda *args, **kwargs: {\n            'status': 'mocked',\n            'session_id': args[2] if len(args) > 2 else 'test'\n        }\n\n        # Transition to executing\n        result = self.orchestrator.transition_to_executing(session_id)\n\n        # Verify success\n        self.assertTrue(result['success'])\n        self.assertEqual(result['new_state'], 'EXECUTING')\n        self.assertTrue(result['env_result']['ready'])\n        self.assertFalse(result['env_result']['dep_check']['has_missing'])\n\n    def test_transition_to_executing_with_missing_dependencies(self):\n        \"\"\"Test transition khi c\u00f3 missing dependencies\"\"\"\n        # Create package.json v\u1edbi missing packages\n        package_json = {\n            'dependencies': {\n                'react': '^18.0.0',\n                'next': '^14.0.0'\n            }\n        }\n        with open(os.path.join(self.test_dir, 'package.json'), 'w') as f:\n            json.dump(package_json, f)\n\n        # Kh\u00f4ng t\u1ea1o node_modules -> packages s\u1ebd missing\n\n        # Create workflow\n        session_id = self.orchestrator.create_workflow(\n            \"Add new feature\",\n            self.test_dir\n        )\n\n        # Transition to executing\n        result = self.orchestrator.transition_to_executing(session_id)\n\n        # Verify env check detected missing packages\n        self.assertIn('env_result', result)\n        self.assertTrue(result['env_result']['dep_check']['has_missing'])\n        self.assertIn('install_result', result['env_result'])\n\n        # Note: npm install s\u1ebd fail trong test environment v\u00ec kh\u00f4ng c\u00f3 npm\n        # nh\u01b0ng logic \u0111\u00e3 \u0111\u01b0\u1ee3c test\n\n    def test_env_check_before_agent_spawn(self):\n        \"\"\"Test r\u1eb1ng env check \u0111\u01b0\u1ee3c th\u1ef1c hi\u1ec7n tr\u01b0\u1edbc khi spawn agent\"\"\"\n        # Create requirements.txt v\u1edbi missing package\n        requirements = \"nonexistent-package-xyz\\n\"\n        with open(os.path.join(self.test_dir, 'requirements.txt'), 'w') as f:\n            f.write(requirements)\n\n        # Create workflow\n        session_id = self.orchestrator.create_workflow(\n            \"Refactor code\",\n            self.test_dir\n        )\n\n        # Transition to executing\n        result = self.orchestrator.transition_to_executing(session_id)\n\n        # Verify env check was performed\n        self.assertIn('env_result', result)\n        self.assertIn('dep_check', result['env_result'])\n        self.assertTrue(result['env_result']['dep_check']['has_missing'])\n\n        # Verify install was attempted\n        self.assertIn('install_result', result['env_result'])\n\n    def test_orchestrator_cwd_propagation(self):\n        \"\"\"Test r\u1eb1ng cwd \u0111\u01b0\u1ee3c propagate \u0111\u00fang \u0111\u1ebfn env_manager\"\"\"\n        # Verify orchestrator c\u00f3 cwd\n        self.assertEqual(self.orchestrator.cwd, self.test_dir)\n\n        # Verify env_manager c\u00f3 c\u00f9ng cwd\n        self.assertEqual(self.orchestrator.env_manager.cwd, self.test_dir)\n\n    def test_workflow_state_after_env_check(self):\n        \"\"\"Test workflow state sau khi env check\"\"\"\n        # Create workflow\n        session_id = self.orchestrator.create_workflow(\n            \"Fix bug\",\n            self.test_dir\n        )\n\n        # Initial state should be CLASSIFYING\n        status = self.orchestrator.get_status(session_id)\n        self.assertEqual(status['state'], 'CLASSIFYING')\n\n        # Transition to executing (v\u1edbi env check)\n        result = self.orchestrator.transition_to_executing(session_id)\n\n        # State should be EXECUTING\n        status = self.orchestrator.get_status(session_id)\n        self.assertEqual(status['state'], 'EXECUTING')\n\n    def test_multiple_workflows_independent_env_checks(self):\n        \"\"\"Test r\u1eb1ng multiple workflows c\u00f3 independent env checks\"\"\"\n        # Mock agent_spawner\n        self.orchestrator.agent_spawner.spawn_agent = lambda *args, **kwargs: {\n            'status': 'mocked',\n            'session_id': args[2] if len(args) > 2 else 'test'\n        }\n\n        # Create first workflow\n        session_id_1 = self.orchestrator.create_workflow(\n            \"Fix bug 1\",\n            self.test_dir\n        )\n\n        # Create second workflow\n        session_id_2 = self.orchestrator.create_workflow(\n            \"Fix bug 2\",\n            self.test_dir\n        )\n\n        # Both should transition independently\n        result_1 = self.orchestrator.transition_to_executing(session_id_1)\n        result_2 = self.orchestrator.transition_to_executing(session_id_2)\n\n        self.assertTrue(result_1['success'])\n        self.assertTrue(result_2['success'])\n        self.assertNotEqual(session_id_1, session_id_2)\n\ndef run_tests():\n    \"\"\"Ch\u1ea1y t\u1ea5t c\u1ea3 tests\"\"\"\n    suite = unittest.TestLoader().loadTestsFromTestCase(TestOrchestratorEnvIntegration)\n    runner = unittest.TextTestRunner(verbosity=2)\n    result = runner.run(suite)\n    return result.wasSuccessful()\n\nif __name__ == '__main__':\n    success = run_tests()\n    exit(0 if success else 1)\n",
+      "summary": ".dual-graph/test_orchestrator_env_integration.py. Contains 2 functions/classes: TestOrchestratorEnvIntegration, run_tests.",
+      "file_hash": "d82a9f1c"
+    },
+    {
+      "id": "test_orchestrator_env_integration.py::run_tests",
+      "kind": "symbol",
+      "path": "test_orchestrator_env_integration.py",
+      "ext": ".py",
+      "size": 10,
+      "keywords": [
+        "run_tests",
+        "run",
+        "tests"
+      ],
+      "symbol_type": "use_case",
+      "name": "run_tests",
+      "line_start": 198,
+      "line_end": 207,
+      "body_hash": "849fe7fc",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_orchestrator_env_integration.py::TestOrchestratorEnvIntegration",
+      "kind": "symbol",
+      "path": "test_orchestrator_env_integration.py",
+      "ext": ".py",
+      "size": 188,
+      "keywords": [
+        "testorchestratorenvintegration",
+        "test",
+        "orchestrator",
+        "env",
+        "integration"
+      ],
+      "symbol_type": "model",
+      "name": "TestOrchestratorEnvIntegration",
+      "line_start": 9,
+      "line_end": 196,
+      "body_hash": "474bc172",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_orchestrator_integration.py",
+      "kind": "file",
+      "path": "test_orchestrator_integration.py",
+      "ext": ".py",
+      "size": 3458,
+      "keywords": [
+        "testorchestratorintegration",
+        "test",
+        "orchestrator",
+        "integration"
+      ],
+      "content": "# .dual-graph/test_orchestrator_integration.py\nimport unittest\nimport os\nimport tempfile\nimport shutil\nfrom orchestrator import WorkflowOrchestrator\n\nclass TestOrchestratorIntegration(unittest.TestCase):\n    def setUp(self):\n        self.test_dir = tempfile.mkdtemp()\n        self.db_path = os.path.join(self.test_dir, 'test_workflows.db')\n        self.orchestrator = WorkflowOrchestrator(self.db_path)\n\n    def tearDown(self):\n        if os.path.exists(self.test_dir):\n            shutil.rmtree(self.test_dir)\n\n    def test_orchestrator_has_test_runner(self):\n        \"\"\"Test orchestrator has test_runner instance\"\"\"\n        self.assertIsNotNone(self.orchestrator.test_runner)\n\n    def test_orchestrator_has_git_automation(self):\n        \"\"\"Test orchestrator has git_automation instance\"\"\"\n        self.assertIsNotNone(self.orchestrator.git_automation)\n\n    def test_transition_to_testing_invalid_session(self):\n        \"\"\"Test transition to testing with invalid session\"\"\"\n        result = self.orchestrator.transition_to_testing('invalid')\n\n        self.assertFalse(result['success'])\n        self.assertIn('Invalid session_id format', result['error'])\n\n    def test_transition_to_testing_nonexistent_session(self):\n        \"\"\"Test transition to testing with nonexistent session\"\"\"\n        result = self.orchestrator.transition_to_testing('abcd1234')\n\n        self.assertFalse(result['success'])\n        self.assertIn('Workflow not found', result['error'])\n\n    def test_transition_to_testing_wrong_state(self):\n        \"\"\"Test transition to testing from wrong state\"\"\"\n        # Create workflow in CLASSIFYING state\n        session_id = self.orchestrator.create_workflow('test prompt', '/tmp')\n\n        result = self.orchestrator.transition_to_testing(session_id)\n\n        self.assertFalse(result['success'])\n        self.assertIn('Invalid state transition', result['error'])\n\n    def test_transition_to_committing_invalid_session(self):\n        \"\"\"Test transition to committing with invalid session\"\"\"\n        result = self.orchestrator.transition_to_committing('invalid')\n\n        self.assertFalse(result['success'])\n        self.assertIn('Invalid session_id format', result['error'])\n\n    def test_transition_to_committing_nonexistent_session(self):\n        \"\"\"Test transition to committing with nonexistent session\"\"\"\n        result = self.orchestrator.transition_to_committing('abcd1234')\n\n        self.assertFalse(result['success'])\n        self.assertIn('Workflow not found', result['error'])\n\n    def test_transition_to_committing_wrong_state(self):\n        \"\"\"Test transition to committing from wrong state\"\"\"\n        # Create workflow in CLASSIFYING state\n        session_id = self.orchestrator.create_workflow('test prompt', '/tmp')\n\n        result = self.orchestrator.transition_to_committing(session_id)\n\n        self.assertFalse(result['success'])\n        self.assertIn('Invalid state transition', result['error'])\n\n    def test_full_workflow_state_transitions(self):\n        \"\"\"Test full workflow state transitions\"\"\"\n        # Create workflow\n        session_id = self.orchestrator.create_workflow('add new feature', '/tmp')\n        status = self.orchestrator.get_status(session_id)\n        self.assertEqual(status['state'], 'CLASSIFYING')\n\n        # Note: Cannot test full transitions without actual agent/test/git setup\n        # This test verifies the state machine structure is correct\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "summary": ".dual-graph/test_orchestrator_integration.py. Contains 1 function: TestOrchestratorIntegration.",
+      "file_hash": "38610e8b"
+    },
+    {
+      "id": "test_orchestrator_integration.py::TestOrchestratorIntegration",
+      "kind": "symbol",
+      "path": "test_orchestrator_integration.py",
+      "ext": ".py",
+      "size": 78,
+      "keywords": [
+        "testorchestratorintegration",
+        "test",
+        "orchestrator",
+        "integration"
+      ],
+      "symbol_type": "model",
+      "name": "TestOrchestratorIntegration",
+      "line_start": 7,
+      "line_end": 84,
+      "body_hash": "16427168",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_orchestrator_notifications.py",
+      "kind": "file",
+      "path": "test_orchestrator_notifications.py",
+      "ext": ".py",
+      "size": 2397,
+      "keywords": [
+        "testorchestratornotifications",
+        "test",
+        "orchestrator",
+        "notifications"
+      ],
+      "content": "# .dual-graph/test_orchestrator_notifications.py\nimport unittest\nfrom unittest.mock import patch, MagicMock\nimport tempfile\nimport os\nfrom orchestrator import WorkflowOrchestrator\n\n\nclass TestOrchestratorNotifications(unittest.TestCase):\n\n    def setUp(self):\n        \"\"\"T\u1ea1o temporary database cho m\u1ed7i test\"\"\"\n        self.temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')\n        self.temp_db.close()\n        self.orchestrator = WorkflowOrchestrator(self.temp_db.name)\n\n    def tearDown(self):\n        \"\"\"X\u00f3a temporary database sau test\"\"\"\n        if os.path.exists(self.temp_db.name):\n            os.unlink(self.temp_db.name)\n\n    @patch('orchestrator.send_notification')\n    def test_create_workflow_sends_start_notification(self, mock_notify):\n        \"\"\"Test workflow creation g\u1eedi start notification\"\"\"\n        session_id = self.orchestrator.create_workflow(\n            \"Fix bug in login\",\n            \"/test/path\"\n        )\n\n        # Verify notification \u0111\u01b0\u1ee3c g\u1ecdi\n        mock_notify.assert_called_once()\n        call_args = mock_notify.call_args[0]\n        self.assertEqual(call_args[0], \"Automation Started\")\n        self.assertIn(session_id, call_args[1])\n        self.assertIn(\"bug\", call_args[1])\n\n    @patch('orchestrator.send_notification')\n    def test_notify_workflow_done(self, mock_notify):\n        \"\"\"Test completion notification\"\"\"\n        session_id = \"test1234\"\n        duration = \"2m 30s\"\n\n        self.orchestrator.notify_workflow_done(session_id, duration)\n\n        mock_notify.assert_called_once_with(\n            \"Automation Complete\",\n            f\"Ho\u00e0n th\u00e0nh trong {duration} (Session: {session_id})\"\n        )\n\n    @patch('orchestrator.send_notification')\n    def test_notification_failure_does_not_crash_workflow(self, mock_notify):\n        \"\"\"Test workflow v\u1eabn ho\u1ea1t \u0111\u1ed9ng khi notification fail\"\"\"\n        mock_notify.side_effect = Exception(\"Notification error\")\n\n        # Workflow v\u1eabn ph\u1ea3i t\u1ea1o th\u00e0nh c\u00f4ng\n        try:\n            session_id = self.orchestrator.create_workflow(\n                \"Add new feature\",\n                \"/test/path\"\n            )\n            self.assertIsNotNone(session_id)\n        except Exception:\n            self.fail(\"Workflow should not crash when notification fails\")\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "summary": ".dual-graph/test_orchestrator_notifications.py. Contains 1 function: TestOrchestratorNotifications.",
+      "file_hash": "c5279e15"
+    },
+    {
+      "id": "test_orchestrator_notifications.py::TestOrchestratorNotifications",
+      "kind": "symbol",
+      "path": "test_orchestrator_notifications.py",
+      "ext": ".py",
+      "size": 59,
+      "keywords": [
+        "testorchestratornotifications",
+        "test",
+        "orchestrator",
+        "notifications"
+      ],
+      "symbol_type": "model",
+      "name": "TestOrchestratorNotifications",
+      "line_start": 8,
+      "line_end": 66,
+      "body_hash": "ed0af6cd",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_runner.py",
+      "kind": "file",
+      "path": "test_runner.py",
+      "ext": ".py",
+      "size": 4932,
+      "keywords": [
+        "testrunner",
+        "test",
+        "runner"
+      ],
+      "content": "# .dual-graph/test_runner.py\nimport subprocess\nimport json\nimport logging\nimport os\nfrom typing import Dict, Any\nfrom datetime import datetime\n\nlogger = logging.getLogger(__name__)\n\nclass TestRunner:\n    \"\"\"Runs Playwright tests and other test suites\"\"\"\n\n    def __init__(self):\n        self.log_dir = os.path.dirname(os.path.abspath(__file__))\n        self.test_log_file = os.path.join(self.log_dir, 'test_runner.log')\n        self._setup_logging()\n\n    def _setup_logging(self):\n        \"\"\"Configure logging for test runner\"\"\"\n        handler = logging.FileHandler(self.test_log_file)\n        handler.setLevel(logging.INFO)\n        handler.setFormatter(logging.Formatter(\n            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'\n        ))\n        logger.addHandler(handler)\n        logger.setLevel(logging.INFO)\n\n    def run_playwright_tests(self, session_id: str, cwd: str = None) -> Dict[str, Any]:\n        \"\"\"\n        Run Playwright tests\n\n        Args:\n            session_id: Unique session identifier\n            cwd: Working directory (defaults to current directory)\n\n        Returns:\n            Dict containing test results\n        \"\"\"\n        logger.info(f\"Running Playwright tests for session {session_id}\")\n\n        if cwd is None:\n            cwd = os.getcwd()\n\n        try:\n            result = subprocess.run(\n                ['npx', 'playwright', 'test'],\n                capture_output=True,\n                timeout=120,\n                text=True,\n                cwd=cwd\n            )\n\n            passed = result.returncode == 0\n            output = result.stdout if result.returncode == 0 else result.stderr\n\n            logger.info(f\"Playwright tests {'passed' if passed else 'failed'} for session {session_id}\")\n\n            return {\n                'session_id': session_id,\n                'passed': passed,\n                'output': output,\n                'returncode': result.returncode,\n                'timestamp': datetime.now().isoformat()\n            }\n\n        except subprocess.TimeoutExpired:\n            logger.error(f\"Playwright tests timeout for session {session_id}\")\n            return {\n                'session_id': session_id,\n                'passed': False,\n                'output': 'Tests timed out after 120 seconds',\n                'returncode': -1,\n                'timestamp': datetime.now().isoformat()\n            }\n        except FileNotFoundError:\n            logger.error(f\"Playwright not found for session {session_id}\")\n            return {\n                'session_id': session_id,\n                'passed': False,\n                'output': 'Playwright not installed. Run: npm install -D @playwright/test',\n                'returncode': -1,\n                'timestamp': datetime.now().isoformat()\n            }\n        except Exception as e:\n            logger.error(f\"Playwright tests failed: {e}\")\n            return {\n                'session_id': session_id,\n                'passed': False,\n                'output': str(e),\n                'returncode': -1,\n                'timestamp': datetime.now().isoformat()\n            }\n\n    def run_unit_tests(self, session_id: str, cwd: str = None) -> Dict[str, Any]:\n        \"\"\"\n        Run unit tests (npm test)\n\n        Args:\n            session_id: Unique session identifier\n            cwd: Working directory\n\n        Returns:\n            Dict containing test results\n        \"\"\"\n        logger.info(f\"Running unit tests for session {session_id}\")\n\n        if cwd is None:\n            cwd = os.getcwd()\n\n        try:\n            result = subprocess.run(\n                ['npm', 'test', '--', '--run'],\n                capture_output=True,\n                timeout=120,\n                text=True,\n                cwd=cwd\n            )\n\n            passed = result.returncode == 0\n            output = result.stdout if result.returncode == 0 else result.stderr\n\n            logger.info(f\"Unit tests {'passed' if passed else 'failed'} for session {session_id}\")\n\n            return {\n                'session_id': session_id,\n                'passed': passed,\n                'output': output,\n                'returncode': result.returncode,\n                'timestamp': datetime.now().isoformat()\n            }\n\n        except subprocess.TimeoutExpired:\n            logger.error(f\"Unit tests timeout for session {session_id}\")\n            return {\n                'session_id': session_id,\n                'passed': False,\n                'output': 'Tests timed out after 120 seconds',\n                'returncode': -1,\n                'timestamp': datetime.now().isoformat()\n            }\n        except Exception as e:\n            logger.error(f\"Unit tests failed: {e}\")\n            return {\n                'session_id': session_id,\n                'passed': False,\n                'output': str(e),\n                'returncode': -1,\n                'timestamp': datetime.now().isoformat()\n            }\n",
+      "summary": ".dual-graph/test_runner.py. Contains 1 function: TestRunner.",
+      "file_hash": "3e0938fb"
+    },
+    {
+      "id": "test_runner.py::TestRunner",
+      "kind": "symbol",
+      "path": "test_runner.py",
+      "ext": ".py",
+      "size": 140,
+      "keywords": [
+        "testrunner",
+        "test",
+        "runner"
+      ],
+      "symbol_type": "model",
+      "name": "TestRunner",
+      "line_start": 10,
+      "line_end": 149,
+      "body_hash": "c97ac6e4",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": "test_test_runner.py",
+      "kind": "file",
+      "path": "test_test_runner.py",
+      "ext": ".py",
+      "size": 1703,
+      "keywords": [
+        "testtestrunner",
+        "test",
+        "runner"
+      ],
+      "content": "# .dual-graph/test_test_runner.py\nimport unittest\nimport os\nimport tempfile\nimport shutil\nfrom test_runner import TestRunner\n\nclass TestTestRunner(unittest.TestCase):\n    def setUp(self):\n        self.runner = TestRunner()\n        self.session_id = 'test1234'\n        self.test_dir = tempfile.mkdtemp()\n\n    def tearDown(self):\n        if os.path.exists(self.test_dir):\n            shutil.rmtree(self.test_dir)\n\n    def test_runner_initialization(self):\n        \"\"\"Test TestRunner initializes correctly\"\"\"\n        self.assertIsNotNone(self.runner)\n        self.assertTrue(os.path.exists(self.runner.test_log_file))\n\n    def test_playwright_not_installed(self):\n        \"\"\"Test handling when Playwright is not installed\"\"\"\n        result = self.runner.run_playwright_tests(self.session_id, self.test_dir)\n\n        self.assertEqual(result['session_id'], self.session_id)\n        self.assertFalse(result['passed'])\n        self.assertIn('Playwright not installed', result['output'])\n\n    def test_unit_tests_no_package_json(self):\n        \"\"\"Test handling when no package.json exists\"\"\"\n        result = self.runner.run_unit_tests(self.session_id, self.test_dir)\n\n        self.assertEqual(result['session_id'], self.session_id)\n        self.assertFalse(result['passed'])\n\n    def test_result_structure(self):\n        \"\"\"Test that results have correct structure\"\"\"\n        result = self.runner.run_playwright_tests(self.session_id, self.test_dir)\n\n        self.assertIn('session_id', result)\n        self.assertIn('passed', result)\n        self.assertIn('output', result)\n        self.assertIn('returncode', result)\n        self.assertIn('timestamp', result)\n\nif __name__ == '__main__':\n    unittest.main()\n",
+      "summary": ".dual-graph/test_test_runner.py. Contains 1 function: TestTestRunner.",
+      "file_hash": "fc1becd8"
+    },
+    {
+      "id": "test_test_runner.py::TestTestRunner",
+      "kind": "symbol",
+      "path": "test_test_runner.py",
+      "ext": ".py",
+      "size": 42,
+      "keywords": [
+        "testtestrunner",
+        "test",
+        "runner"
+      ],
+      "symbol_type": "model",
+      "name": "TestTestRunner",
+      "line_start": 7,
+      "line_end": 48,
+      "body_hash": "93481e0a",
+      "confidence": "high",
+      "exported": true
+    },
+    {
+      "id": ".claude\\settings.local.json",
+      "kind": "file",
+      "path": ".claude\\settings.local.json",
+      "ext": ".json",
+      "size": 2109,
+      "keywords": [],
+      "content": "{\n    \"hooks\":  {\n                  \"SessionStart\":  [\n                                       {\n                                           \"hooks\":  [\n                                                         {\n                                                             \"command\":  \"powershell -NoProfile -File \\\"C:/Users/FUJITSU/Documents/PROJECTS/8w6s_profile/.dual-graph/.dual-graph/prime.ps1\\\"\",\n                                                             \"type\":  \"command\"\n                                                         }\n                                                     ],\n                                           \"matcher\":  \"\"\n                                       }\n                                   ],\n                  \"Stop\":  [\n                               {\n                                   \"hooks\":  [\n                                                 {\n                                                     \"command\":  \"powershell -NoProfile -File \\\"C:/Users/FUJITSU/Documents/PROJECTS/8w6s_profile/.dual-graph/.dual-graph/stop_hook.ps1\\\"\",\n                                                     \"type\":  \"command\"\n                                                 }\n                                             ],\n                                   \"matcher\":  \"\"\n                               }\n                           ],\n                  \"PreCompact\":  [\n                                     {\n                                         \"hooks\":  [\n                                                       {\n                                                           \"command\":  \"powershell -NoProfile -File \\\"C:/Users/FUJITSU/Documents/PROJECTS/8w6s_profile/.dual-graph/.dual-graph/prime.ps1\\\"\",\n                                                           \"type\":  \"command\"\n                                                       }\n                                                   ],\n                                         \"matcher\":  \"\"\n                                     }\n                                 ]\n              }\n}",
+      "summary": "\"hooks\":  {.",
+      "file_hash": "22c6e5e9"
+    }
+  ],
+  "edges": [
+    {
+      "from": "agent_spawner.py",
+      "to": "subprocess",
+      "rel": "imports"
+    },
+    {
+      "from": "agent_spawner.py",
+      "to": "json",
+      "rel": "imports"
+    },
+    {
+      "from": "agent_spawner.py",
+      "to": "logging",
+      "rel": "imports"
+    },
+    {
+      "from": "agent_spawner.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "agent_spawner.py",
+      "to": "typing",
+      "rel": "imports"
+    },
+    {
+      "from": "agent_spawner.py",
+      "to": "datetime",
+      "rel": "imports"
+    },
+    {
+      "from": "agent_spawner.py",
+      "to": "dual-graph/agent_spawner.py",
+      "rel": "references"
+    },
+    {
+      "from": "agent_spawner.py",
+      "to": "agent_spawner.py::AgentSpawner",
+      "rel": "contains"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "react",
+      "rel": "imports"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "lucide-react",
+      "rel": "imports"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "framer-motion",
+      "rel": "imports"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "next/server",
+      "rel": "imports"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "@/utils/supabase",
+      "rel": "imports"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "next/headers",
+      "rel": "imports"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "app/context/ProfileContext.ts",
+      "rel": "references"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "data/profile.js",
+      "rel": "references"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "app/admin/page.ts",
+      "rel": "references"
+    },
+    {
+      "from": "chat_action_graph.json",
+      "to": "components/MusicPlayer.ts",
+      "rel": "references"
+    },
+    {
+      "from": "CLAUDE.md",
+      "to": "src/auth.ts",
+      "rel": "references"
+    },
+    {
+      "from": "CLAUDE.md",
+      "to": "path/to/file.py",
+      "rel": "references"
+    },
+    {
+      "from": "CLAUDE.md",
+      "to": "dual-graph/context-store.js",
+      "rel": "references"
+    },
+    {
+      "from": "CLAUDE.md",
+      "to": "relevant/file.ts",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "app/admin/page.ts",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "components/TypewriterBio.ts",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "app/page.ts",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "app/api/profile/route.ts",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "app/api/like/route.ts",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "app/api/views/route.ts",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "/route.ts",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "dual-graph/agent_spawner.py",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "dual-graph/orchestrator.py",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "dual-graph/test_agent_spawner.py",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "dual-graph/test_orchestrator_agent_integration.py",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "dual-graph/test_runner.py",
+      "rel": "references"
+    },
+    {
+      "from": "context-store.json",
+      "to": "dual-graph/git_automation.py",
+      "rel": "references"
+    },
+    {
+      "from": "env_manager.py",
+      "to": "subprocess",
+      "rel": "imports"
+    },
+    {
+      "from": "env_manager.py",
+      "to": "json",
+      "rel": "imports"
+    },
+    {
+      "from": "env_manager.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "env_manager.py",
+      "to": "logging",
+      "rel": "imports"
+    },
+    {
+      "from": "env_manager.py",
+      "to": "typing",
+      "rel": "imports"
+    },
+    {
+      "from": "env_manager.py",
+      "to": "dual-graph/env_manager.py",
+      "rel": "references"
+    },
+    {
+      "from": "env_manager.py",
+      "to": "env_manager.py::EnvironmentManager",
+      "rel": "contains"
+    },
+    {
+      "from": "git_automation.py",
+      "to": "subprocess",
+      "rel": "imports"
+    },
+    {
+      "from": "git_automation.py",
+      "to": "logging",
+      "rel": "imports"
+    },
+    {
+      "from": "git_automation.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "git_automation.py",
+      "to": "typing",
+      "rel": "imports"
+    },
+    {
+      "from": "git_automation.py",
+      "to": "datetime",
+      "rel": "imports"
+    },
+    {
+      "from": "git_automation.py",
+      "to": "dual-graph/git_automation.py",
+      "rel": "references"
+    },
+    {
+      "from": "git_automation.py",
+      "to": "git_automation.py::GitAutomation",
+      "rel": "contains"
+    },
+    {
+      "from": "notifier.py",
+      "to": "subprocess",
+      "rel": "imports"
+    },
+    {
+      "from": "notifier.py",
+      "to": "platform",
+      "rel": "imports"
+    },
+    {
+      "from": "notifier.py",
+      "to": "logging",
+      "rel": "imports"
+    },
+    {
+      "from": "notifier.py",
+      "to": "html",
+      "rel": "imports"
+    },
+    {
+      "from": "notifier.py",
+      "to": "dual-graph/notifier.py",
+      "rel": "references"
+    },
+    {
+      "from": "notifier.py",
+      "to": "notifier.py::send_notification",
+      "rel": "contains"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "json",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "sqlite3",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "logging",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "re",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "uuid",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "datetime",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "typing",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "contextlib",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "notifier",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "agent_spawner",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "test_runner",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "git_automation",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "env_manager",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "dual-graph/orchestrator.py",
+      "rel": "references"
+    },
+    {
+      "from": "orchestrator.py",
+      "to": "orchestrator.py::WorkflowOrchestrator",
+      "rel": "contains"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "json",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "sys",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "logging",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "http.server",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "orchestrator",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "pathlib",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "logging.handlers",
+      "rel": "imports"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "dual-graph/orchestrator_server.py",
+      "rel": "references"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "orchestrator_server.py::validate_prompt",
+      "rel": "contains"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "orchestrator_server.py::validate_cwd",
+      "rel": "contains"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "orchestrator_server.py::main",
+      "rel": "contains"
+    },
+    {
+      "from": "orchestrator_server.py",
+      "to": "orchestrator_server.py::OrchestrationHandler",
+      "rel": "contains"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "sys",
+      "rel": "imports"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "unittest.mock",
+      "rel": "imports"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "datetime",
+      "rel": "imports"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "agent_spawner",
+      "rel": "imports"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "subprocess",
+      "rel": "imports"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "dual-graph/test_agent_spawner.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_agent_spawner.py",
+      "to": "test_agent_spawner.py::TestAgentSpawner",
+      "rel": "contains"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "json",
+      "rel": "imports"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "tempfile",
+      "rel": "imports"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "shutil",
+      "rel": "imports"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "env_manager",
+      "rel": "imports"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "dual-graph/test_env_manager.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "test_env_manager.py::run_tests",
+      "rel": "contains"
+    },
+    {
+      "from": "test_env_manager.py",
+      "to": "test_env_manager.py::TestEnvironmentManager",
+      "rel": "contains"
+    },
+    {
+      "from": "test_git_automation.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_git_automation.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_git_automation.py",
+      "to": "tempfile",
+      "rel": "imports"
+    },
+    {
+      "from": "test_git_automation.py",
+      "to": "shutil",
+      "rel": "imports"
+    },
+    {
+      "from": "test_git_automation.py",
+      "to": "subprocess",
+      "rel": "imports"
+    },
+    {
+      "from": "test_git_automation.py",
+      "to": "git_automation",
+      "rel": "imports"
+    },
+    {
+      "from": "test_git_automation.py",
+      "to": "dual-graph/test_git_automation.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_git_automation.py",
+      "to": "test_git_automation.py::TestGitAutomation",
+      "rel": "contains"
+    },
+    {
+      "from": "test_notifier.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_notifier.py",
+      "to": "platform",
+      "rel": "imports"
+    },
+    {
+      "from": "test_notifier.py",
+      "to": "unittest.mock",
+      "rel": "imports"
+    },
+    {
+      "from": "test_notifier.py",
+      "to": "notifier",
+      "rel": "imports"
+    },
+    {
+      "from": "test_notifier.py",
+      "to": "dual-graph/test_notifier.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_notifier.py",
+      "to": "test_notifier.py::TestNotifier",
+      "rel": "contains"
+    },
+    {
+      "from": "test_orchestrator_agent_integration.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_agent_integration.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_agent_integration.py",
+      "to": "sys",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_agent_integration.py",
+      "to": "tempfile",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_agent_integration.py",
+      "to": "unittest.mock",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_agent_integration.py",
+      "to": "orchestrator",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_agent_integration.py",
+      "to": "dual-graph/test_orchestrator_agent_integration.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_orchestrator_agent_integration.py",
+      "to": "test_orchestrator_agent_integration.py::TestOrchestratorAgentIntegration",
+      "rel": "contains"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "json",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "tempfile",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "shutil",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "sqlite3",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "orchestrator",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "dual-graph/test_orchestrator_env_integration.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "test_orchestrator_env_integration.py::run_tests",
+      "rel": "contains"
+    },
+    {
+      "from": "test_orchestrator_env_integration.py",
+      "to": "test_orchestrator_env_integration.py::TestOrchestratorEnvIntegration",
+      "rel": "contains"
+    },
+    {
+      "from": "test_orchestrator_integration.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_integration.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_integration.py",
+      "to": "tempfile",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_integration.py",
+      "to": "shutil",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_integration.py",
+      "to": "orchestrator",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_integration.py",
+      "to": "dual-graph/test_orchestrator_integration.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_orchestrator_integration.py",
+      "to": "test_orchestrator_integration.py::TestOrchestratorIntegration",
+      "rel": "contains"
+    },
+    {
+      "from": "test_orchestrator_notifications.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_notifications.py",
+      "to": "tempfile",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_notifications.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_notifications.py",
+      "to": "unittest.mock",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_notifications.py",
+      "to": "orchestrator",
+      "rel": "imports"
+    },
+    {
+      "from": "test_orchestrator_notifications.py",
+      "to": "dual-graph/test_orchestrator_notifications.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_orchestrator_notifications.py",
+      "to": "test_orchestrator_notifications.py::TestOrchestratorNotifications",
+      "rel": "contains"
+    },
+    {
+      "from": "test_runner.py",
+      "to": "subprocess",
+      "rel": "imports"
+    },
+    {
+      "from": "test_runner.py",
+      "to": "json",
+      "rel": "imports"
+    },
+    {
+      "from": "test_runner.py",
+      "to": "logging",
+      "rel": "imports"
+    },
+    {
+      "from": "test_runner.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_runner.py",
+      "to": "typing",
+      "rel": "imports"
+    },
+    {
+      "from": "test_runner.py",
+      "to": "datetime",
+      "rel": "imports"
+    },
+    {
+      "from": "test_runner.py",
+      "to": "dual-graph/test_runner.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_runner.py",
+      "to": "test_runner.py::TestRunner",
+      "rel": "contains"
+    },
+    {
+      "from": "test_test_runner.py",
+      "to": "unittest",
+      "rel": "imports"
+    },
+    {
+      "from": "test_test_runner.py",
+      "to": "os",
+      "rel": "imports"
+    },
+    {
+      "from": "test_test_runner.py",
+      "to": "tempfile",
+      "rel": "imports"
+    },
+    {
+      "from": "test_test_runner.py",
+      "to": "shutil",
+      "rel": "imports"
+    },
+    {
+      "from": "test_test_runner.py",
+      "to": "test_runner",
+      "rel": "imports"
+    },
+    {
+      "from": "test_test_runner.py",
+      "to": "dual-graph/test_test_runner.py",
+      "rel": "references"
+    },
+    {
+      "from": "test_test_runner.py",
+      "to": "test_test_runner.py::TestTestRunner",
+      "rel": "contains"
+    }
+  ]
+}

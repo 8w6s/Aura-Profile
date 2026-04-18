@@ -201,7 +201,7 @@ class EnvironmentManager:
                 capture_output=True,
                 text=True,
                 cwd=self.cwd,
-                timeout=300  # 5 minutes timeout
+                timeout=180  # 3 minutes timeout
             )
 
             if result.returncode == 0:
@@ -221,12 +221,20 @@ class EnvironmentManager:
                 }
 
         except subprocess.TimeoutExpired:
-            logger.error("npm install timed out after 5 minutes")
+            logger.error("npm install timed out after 3 minutes")
             return {
                 'success': False,
                 'installed': [],
                 'failed': packages,
                 'error': 'Installation timed out'
+            }
+        except FileNotFoundError:
+            logger.error("npm command not found")
+            return {
+                'success': False,
+                'installed': [],
+                'failed': packages,
+                'error': 'npm not installed'
             }
         except Exception as e:
             logger.error(f"Error installing npm packages: {e}")
@@ -251,7 +259,7 @@ class EnvironmentManager:
                     capture_output=True,
                     text=True,
                     cwd=self.cwd,
-                    timeout=120  # 2 minutes per package
+                    timeout=90  # 90 seconds per package
                 )
 
                 if result.returncode == 0:
@@ -263,6 +271,9 @@ class EnvironmentManager:
 
             except subprocess.TimeoutExpired:
                 logger.error(f"Installation of {pkg} timed out")
+                failed.append(pkg)
+            except FileNotFoundError:
+                logger.error("pip command not found")
                 failed.append(pkg)
             except Exception as e:
                 logger.error(f"Error installing {pkg}: {e}")
