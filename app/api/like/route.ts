@@ -22,7 +22,13 @@ const reportServerError = (...args: unknown[]) => {
 
 export async function POST(request: Request) {
   try {
-    const { postId } = await request.json();
+    const body = await request.json();
+    const { postId } = body;
+
+    if (!postId || typeof postId !== 'string') {
+      return NextResponse.json({ error: 'Invalid postId' }, { status: 400 });
+    }
+
     const headersList = await headers();
     const forwardedFor = headersList.get('x-forwarded-for');
     const ip = forwardedFor ? forwardedFor.split(',')[0] : 'unknown';
@@ -35,6 +41,7 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (error || !dbData || !dbData.content) {
+      reportServerError('Database error:', error);
       return NextResponse.json({ error: 'Data not found' }, { status: 404 });
     }
 

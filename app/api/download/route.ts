@@ -25,8 +25,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const fileId = searchParams.get('fileId');
 
-  if (!fileId) {
-    return NextResponse.json({ error: 'File ID is required' }, { status: 400 });
+  if (!fileId || typeof fileId !== 'string' || fileId.trim().length === 0) {
+    return NextResponse.json({ error: 'Valid file ID is required' }, { status: 400 });
   }
 
   try {

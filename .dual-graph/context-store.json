@@ -1,297 +1,65 @@
 [
   {
-    "id": "mem:1776352061681",
-    "kind": "query_association",
-    "content": "Queried during: tech stack dependencies",
-    "tags": [
-      "tech",
-      "stack",
-      "dependencies"
-    ],
-    "files": [
-      "package.json"
-    ],
-    "file_path": "package.json",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T15:07:41.681408+00:00",
-    "created_epoch": 1776352061,
-    "updated_at": "2026-04-16T15:07:41.681471+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "tech stack dependencies"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776351930
-    }
+    "type": "decision",
+    "content": "Removed conflicting useEffect syncing profile to formData every 10s",
+    "tags": ["admin", "theme-presets", "rollback-fix"],
+    "files": ["app/admin/page.tsx"],
+    "date": "2026-04-18"
   },
   {
-    "id": "mem:1776352061586",
-    "kind": "query_association",
-    "content": "Queried during: understand main features and functionality",
-    "tags": [
-      "understand",
-      "main",
-      "features",
-      "functionality"
-    ],
-    "files": [
-      "app/context/ProfileContext.tsx"
-    ],
-    "file_path": "app/context/ProfileContext.tsx",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T15:07:41.586286+00:00",
-    "created_epoch": 1776352061,
-    "updated_at": "2026-04-16T15:07:41.586552+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "understand main features and functionality"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776351930
-    }
+    "type": "decision",
+    "content": "Translated all Vietnamese UI text to English for global audience",
+    "tags": ["i18n", "admin", "localization"],
+    "files": ["app/admin/page.tsx"],
+    "date": "2026-04-18"
   },
   {
-    "id": "mem:1776352061746",
-    "kind": "query_association",
-    "content": "Queried during: profile data structure",
-    "tags": [
-      "profile",
-      "data",
-      "structure"
-    ],
-    "files": [
-      "data/profile.json"
-    ],
-    "file_path": "data/profile.json",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T15:07:41.746533+00:00",
-    "created_epoch": 1776352061,
-    "updated_at": "2026-04-16T15:07:41.746586+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "profile data structure"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776351930
-    }
+    "type": "decision",
+    "content": "Removed unused functions handleSave handlePublish handleRollback",
+    "tags": ["eslint", "cleanup", "dead-code"],
+    "files": ["app/admin/page.tsx"],
+    "date": "2026-04-18"
   },
   {
-    "id": "mem:1776352113376",
-    "kind": "query_association",
-    "content": "Queried during: admin panel features and structure",
-    "tags": [
-      "admin",
-      "panel",
-      "features",
-      "structure"
-    ],
-    "files": [
-      "app/admin/page.tsx"
-    ],
-    "file_path": "app/admin/page.tsx",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T15:08:33.376541+00:00",
-    "created_epoch": 1776352113,
-    "updated_at": "2026-04-16T15:08:33.376573+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "admin panel features and structure"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776351930
-    }
+    "type": "decision",
+    "content": "Fixed all any types with proper TypeScript types",
+    "tags": ["typescript", "type-safety", "eslint"],
+    "files": ["app/admin/page.tsx"],
+    "date": "2026-04-18"
   },
   {
-    "id": "mem:1776352423713",
-    "kind": "query_association",
-    "content": "Queried during: music player features",
-    "tags": [
-      "music",
-      "player",
-      "features"
-    ],
-    "files": [
-      "components/MusicPlayer.tsx"
-    ],
-    "file_path": "components/MusicPlayer.tsx",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T15:13:43.713774+00:00",
-    "created_epoch": 1776352423,
-    "updated_at": "2026-04-16T15:13:43.713791+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "music player features"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776351930
-    }
+    "type": "decision",
+    "content": "Fixed JSX in try catch by extracting elements before return",
+    "tags": ["react", "error-boundaries", "eslint"],
+    "files": ["app/admin/page.tsx"],
+    "date": "2026-04-18"
   },
   {
-    "id": "mem:1776380447680",
-    "kind": "query_association",
-    "content": "Queried during: profile API implementation error handling",
-    "tags": [
-      "profile",
-      "api",
-      "implementation",
-      "error",
-      "handling"
-    ],
-    "files": [
-      "app\\api\\profile\\route.ts"
-    ],
-    "file_path": "app\\api\\profile\\route.ts",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T23:00:47.678276+00:00",
-    "created_epoch": 1776380447,
-    "updated_at": "2026-04-16T23:00:47.678336+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "profile API implementation error handling"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776379234
-    }
+    "type": "fact",
+    "content": "TypewriterBio component works correctly confirmed via browser test",
+    "tags": ["typewriter", "animation", "testing"],
+    "files": ["components/TypewriterBio.tsx"],
+    "date": "2026-04-18"
   },
   {
-    "id": "mem:1776380448658",
-    "kind": "query_association",
-    "content": "Queried during: views tracking implementation",
-    "tags": [
-      "views",
-      "tracking",
-      "implementation"
-    ],
-    "files": [
-      "app\\api\\views\\route.ts"
-    ],
-    "file_path": "app\\api\\views\\route.ts",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T23:00:48.658269+00:00",
-    "created_epoch": 1776380448,
-    "updated_at": "2026-04-16T23:00:48.658313+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "views tracking implementation"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776379234
-    }
+    "type": "fact",
+    "content": "Production build passes successfully after ESLint fixes",
+    "tags": ["build", "production", "eslint"],
+    "files": ["app/admin/page.tsx", "app/page.tsx"],
+    "date": "2026-04-18"
   },
   {
-    "id": "mem:1776380448325",
-    "kind": "query_association",
-    "content": "Queried during: like API implementation",
-    "tags": [
-      "like",
-      "api",
-      "implementation"
-    ],
-    "files": [
-      "app\\api\\like\\route.ts"
-    ],
-    "file_path": "app\\api\\like\\route.ts",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T23:00:48.325029+00:00",
-    "created_epoch": 1776380448,
-    "updated_at": "2026-04-16T23:00:48.325073+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "like API implementation"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776379234
-    }
+    "type": "next",
+    "content": "Add comprehensive error handling to API routes",
+    "tags": ["api", "error-handling", "validation"],
+    "files": ["app/api/profile/route.ts", "app/api/like/route.ts", "app/api/views/route.ts"],
+    "date": "2026-04-18"
   },
   {
-    "id": "mem:1776380449870",
-    "kind": "query_association",
-    "content": "Queried during: admin panel security authentication",
-    "tags": [
-      "admin",
-      "panel",
-      "security",
-      "authentication"
-    ],
-    "files": [
-      "app\\admin\\page.tsx"
-    ],
-    "file_path": "app\\admin\\page.tsx",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T23:00:49.869972+00:00",
-    "created_epoch": 1776380449,
-    "updated_at": "2026-04-16T23:00:49.870006+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "admin panel security authentication"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776379234
-    }
-  },
-  {
-    "id": "mem:1776380449193",
-    "kind": "query_association",
-    "content": "Queried during: music player implementation",
-    "tags": [
-      "music",
-      "player",
-      "implementation"
-    ],
-    "files": [
-      "components\\MusicPlayer.tsx"
-    ],
-    "file_path": "components\\MusicPlayer.tsx",
-    "symbol_id": "",
-    "symbol_hash": "",
-    "created_at": "2026-04-16T23:00:49.193058+00:00",
-    "created_epoch": 1776380449,
-    "updated_at": "2026-04-16T23:00:49.193106+00:00",
-    "stale": false,
-    "stale_reason": "",
-    "observed_queries": [
-      "music player implementation"
-    ],
-    "evidence": {
-      "source": "graph_read",
-      "anchor_mode": "file",
-      "session_epoch": 1776379234
-    }
+    "type": "next",
+    "content": "Add input validation to all API endpoints",
+    "tags": ["api", "validation", "security"],
+    "files": ["app/api/*/route.ts"],
+    "date": "2026-04-18"
   }
 ]

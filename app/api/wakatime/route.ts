@@ -12,8 +12,12 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const username = searchParams.get('username');
 
-  if (!username) {
-    return NextResponse.json({ error: 'Username required' }, { status: 400 });
+  if (!username || typeof username !== 'string' || username.trim().length === 0) {
+    return NextResponse.json({ error: 'Valid username required' }, { status: 400 });
+  }
+
+  if (username.length > 100 || !/^[a-zA-Z0-9_-]+$/.test(username)) {
+    return NextResponse.json({ error: 'Invalid username format' }, { status: 400 });
   }
 
   try {

@@ -74,13 +74,13 @@ NOTIFY pgrst, 'reload schema';
         }
       }
 
-    } catch (supaEx: any) {
-      console.error('Supabase Setup Step Error:', supaEx.message);
+    } catch (supaEx) {
+      console.error('Supabase Setup Step Error:', supaEx instanceof Error ? supaEx.message : supaEx);
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Setup Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }

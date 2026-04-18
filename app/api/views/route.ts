@@ -34,7 +34,13 @@ export async function POST(request: Request) {
     try {
       const body = await request.json();
       postId = body.postId;
-    } catch {
+
+      if (postId && typeof postId !== 'string') {
+        return NextResponse.json({ error: 'Invalid postId type' }, { status: 400 });
+      }
+    } catch (err) {
+      reportServerError('Failed to parse request body:', err);
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
     const supabase = getSupabaseClient();

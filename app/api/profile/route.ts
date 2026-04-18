@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/utils/supabase';
+import { cookies } from 'next/headers';
 
 type LooseProfile = Record<string, unknown>;
 
@@ -169,9 +170,26 @@ const buildRevision = (type: Revision['type'], snapshot: LooseProfile): Revision
   snapshot,
 });
 
-const requireAdmin = (_request: Request) => {
-  // Temporary bypass for now, to be replaced by full Supabase auth check
-  return { ok: true as const, response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+const requireAdmin = async (_request: Request) => {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('aura_admin_token')?.value;
+
+    if (!token) {
+      return { ok: false as const, response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+    }
+
+    const supabase = getSupabaseClient();
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return { ok: false as const, response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+    }
+
+    return { ok: true as const };
+  } catch (error) {
+    return { ok: false as const, response: NextResponse.json({ error: 'Internal Server Error' }, { status: 500 }) };
+  }
 };
 
 export async function GET(request: Request) {
@@ -182,7 +200,7 @@ export async function GET(request: Request) {
     const adminMode = url.searchParams.get('mode') === 'admin';
 
     if (adminMode) {
-      const auth = requireAdmin(request);
+      const auth = await requireAdmin(request);
       if (!auth.ok) {
         return auth.response;
       }
@@ -216,7 +234,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const auth = requireAdmin(request);
+    const auth = await requireAdmin(request);
     if (!auth.ok) {
       return auth.response;
     }
