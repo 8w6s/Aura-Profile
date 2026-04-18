@@ -45,6 +45,14 @@ import { LayoutSectionId } from '@/app/context/ProfileContext';
 
 type IntegrationState = 'idle' | 'loading' | 'success' | 'error';
 
+interface LeetCodeData {
+  totalSolved: number;
+  ranking: number;
+  easySolved: number;
+  mediumSolved: number;
+  hardSolved: number;
+}
+
 const isDev = process.env.NODE_ENV !== 'production';
 
 const reportClientError = (...args: unknown[]) => {
@@ -61,16 +69,11 @@ export default function Home() {
   const [entered, setEntered] = useState(false);
   const [typedRole, setTypedRole] = useState('');
   const [typedName, setTypedName] = useState('');
-  const [leetcodeData, setLeetCodeData] = useState<any>(null);
+  const [leetcodeData, setLeetCodeData] = useState<LeetCodeData | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [postSearchQuery, setPostSearchQuery] = useState('');
   const [postCategoryFilter, setPostCategoryFilter] = useState('all');
   const [leetcodeState, setLeetcodeState] = useState<IntegrationState>('idle');
-  const [hasHydrated, setHasHydrated] = useState(false);
-
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
 
   // Effect fetch LeetCode data
   useEffect(() => {
@@ -313,9 +316,10 @@ export default function Home() {
 
   const getSocialIcon = (platform: string) => {
     if (socialIcons[platform]) return socialIcons[platform];
-    if ((AllIcons as any)[platform]) return (AllIcons as any)[platform];
+    const iconsMap = AllIcons as any;
+    if (iconsMap[platform]) return iconsMap[platform];
     const key = Object.keys(AllIcons).find(k => k.toLowerCase() === platform.toLowerCase());
-    if (key) return (AllIcons as any)[key];
+    if (key) return iconsMap[key];
     return LinkIcon;
   };
 

@@ -101,6 +101,7 @@ export default function AdminPage() {
         rollbackToRevision,
         resetProfile,
         workflow,
+        authError,
         isLoading,
     } = useProfile();
     const { showToast } = useToast();
@@ -113,6 +114,32 @@ export default function AdminPage() {
     const [uploadMode, setUploadMode] = useState<'catbox' | 'local'>('catbox');
     const [selectedRevisionId, setSelectedRevisionId] = useState('');
     const importFileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const [loginUsername, setLoginUsername] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoggingIn(true);
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Đăng nhập thất bại');
+            }
+            showToast('Đăng nhập thành công. Đang tải lại...', 'success');
+            window.location.reload();
+        } catch (error: any) {
+            showToast(error.message, 'error');
+        } finally {
+            setIsLoggingIn(false);
+        }
+    };
 
     const [postSearch, setPostSearch] = useState('');
     const [postFilter, setPostFilter] = useState<'all' | 'recent' | 'oldest' | 'top-liked' | 'has-comments'>('all');
@@ -944,10 +971,64 @@ export default function AdminPage() {
             showToast(error instanceof Error ? error.message : 'Không thể nhập file backup.', 'error');
         } finally {
             if (importFileInputRef.current) {
-                importFileInputRef.current.value = '';
-            }
+        importFileInputRef.current.value = '';
         }
+    }
     };
+
+    if (authError) {
+        return (
+            <div className="min-h-screen w-full bg-[#030712] text-white flex items-center justify-center font-sans relative overflow-hidden" suppressHydrationWarning>
+                {/* Background effects */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl opacity-50 mix-blend-screen" />
+                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl opacity-50 mix-blend-screen" />
+                </div>
+
+                <div className="relative z-10 w-full max-w-md p-8 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
+                    <div className="flex flex-col items-center mb-8">
+                        <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-4 ring-1 ring-white/20">
+                            <Settings size={32} className="text-white drop-shadow-md" />
+                        </div>
+                        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-300 via-white to-purple-300 bg-clip-text text-transparent">Quản Trị</h1>
+                        <p className="text-gray-400 mt-2 text-sm text-center">Xác thực để quản lý hồ sơ</p>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="space-y-5">
+                        <div className="group space-y-1">
+                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Tài khoản</label>
+                            <input
+                                type="text"
+                                value={loginUsername}
+                                onChange={(e) => setLoginUsername(e.target.value)}
+                                className="w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all group-hover:border-white/20"
+                                placeholder="Nhập tên đăng nhập"
+                                required
+                            />
+                        </div>
+                        <div className="group space-y-1">
+                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Mật khẩu</label>
+                            <input
+                                type="password"
+                                value={loginPassword}
+                                onChange={(e) => setLoginPassword(e.target.value)}
+                                className="w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all group-hover:border-white/20"
+                                placeholder="Nhập mật khẩu"
+                                required
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={isLoggingIn}
+                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-semibold py-3.5 px-6 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98] disabled:opacity-70 mt-4"
+                        >
+                            {isLoggingIn ? <Loader2 size={20} className="animate-spin" /> : <span>Đăng nhập</span>}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
+    }
 
     if (isLoading || !formData) return <div suppressHydrationWarning className="min-h-screen bg-black text-white flex items-center justify-center"><Loader2 className="animate-spin text-indigo-500" size={48} /></div>;
 
