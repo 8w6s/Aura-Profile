@@ -1,5 +1,16 @@
 {
     "hooks":  {
+                  "UserPromptSubmit":  [
+                                           {
+                                               "hooks":  [
+                                                             {
+                                                                 "command":  "powershell -NoProfile -File \"C:/Users/FUJITSU/Documents/PROJECTS/8w6s_profile/.claude/hooks/onUserPromptSubmit.ps1\"",
+                                                                 "type":  "command"
+                                                             }
+                                                         ],
+                                               "matcher":  ""
+                                           }
+                                       ],
                   "SessionStart":  [
                                        {
                                            "hooks":  [
