@@ -293,6 +293,7 @@ export default function AdminPage() {
     };
 
     const createLocalBackupSnapshot = (reason: 'manual' | 'scheduled') => {
+        if (typeof window === 'undefined') return null;
         try {
             const key = 'aura-profile-snapshots';
             const existing = JSON.parse(localStorage.getItem(key) || '[]') as Array<{ id: string; createdAt: string; profile: unknown; reason: string }>;
@@ -312,6 +313,7 @@ export default function AdminPage() {
     };
 
     const downloadLatestLocalSnapshot = () => {
+        if (typeof window === 'undefined') return;
         const raw = localStorage.getItem('aura-profile-last-snapshot');
         if (!raw) {
             showToast('No local snapshot found.', 'info');
