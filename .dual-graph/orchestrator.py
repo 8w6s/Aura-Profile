@@ -11,6 +11,7 @@ from notifier import send_notification
 from agent_spawner import AgentSpawner
 from test_runner import TestRunner
 from git_automation import GitAutomation
+from env_manager import EnvironmentManager
 
 # Configure logging
 log_dir = os.path.dirname(os.path.abspath(__file__))
@@ -37,13 +38,15 @@ logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
 class WorkflowOrchestrator:
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, cwd: str = None):
         self.db_path = db_path
+        self.cwd = cwd or os.getcwd()
         self.agent_spawner = AgentSpawner()
         self.test_runner = TestRunner()
         self.git_automation = GitAutomation()
+        self.env_manager = EnvironmentManager(self.cwd)
         self._init_db()
-        logger.info(f"WorkflowOrchestrator initialized with db_path: {db_path}")
+        logger.info(f"WorkflowOrchestrator initialized with db_path: {db_path}, cwd: {self.cwd}")
 
     @contextmanager
     def _get_connection(self):
@@ -195,6 +198,20 @@ class WorkflowOrchestrator:
             logger.warning(f"Cannot transition from {current_state} to EXECUTING")
             return {'success': False, 'error': f'Invalid state transition from {current_state}'}
 
+        # Check and install dependencies before spawning agent
+        logger.info(f"Checking environment dependencies for session {session_id}")
+        env_result = self.env_manager.ensure_environment()
+
+        if not env_result['ready']:
+            logger.error(f"Environment not ready for session {session_id}")
+            return {
+                'success': False,
+                'error': 'Failed to prepare environment',
+                'env_result': env_result
+            }
+
+        logger.info(f"Environment ready for session {session_id}")
+
         # Update state to EXECUTING
         with self._get_connection() as conn:
             conn.execute(
@@ -214,6 +231,7 @@ class WorkflowOrchestrator:
             'session_id': session_id,
             'previous_state': current_state,
             'new_state': 'EXECUTING',
+            'env_result': env_result,
             'agent_result': agent_result
         }
 
@@ -248,9 +266,10 @@ class WorkflowOrchestrator:
 
         current_state = row[0]
 
-        if current_state != 'EXECUTING':
-            logger.warning(f"Cannot transition from {current_state} to TESTING")
-            return {'success': False, 'error': f'Invalid state transition from {current_state}'}
+        # Valid transitions: EXECUTING -> TESTING
+        if current_state not in ['EXECUTING']:
+            logger.warning(f"Cannot transition from {current_state} to TESTING. Must be in EXECUTING state.")
+            return {'success': False, 'error': f'Invalid state transition from {current_state} to TESTING'}
 
         # Update state to TESTING
         with self._get_connection() as conn:
@@ -305,9 +324,10 @@ class WorkflowOrchestrator:
 
         current_state, task_type = row
 
-        if current_state != 'TESTING':
-            logger.warning(f"Cannot transition from {current_state} to COMMITTING")
-            return {'success': False, 'error': f'Invalid state transition from {current_state}'}
+        # Valid transitions: TESTING -> COMMITTING or EXECUTING -> COMMITTING (skip testing)
+        if current_state not in ['TESTING', 'EXECUTING']:
+            logger.warning(f"Cannot transition from {current_state} to COMMITTING. Must be in TESTING or EXECUTING state.")
+            return {'success': False, 'error': f'Invalid state transition from {current_state} to COMMITTING'}
 
         # Update state to COMMITTING
         with self._get_connection() as conn:
