@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from contextlib import contextmanager
 from notifier import send_notification
+from agent_spawner import AgentSpawner
 
 # Configure logging
 log_dir = os.path.dirname(os.path.abspath(__file__))
@@ -36,6 +37,7 @@ logger.addHandler(console_handler)
 class WorkflowOrchestrator:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        self.agent_spawner = AgentSpawner()
         self._init_db()
         logger.info(f"WorkflowOrchestrator initialized with db_path: {db_path}")
 
@@ -154,3 +156,59 @@ class WorkflowOrchestrator:
 
         logger.warning(f"No workflow found for session_id: {session_id}")
         return None
+
+    def transition_to_executing(self, session_id: str) -> Dict[str, Any]:
+        """
+        Transition workflow from CLASSIFYING to EXECUTING state and spawn agent
+
+        Args:
+            session_id: Unique session identifier
+
+        Returns:
+            Dict containing transition status and agent spawn result
+        """
+        if not self._validate_session_id(session_id):
+            logger.warning(f"Invalid session_id format: {session_id}")
+            return {'success': False, 'error': 'Invalid session_id format'}
+
+        logger.info(f"Transitioning session {session_id} to EXECUTING state")
+
+        # Get current workflow state
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT state, task_type, prompt FROM workflows WHERE session_id = ?",
+                (session_id,)
+            )
+            row = cursor.fetchone()
+
+        if not row:
+            logger.error(f"Workflow not found for session_id: {session_id}")
+            return {'success': False, 'error': 'Workflow not found'}
+
+        current_state, task_type, prompt = row
+
+        if current_state != 'CLASSIFYING':
+            logger.warning(f"Cannot transition from {current_state} to EXECUTING")
+            return {'success': False, 'error': f'Invalid state transition from {current_state}'}
+
+        # Update state to EXECUTING
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE workflows SET state = ?, updated_at = ? WHERE session_id = ?",
+                ('EXECUTING', datetime.now().isoformat(), session_id)
+            )
+
+        logger.info(f"State updated to EXECUTING for session {session_id}")
+
+        # Spawn agent
+        agent_result = self.agent_spawner.spawn_agent(task_type, prompt, session_id)
+
+        logger.info(f"Agent spawn result: {agent_result['status']}")
+
+        return {
+            'success': True,
+            'session_id': session_id,
+            'previous_state': current_state,
+            'new_state': 'EXECUTING',
+            'agent_result': agent_result
+        }
