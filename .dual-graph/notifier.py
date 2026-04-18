@@ -2,6 +2,7 @@
 import subprocess
 import platform
 import logging
+import html
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,10 @@ def send_notification(title: str, message: str):
     """
     try:
         if platform.system() == 'Windows':
+            # Escape XML special characters để tránh XML injection
+            title_escaped = html.escape(title)
+            message_escaped = html.escape(message)
+
             # PowerShell toast notification
             ps_script = f"""
 $null = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
@@ -25,8 +30,8 @@ $xml.LoadXml(@"
 <toast>
     <visual>
         <binding template='ToastText02'>
-            <text id='1'>{title}</text>
-            <text id='2'>{message}</text>
+            <text id='1'>{title_escaped}</text>
+            <text id='2'>{message_escaped}</text>
         </binding>
     </visual>
 </toast>

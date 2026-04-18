@@ -50,6 +50,36 @@ class TestNotifier(unittest.TestCase):
         except Exception:
             self.fail("send_notification should not raise exception")
 
+    @patch('notifier.platform.system')
+    @patch('notifier.subprocess.run')
+    def test_xml_injection_prevention(self, mock_run, mock_platform):
+        """Test XML special characters được escape đúng"""
+        mock_platform.return_value = 'Windows'
+        mock_run.return_value = MagicMock(returncode=0)
+
+        # Test với XML special characters
+        send_notification("Title <tag>", "Message & <xml>")
+
+        # Verify escaped characters trong PowerShell script
+        call_args = mock_run.call_args[0][0][2]
+        self.assertIn('&lt;tag&gt;', call_args)  # < và > được escape
+        self.assertIn('&amp;', call_args)  # & được escape
+        self.assertNotIn('<tag>', call_args)  # Raw tags không có
+        self.assertNotIn('& <xml>', call_args)  # Raw & không có
+
+    @patch('notifier.platform.system')
+    @patch('notifier.subprocess.run')
+    def test_xml_injection_quotes(self, mock_run, mock_platform):
+        """Test quotes được escape đúng"""
+        mock_platform.return_value = 'Windows'
+        mock_run.return_value = MagicMock(returncode=0)
+
+        send_notification("Title 'single'", 'Message "double"')
+
+        call_args = mock_run.call_args[0][0][2]
+        self.assertIn('&#x27;', call_args)  # Single quote escaped
+        self.assertIn('&quot;', call_args)  # Double quote escaped
+
 
 if __name__ == '__main__':
     unittest.main()
