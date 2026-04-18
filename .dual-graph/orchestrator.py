@@ -9,6 +9,8 @@ from typing import Dict, Any, Optional
 from contextlib import contextmanager
 from notifier import send_notification
 from agent_spawner import AgentSpawner
+from test_runner import TestRunner
+from git_automation import GitAutomation
 
 # Configure logging
 log_dir = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +40,8 @@ class WorkflowOrchestrator:
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.agent_spawner = AgentSpawner()
+        self.test_runner = TestRunner()
+        self.git_automation = GitAutomation()
         self._init_db()
         logger.info(f"WorkflowOrchestrator initialized with db_path: {db_path}")
 
@@ -211,4 +215,119 @@ class WorkflowOrchestrator:
             'previous_state': current_state,
             'new_state': 'EXECUTING',
             'agent_result': agent_result
+        }
+
+    def transition_to_testing(self, session_id: str, cwd: str = None) -> Dict[str, Any]:
+        """
+        Transition workflow from EXECUTING to TESTING state and run tests
+
+        Args:
+            session_id: Unique session identifier
+            cwd: Working directory
+
+        Returns:
+            Dict containing transition status and test results
+        """
+        if not self._validate_session_id(session_id):
+            logger.warning(f"Invalid session_id format: {session_id}")
+            return {'success': False, 'error': 'Invalid session_id format'}
+
+        logger.info(f"Transitioning session {session_id} to TESTING state")
+
+        # Get current workflow state
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT state FROM workflows WHERE session_id = ?",
+                (session_id,)
+            )
+            row = cursor.fetchone()
+
+        if not row:
+            logger.error(f"Workflow not found for session_id: {session_id}")
+            return {'success': False, 'error': 'Workflow not found'}
+
+        current_state = row[0]
+
+        if current_state != 'EXECUTING':
+            logger.warning(f"Cannot transition from {current_state} to TESTING")
+            return {'success': False, 'error': f'Invalid state transition from {current_state}'}
+
+        # Update state to TESTING
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE workflows SET state = ?, updated_at = ? WHERE session_id = ?",
+                ('TESTING', datetime.now().isoformat(), session_id)
+            )
+
+        logger.info(f"State updated to TESTING for session {session_id}")
+
+        # Run tests
+        test_result = self.test_runner.run_playwright_tests(session_id, cwd)
+
+        logger.info(f"Test result: {'passed' if test_result['passed'] else 'failed'}")
+
+        return {
+            'success': True,
+            'session_id': session_id,
+            'previous_state': current_state,
+            'new_state': 'TESTING',
+            'test_result': test_result
+        }
+
+    def transition_to_committing(self, session_id: str, cwd: str = None) -> Dict[str, Any]:
+        """
+        Transition workflow from TESTING to COMMITTING state and auto commit
+
+        Args:
+            session_id: Unique session identifier
+            cwd: Working directory
+
+        Returns:
+            Dict containing transition status and commit result
+        """
+        if not self._validate_session_id(session_id):
+            logger.warning(f"Invalid session_id format: {session_id}")
+            return {'success': False, 'error': 'Invalid session_id format'}
+
+        logger.info(f"Transitioning session {session_id} to COMMITTING state")
+
+        # Get current workflow state
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT state, task_type FROM workflows WHERE session_id = ?",
+                (session_id,)
+            )
+            row = cursor.fetchone()
+
+        if not row:
+            logger.error(f"Workflow not found for session_id: {session_id}")
+            return {'success': False, 'error': 'Workflow not found'}
+
+        current_state, task_type = row
+
+        if current_state != 'TESTING':
+            logger.warning(f"Cannot transition from {current_state} to COMMITTING")
+            return {'success': False, 'error': f'Invalid state transition from {current_state}'}
+
+        # Update state to COMMITTING
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE workflows SET state = ?, updated_at = ? WHERE session_id = ?",
+                ('COMMITTING', datetime.now().isoformat(), session_id)
+            )
+
+        logger.info(f"State updated to COMMITTING for session {session_id}")
+
+        # Generate commit message and commit
+        commit_message = self.git_automation.generate_commit_message(session_id, task_type, cwd)
+        commit_result = self.git_automation.auto_commit(session_id, commit_message, cwd)
+
+        logger.info(f"Commit result: {'success' if commit_result['success'] else 'failed'}")
+
+        return {
+            'success': True,
+            'session_id': session_id,
+            'previous_state': current_state,
+            'new_state': 'COMMITTING',
+            'commit_result': commit_result
         }
