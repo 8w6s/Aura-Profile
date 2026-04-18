@@ -130,9 +130,9 @@ export default function AdminPage() {
             });
             if (!res.ok) {
                 const data = await res.json();
-                throw new Error(data.error || 'Đăng nhập thất bại');
+                throw new Error(data.error || 'Login failed');
             }
-            showToast('Đăng nhập thành công. Đang tải lại...', 'success');
+            showToast('Login successful. Reloading...', 'success');
             window.location.reload();
         } catch (error: any) {
             showToast(error.message, 'error');
@@ -334,7 +334,7 @@ export default function AdminPage() {
             URL.revokeObjectURL(url);
             showToast('Loaded latest snapshot.', 'success');
         } catch {
-            showToast('Snapshot bị lỗi định dạng.', 'error');
+            showToast('Snapshot format error.', 'error');
         }
     };
 
@@ -351,12 +351,6 @@ export default function AdminPage() {
         { id: 'metadata', label: 'Site Metadata', icon: Globe },
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
-
-    useEffect(() => {
-        if (profile && !formData) {
-            setFormData(profile);
-        }
-    }, [profile, formData]);
 
     useEffect(() => {
         latestFormDataRef.current = formData;
@@ -384,7 +378,7 @@ export default function AdminPage() {
         const intervalId = window.setInterval(() => {
             const snapshot = createLocalBackupSnapshot('scheduled');
             if (snapshot) {
-                showToast(`Đã tạo snapshot định kỳ (${scheduledBackupMinutes} phút/lần).`, 'info');
+                showToast(`Scheduled snapshot created (every ${scheduledBackupMinutes} minutes).`, 'info');
             }
         }, scheduledBackupMinutes * 60_000);
 
@@ -958,7 +952,7 @@ export default function AdminPage() {
             const importedProfile = normalizePlatformImport(rawProfile);
 
             if (!importedProfile.name && !importedProfile.role && !importedProfile.bio && !importedProfile.avatarUrl && !importedProfile.bannerUrl) {
-                throw new Error('File backup không đúng định dạng profile.');
+                throw new Error('Backup file is not a valid profile format.');
             }
 
             setFormData((prev) => ({
@@ -968,9 +962,9 @@ export default function AdminPage() {
                 customCss: typeof importedProfile.customCss === 'string' ? importedProfile.customCss : prev.customCss,
             }));
 
-            showToast('Đã nhập backup profile thành công.', 'success');
+            showToast('Profile backup imported successfully.', 'success');
         } catch (error) {
-            showToast(error instanceof Error ? error.message : 'Không thể nhập file backup.', 'error');
+            showToast(error instanceof Error ? error.message : 'Unable to import backup file.', 'error');
         } finally {
             if (importFileInputRef.current) {
         importFileInputRef.current.value = '';
@@ -992,30 +986,30 @@ export default function AdminPage() {
                         <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-4 ring-1 ring-white/20">
                             <Settings size={32} className="text-white drop-shadow-md" />
                         </div>
-                        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-300 via-white to-purple-300 bg-clip-text text-transparent">Quản Trị</h1>
-                        <p className="text-gray-400 mt-2 text-sm text-center">Xác thực để quản lý hồ sơ</p>
+                        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-300 via-white to-purple-300 bg-clip-text text-transparent">Admin Panel</h1>
+                        <p className="text-gray-400 mt-2 text-sm text-center">Authenticate to manage profile</p>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div className="group space-y-1">
-                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Tài khoản</label>
+                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Username</label>
                             <input
                                 type="text"
                                 value={loginUsername}
                                 onChange={(e) => setLoginUsername(e.target.value)}
                                 className="w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all group-hover:border-white/20"
-                                placeholder="Nhập tên đăng nhập"
+                                placeholder="Enter username"
                                 required
                             />
                         </div>
                         <div className="group space-y-1">
-                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Mật khẩu</label>
+                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Password</label>
                             <input
                                 type="password"
                                 value={loginPassword}
                                 onChange={(e) => setLoginPassword(e.target.value)}
                                 className="w-full bg-[#0f172a] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all group-hover:border-white/20"
-                                placeholder="Nhập mật khẩu"
+                                placeholder="Enter password"
                                 required
                             />
                         </div>
@@ -1024,7 +1018,7 @@ export default function AdminPage() {
                             disabled={isLoggingIn}
                             className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-semibold py-3.5 px-6 rounded-xl transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98] disabled:opacity-70 mt-4"
                         >
-                            {isLoggingIn ? <Loader2 size={20} className="animate-spin" /> : <span>Đăng nhập</span>}
+                            {isLoggingIn ? <Loader2 size={20} className="animate-spin" /> : <span>Login</span>}
                         </button>
                     </form>
                 </div>
@@ -1405,7 +1399,7 @@ export default function AdminPage() {
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
                                         <h3 className="text-xl font-semibold text-indigo-400">Section Order</h3>
-                                        <p className="text-sm text-gray-400">Sắp xếp lại các khối hiển thị theo thứ tự ưu tiên, đồng thời giữ khả năng ẩn từng section khi cần.</p>
+                                        <p className="text-sm text-gray-400">Reorder display blocks by priority while maintaining the ability to hide individual sections as needed.</p>
                                     </div>
                                     <button onClick={() => setFormData((prev) => ({ ...prev, layout: { sectionOrder: defaultLayoutOrder, hiddenSections: [], sectionWidths: {}, postLayout: 'grid', projectLayout: 'grid' } }))} className="text-xs px-3 py-2 rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-white/25 transition-colors">
                                         Reset Layout
@@ -1460,7 +1454,7 @@ export default function AdminPage() {
                                         );
                                     })}
                                 </div>
-                                <p className="text-xs text-gray-500">Tip: Kéo-thả từng section để reorder nhanh, nút mũi tên vẫn hoạt động cho tinh chỉnh chính xác.</p>
+                                <p className="text-xs text-gray-500">Tip: Drag and drop sections for quick reordering, arrow buttons still work for precise adjustments.</p>
                             </div>
 
                             <div className="bg-white/5 p-6 rounded-3xl border border-white/10 shadow-2xl shadow-black/50 backdrop-blur-xl relative overflow-hidden group hover:border-white/20 transition-all duration-500 space-y-4">
@@ -1495,7 +1489,7 @@ export default function AdminPage() {
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
                                         <h3 className="text-xl font-semibold text-indigo-400">Custom CSS Injection</h3>
-                                        <p className="text-sm text-gray-400">Dành cho user nâng cao. CSS sẽ được inject trực tiếp vào profile, nên chỉ nên dùng các selector có chủ đích.</p>
+                                        <p className="text-sm text-gray-400">For advanced users. CSS will be injected directly into the profile, so only use intentional selectors.</p>
                                     </div>
                                     <span className="text-xs rounded-full border border-white/10 px-3 py-1 text-gray-400">Scoped on public pages</span>
                                 </div>
@@ -1509,7 +1503,7 @@ export default function AdminPage() {
                                 />
 
                                 <p className="text-xs text-gray-500">
-                                    Hệ thống sẽ giữ lại backup của profile hiện tại, nên thay đổi CSS có thể rollback qua workflow nếu cần.
+                                    The system will keep a backup of the current profile, so CSS changes can be rolled back via workflow if needed.
                                 </p>
 
                                 <div className="space-y-3 border-t border-white/10 pt-4">
@@ -2323,7 +2317,7 @@ export default function AdminPage() {
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
                                             <h3 className="text-xl font-semibold text-indigo-400">Theme Quick Presets</h3>
-                                            <p className="mt-2 text-sm text-gray-400">Áp dụng nhanh bộ màu và style phổ biến, sau đó vẫn có thể tinh chỉnh từng trường bên dưới.</p>
+                                            <p className="mt-2 text-sm text-gray-400">Quickly apply popular color schemes and styles, then fine-tune individual fields below.</p>
                                         </div>
                                         <button
                                             onClick={() => applyThemePreset({
@@ -2773,9 +2767,9 @@ export default function AdminPage() {
                                         onClick={() => {
                                             const snapshot = createLocalBackupSnapshot('manual');
                                             if (snapshot) {
-                                                showToast('Đã lưu snapshot cục bộ.', 'success');
+                                                showToast('Local snapshot saved.', 'success');
                                             } else {
-                                                showToast('Không thể lưu snapshot cục bộ.', 'error');
+                                                showToast('Unable to save local snapshot.', 'error');
                                             }
                                         }}
                                         className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-gray-200 transition-colors hover:border-white/25 hover:text-white"
@@ -2811,7 +2805,7 @@ export default function AdminPage() {
                                     }}
                                 />
                                 <p className="text-xs text-gray-500">
-                                    Backup JSON sẽ giữ nguyên cấu trúc profile hiện tại. Khi import, hệ thống chỉ ghi đè các trường hợp hợp lệ và giữ lại workflow để tránh mất trạng thái đang có.
+                                    Backup JSON will preserve the current profile structure. On import, the system only overwrites valid fields and retains workflow to avoid losing existing state.
                                 </p>
                             </div>
                         </section>
